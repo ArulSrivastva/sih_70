@@ -1,0 +1,83 @@
+{
+  "experiment": "P2_PHASE2B_5_FOLD_CV",
+  "dataset_split": "Stratified 5-Fold Cross-Validation on Development Set (N=112)",
+  "baseline_vs_candidate_comparison": {
+    "pattern_macro_f1": {
+      "baseline": "0.2767 +/- 0.0651",
+      "candidate": "0.2424 +/- 0.0047",
+      "delta_abs": -0.0343,
+      "verdict": "REGRESSION"
+    },
+    "pattern_accuracy": {
+      "baseline": "0.5897 +/- 0.0260",
+      "candidate": "0.5715 +/- 0.0174",
+      "delta_abs": -0.0182,
+      "verdict": "REGRESSION"
+    },
+    "category_macro_f1": {
+      "baseline": "0.1422 +/- 0.0627",
+      "candidate": "0.1179 +/- 0.0438",
+      "delta_abs": -0.0243,
+      "verdict": "REGRESSION"
+    },
+    "category_accuracy": {
+      "baseline": "0.2573 +/- 0.0936",
+      "candidate": "0.2850 +/- 0.0950",
+      "delta_abs": 0.0277,
+      "verdict": "WITHIN_NOISE_MARGIN"
+    },
+    "physical_consistency_rate": {
+      "baseline": "0.8241 +/- 0.2037",
+      "candidate": "0.4431 +/- 0.4197",
+      "delta_abs": -0.3810,
+      "verdict": "REGRESSION"
+    }
+  },
+  "fold_by_fold_breakdown": [
+    {
+      "fold": 1,
+      "baseline_pat_macro_f1": 0.3697,
+      "candidate_pat_macro_f1": 0.2424,
+      "baseline_cat_macro_f1": 0.2185,
+      "candidate_cat_macro_f1": 0.1706,
+      "baseline_phys_consistency": 0.8696,
+      "candidate_phys_consistency": 0.0435
+    },
+    {
+      "fold": 2,
+      "baseline_pat_macro_f1": 0.2424,
+      "candidate_pat_macro_f1": 0.2424,
+      "baseline_cat_macro_f1": 0.1429,
+      "candidate_cat_macro_f1": 0.1282,
+      "baseline_phys_consistency": 0.9565,
+      "candidate_phys_consistency": 0.9565
+    },
+    {
+      "fold": 3,
+      "baseline_pat_macro_f1": 0.2424,
+      "candidate_pat_macro_f1": 0.2424,
+      "baseline_cat_macro_f1": 0.0667,
+      "candidate_cat_macro_f1": 0.0667,
+      "baseline_phys_consistency": 1.0000,
+      "candidate_phys_consistency": 1.0000
+    },
+    {
+      "fold": 4,
+      "baseline_pat_macro_f1": 0.2863,
+      "candidate_pat_macro_f1": 0.2424,
+      "baseline_cat_macro_f1": 0.0667,
+      "candidate_cat_macro_f1": 0.0667,
+      "baseline_phys_consistency": 0.8182,
+      "candidate_phys_consistency": 0.1818
+    },
+    {
+      "fold": 5,
+      "baseline_pat_macro_f1": 0.2424,
+      "candidate_pat_macro_f1": 0.2424,
+      "baseline_cat_macro_f1": 0.2163,
+      "candidate_cat_macro_f1": 0.1576,
+      "baseline_phys_consistency": 0.4762,
+      "candidate_phys_consistency": 0.0337
+    }
+  ]
+}

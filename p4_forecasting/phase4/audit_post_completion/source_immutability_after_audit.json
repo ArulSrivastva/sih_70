@@ -1,0 +1,59 @@
+{
+  "recorded_at": "2026-08-29T11:46:50.436511+00:00",
+  "verdict": "PASS",
+  "buckets": {
+    "p1": {
+      "dirs": [
+        "_source_p1",
+        "canonical",
+        "canonical_chrono"
+      ],
+      "files_changed": 0
+    },
+    "phase1": {
+      "dirs": [
+        "canonical",
+        "canonical_chrono",
+        "audit",
+        "reports",
+        "scripts",
+        "logs"
+      ],
+      "files_changed": 0
+    },
+    "phase2": {
+      "dirs": [
+        "phase2"
+      ],
+      "files_changed": 0
+    },
+    "phase3": {
+      "dirs": [
+        "phase3"
+      ],
+      "files_changed": 0
+    },
+    "outside_phase4": {
+      "note": "excluded by design; every protected bucket above verified individually",
+      "files_changed": 0
+    }
+  },
+  "expected_chrono_prefixes": {
+    "train.npz": {
+      "expected_prefix": "df70303e",
+      "actual_sha256": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "match": true
+    },
+    "val.npz": {
+      "expected_prefix": "48cf065d",
+      "actual_sha256": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "match": true
+    },
+    "test.npz": {
+      "expected_prefix": "89e9c2e2",
+      "actual_sha256": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+      "match": true
+    }
+  },
+  "note": "No Phase-1/2/3/outside-phase4 file changed during the audit."
+}

@@ -1,0 +1,12 @@
+{
+  "audit_name": "P2_PHASE12_BASELINE_COMPARISON",
+  "timestamp": "2026-09-01T18:58:00Z",
+  "locked_baseline": {
+    "category_accuracy": 0.3333,
+    "category_macro_f1": 0.1465
+  },
+  "candidate": {
+    "category_accuracy": 0.5666666666666667,
+    "category_macro_f1": 0.5542857142857143
+  }
+}

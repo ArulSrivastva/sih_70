@@ -1,0 +1,2144 @@
+﻿[
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\LEAKAGE_AUDIT.md",
+        "Sha":  "9B7DA616B56DB5E21901A9911D2EE28432730D31B901946D91E7E32287CDEF3B",
+        "Size":  1726
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\leakage_results.csv",
+        "Sha":  "7115FF6F07638CE48EFD124646F2F815149E09E2F07F8CEAE50A7C69B070BA1A",
+        "Size":  418210
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\NPZ_AUDIT_REPORT.md",
+        "Sha":  "FCBF2D967058C576EB80B9566C5679FB4F29255244C04CE518E58AA4B7097D08",
+        "Size":  1662
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\P4_FILE_INVENTORY.md",
+        "Sha":  "4F9D025B3968B1154FDFE3C87D7F509F4F927D9DB223615E72DC22A85091BF68",
+        "Size":  16858
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\PHYSICAL_SANITY_REPORT.md",
+        "Sha":  "62ECF233F49207E17D1CEBDF2A39C6FD255F211FB2378D9AD1F8BC4BFCFBA311",
+        "Size":  1691
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\SPLIT_LEAKAGE_AUDIT.md",
+        "Sha":  "BEE5DDAFC6D87ADC489FD62FD54CCBE41C3B456502BE27D760CB0191DD43A51C",
+        "Size":  740
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\TEMPORAL_AUDIT.md",
+        "Sha":  "FFC5BCB9660F21AA3DA49000E921D2B50D6895B72E76EACAE890D07F4F85CF2C",
+        "Size":  2489
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "audit\\TEMPORAL_SPLIT_QUALITY.md",
+        "Sha":  "4CE5DCD940030F7369A6E0B19B01846FA65EF80FAD30F58240D465412E1BE074",
+        "Size":  1141
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\P4_DATA_CONTRACT.md",
+        "Sha":  "F641AFE5584606074E32BDD0569608804F4422063746AD2E2F21912B36ABAFBF",
+        "Size":  3205
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\sample_quality.csv",
+        "Sha":  "239DBB035E016242C9CEA842E7F6AA335B007AA4BD2F111210634268DC9C631A",
+        "Size":  325097
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\test.npz",
+        "Sha":  "A90BEEA0394C9E63B4B093351F5AEF9084B5D47D62D2DFB512F73369929400F7",
+        "Size":  15067
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\test_metadata.csv",
+        "Sha":  "6CA2BB49E483B956F29A07FE89BF0E1BB0673AF0CAB0F73F87377315D5340021",
+        "Size":  85486
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\train.npz",
+        "Sha":  "4F3B289D1B7FAD1C02BF273349BB669F63210762CB66A1224812A22DF10E44E4",
+        "Size":  69668
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\train_metadata.csv",
+        "Sha":  "1F985A452C72569BD1DF7E6263306B26A7C24AAEE05275953F7BDE38233AAC4B",
+        "Size":  459159
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\val.npz",
+        "Sha":  "16F753C8BA33F2C9A90A890E447009EC483152ED7B71C83812451D2D97039C85",
+        "Size":  13621
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical\\val_metadata.csv",
+        "Sha":  "56A3DE0568032A8A213851ABAC1D90A961182DD4EB16D2C59F23B940E60BE102",
+        "Size":  78446
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\split_manifest.csv",
+        "Sha":  "A9269478B880D8EC663943C7B4D15E5725369110CA2EC3AF8FD11E1C34C3C748",
+        "Size":  6208
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\test.npz",
+        "Sha":  "89E9C2E23D42E0D20CEEDD7672FB929B352C54C212E35EAB9F1E3AD0172D727D",
+        "Size":  13204
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\test_metadata.csv",
+        "Sha":  "870172F9D041C78FF13FDA314E9B0A8DA8B3E99F5D6D179AF9561666676657BC",
+        "Size":  54659
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\train.npz",
+        "Sha":  "DF70303E20C3BB57835A71E3787FF5CF6D79E218A0A1116D18EEF052349897CC",
+        "Size":  70748
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\train_metadata.csv",
+        "Sha":  "75D17B23AAA039D135780846A949CD5B6DAF36F005C583059B15E07915C4DE2D",
+        "Size":  307261
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\val.npz",
+        "Sha":  "48CF065D75A1FC3138CE6C2267DE1849D0A7C86FBB7A0922146AB1D1DACE2ABD",
+        "Size":  14443
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "canonical_chrono\\val_metadata.csv",
+        "Sha":  "40B19EDC759AAF1B260E4D82F38B9BDCED50C8789302470C29FD1A2EECCD99EA",
+        "Size":  56783
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\p1_source_hashes.json",
+        "Sha":  "87CD3261A90BD604CAC2BF58317729840A4695DD4FCB59EC006DB6424CD8815F",
+        "Size":  13849
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132135.log",
+        "Sha":  "E3DFDED3EF96373E0175DB04989A9FFAB954B6587A0F2846BDE84C5F0FD47CE3",
+        "Size":  528
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132147.log",
+        "Sha":  "8CD3DBA4920D59D3AF7A304DF80A2D8F18920694B62AA0AF541B485499E422E4",
+        "Size":  799
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132203.log",
+        "Sha":  "A5644575B610DE9367D9262CF38B9AF9921CB5124318F5C9B63D2E8D69750C82",
+        "Size":  1083
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132251.log",
+        "Sha":  "C1BF19190C46265F760D8BA1D67AC1A87A154FD78EDF4DAAA397DAB7A928CE1B",
+        "Size":  1541
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132328.log",
+        "Sha":  "980273FAC321BAF9B13B93107530F26D12CD9E9357110ADB4851A1006F09AD62",
+        "Size":  2706
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132404.log",
+        "Sha":  "4F4E4461A13611BB011F90A1EBBC2079F9FEE667414307B115CA55423362C881",
+        "Size":  2610
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "logs\\run_20260829_132529.log",
+        "Sha":  "74FCE5BE5CE42949559E93FA51D3D91ECB3CF2A4A3BA4F433ED769256DCCD59F",
+        "Size":  2610
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\run_phase2.py",
+        "Sha":  "30CA98A326D4A4F6B09DB589A443DACE8341010E658B358EA28705BB488DC3D7",
+        "Size":  12895
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\__init__.py",
+        "Sha":  "2CF9F91A3A66DFBBD48F00173F203FF642DFA35C8116D698B6B3561E436159F2",
+        "Size":  88
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\baselines\\movement_vector.py",
+        "Sha":  "8338B91C97DEDC9B9312BD1D1135ACE01CD015BCCEC3964A355BFD8016C5F406",
+        "Size":  2882
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\baselines\\persistence.py",
+        "Sha":  "6C9E6A39D8959886E15DE12869E5B9A4B0CCAA731CA4A7561B7EA8795AA28D77",
+        "Size":  1344
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\baselines\\__init__.py",
+        "Sha":  "215091402021A43448F2B97908271398AF6C97C94CCF49FF9A048F50389DB978",
+        "Size":  39
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\dataloader\\build_clean_dataset.py",
+        "Sha":  "9B73D0E7CD883D69C0B59A627DAF85D32FFC361A46252C3954DEB8F4250762E2",
+        "Size":  5028
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\dataloader\\build_dataloaders.py",
+        "Sha":  "94C34934165FD35222AFD1E05923216C0CA39799E112278831A5B5711F4C094C",
+        "Size":  1894
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\dataloader\\forecasting_dataset.py",
+        "Sha":  "F72A70278177D997F4DED98F0B42D0E19C34C4D1D5551EC71B40639E4392508F",
+        "Size":  4408
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\dataloader\\__init__.py",
+        "Sha":  "D73B9C67CE872A0F8D65FF91E26D9424FF6714CA81DD809AFFA0EEE4002DB0DB",
+        "Size":  40
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\evaluation\\evaluate_baselines.py",
+        "Sha":  "14CA057B9D282455D9117EE90A8A9C096DDE5A3FE30103F79E5C76417ABECBD9",
+        "Size":  3060
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\evaluation\\geo_metrics.py",
+        "Sha":  "D2F0A2CDDD59517A33B5AD2475408699D05C0724AFF9E14E910CE503CDA13915",
+        "Size":  1517
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\evaluation\\metrics.py",
+        "Sha":  "7D1F6D04F51A2F92E132DB96B581B7B9E1A3AE275BC9332FDF9F601BDFE25578",
+        "Size":  2860
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\evaluation\\__init__.py",
+        "Sha":  "776329E75C6E9654EEEF908467168FF31776BBEE54AD95C7BB49BCB1806124B1",
+        "Size":  40
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\reports\\BASELINE_REPORT.md",
+        "Sha":  "9AC6E5E1C359EDA231635391D39A51BECCDE76956D0A951917E7D091E38BD437",
+        "Size":  2439
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\baseline_results.json",
+        "Sha":  "D939675311AB95C6ADF1C225083251B2912E3164DA12EBB6BE5F303C2F3598B3",
+        "Size":  3881
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\canonical_chronological_clean\\test.npz",
+        "Sha":  "B8A28425887E02A18998DA9A74E3916F27B4AA570523B7B38F68BF64A9B9762C",
+        "Size":  7459
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\canonical_chronological_clean\\test_metadata.csv",
+        "Sha":  "188A8A430FBF99815DB580E3C14A358E56D823BEBD002554201369DD8A1CCD74",
+        "Size":  29357
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\canonical_chronological_clean\\train.npz",
+        "Sha":  "DDD0B149DC333728F4DB45A3CEDBB4724F085F132440394A8265F0CA74B3B451",
+        "Size":  41975
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\canonical_chronological_clean\\train_metadata.csv",
+        "Sha":  "D6E50C00DAA008C53037CE575EB588856099BDFCC2C041408ACAFEBEFF0A87D3",
+        "Size":  180271
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\canonical_chronological_clean\\val.npz",
+        "Sha":  "7A8C237DE655D7C5CF49E6E69783E89D63C9785C6275DA14B37C8C5C0975418A",
+        "Size":  9282
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\results\\canonical_chronological_clean\\val_metadata.csv",
+        "Sha":  "EE491DBC93144D97399C4F56D403BB35F81A59C512E6113E3298B98B88940B16",
+        "Size":  34598
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\tests\\test_baselines.py",
+        "Sha":  "B7A320CD3FE1679F47F67C5F696455844DC9703B957ABD614037139FD58A4547",
+        "Size":  4420
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\tests\\test_dataloader.py",
+        "Sha":  "E0271DA000D36704315F003D14A1F8600CEF8A51006CBD9BC2493371BABAF967",
+        "Size":  6060
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase2\\tests\\__init__.py",
+        "Sha":  "16DD447B6C2753940508454865E65215BBDBAAFFC299A9D015F640FCFF1105B8",
+        "Size":  35
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\run_phase3.py",
+        "Sha":  "3EA6277A9ED012AA6A24B018048FCA0C2763891221A3B273ECC7B2B9C6257CAE",
+        "Size":  17036
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\__init__.py",
+        "Sha":  "B8E2516275162C48427DA2AC93DF8D021444C1D3DAF966B52D736EF52F1B9223",
+        "Size":  81
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\checkpoints\\best_lstm.pt",
+        "Sha":  "163CDBEC4DAAB49C5BCC5D6945BC6C50B4A7CB89F56EDA3B88C4E1902A720A0F",
+        "Size":  79708
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\checkpoints\\model_config.json",
+        "Sha":  "14C2180F65EAF02B11C30FBCB6492CA271E225050F0FC8999B1AC7DA673524FE",
+        "Size":  533
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\evaluation\\compare_baselines.py",
+        "Sha":  "1794A339E8636A9EE776AE09269C4E7E555BDA110BA1759B59512A64E87ADE84",
+        "Size":  2773
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\evaluation\\evaluate_model.py",
+        "Sha":  "A1331415DCEF70F6F2FACA42FF4DCAF49152AD376B85F9B404703FF32195552F",
+        "Size":  3239
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\evaluation\\__init__.py",
+        "Sha":  "ED34DECB5FC5F641EE766C600E1CF898529878C83C3023C6A7F8DA414CFA5B7A",
+        "Size":  40
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\inference\\forecaster.py",
+        "Sha":  "DFE6C4CD9665FC46EDA5BEF61A6D520690AB60DF0984C2BB070E2D737EDA137F",
+        "Size":  3894
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\inference\\__init__.py",
+        "Sha":  "347E7A996959AA94D2A2FB13941479FFA5EFDD90BC484E544919BC26813104B0",
+        "Size":  39
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\model\\cyclone_lstm.py",
+        "Sha":  "4BAECD14C116B75D4AED75DEAA4140F6A8232FCAF82E4CECC35F2DC64CF07B14",
+        "Size":  2909
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\model\\__init__.py",
+        "Sha":  "F56DD7E2E2F376FF59A7774058E915172014FA6BA5ABA877187CD491A215C76F",
+        "Size":  35
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\reports\\generate_model_report.py",
+        "Sha":  "9711B5231A54BABDDD229C1A0F129248FBB6C27A58050B6E649687CDD9658FCA",
+        "Size":  7664
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\reports\\MODEL_REPORT.md",
+        "Sha":  "5D6A7950E840B5DB1B92D397C705D23D4DB9C587B3706DF275E1CD79F86E17AC",
+        "Size":  4443
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\evaluation_results.json",
+        "Sha":  "D8CB4B90A57D152DD5C0A5AEFE49E2D24F2B37543E2D34570A0607349E0F6498",
+        "Size":  1560
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\model_comparison.json",
+        "Sha":  "33717D181C55DEA9FAD1D318F3024A3F4E45FCC7E61BA3316814134F5F92F788",
+        "Size":  6089
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\normalization_stats.json",
+        "Sha":  "E267E430DFFC11E74BCCCDF7F1E5BE31064494AD9CCEF6E1FBE303EEF113899F",
+        "Size":  939
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\run_metadata.json",
+        "Sha":  "49011DD888CF4956789FA1638F5FCD28D0C96AE5A77BA45C5CE83A6A51DF5A04",
+        "Size":  375
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\source_hashes.json",
+        "Sha":  "6A45916AF3522125446FF2A61CB201F876FC9EFEBF76E57E7E417834C7EF9308",
+        "Size":  1672
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\training_history.json",
+        "Sha":  "63745CA252247BEA72C646248073387C425EE8009D45CEC074A7F3160C202062",
+        "Size":  6711
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\results\\training_loss_curve.png",
+        "Sha":  "3C20515216DF3EE4543C29D393DE551BE9B3D4B7F92D0BF1360C76896F1362D5",
+        "Size":  45842
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\conftest.py",
+        "Sha":  "F143069899A452167F2FCCB2E907BECA95DA82BE85987710BA993AB2E1BCA2A0",
+        "Size":  333
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\test_checkpoint_loading.py",
+        "Sha":  "7E86C6282DA4CDE4EC42AE8C525A90F3B4303D89FF93F8C94CE66EDFA5A5D80F",
+        "Size":  2694
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\test_haversine_metrics.py",
+        "Sha":  "A080822F6C3D711BA27204EE7F5DE36DF559D328AB8EF1DA9AF4CE360523DCE5",
+        "Size":  1301
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\test_inference.py",
+        "Sha":  "B485F6A048E56FE302F8E2A252E6755B71A821D2722529C9AC0FE45DA438D7B4",
+        "Size":  3658
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\test_model.py",
+        "Sha":  "C21E1F25507D5E1791038A1A5E30876F57AEA1693CBD0063C1CE3B2D7E92861D",
+        "Size":  1645
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\test_normalization.py",
+        "Sha":  "1197AFA0EB0EAEC9FA808F15DAF7219E04EE78AF68505B293FD3FF16CDE4E8FC",
+        "Size":  2725
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\tests\\__init__.py",
+        "Sha":  "936950133ABB4D963091B4241AEAA674C2123AB02AD7F7C35907A51987482D19",
+        "Size":  35
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\training\\dataset.py",
+        "Sha":  "BE117921B1A19325B7480EF8F8839D43F40D3B35F9DAF0B749B2675CF51C3FDC",
+        "Size":  3130
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\training\\normalization.py",
+        "Sha":  "7164BB9A27B67AFC0AC409500C5386CC1B02AF4A9A0706890BB9C570EADCF84B",
+        "Size":  4459
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\training\\train.py",
+        "Sha":  "43E17A2E4F6B1C90F1D8E67C00E68C04227604C7971FA1C6D589CCEF0FAC1A19",
+        "Size":  9985
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase3\\training\\__init__.py",
+        "Sha":  "478AE3EFEB6D01AB0117F7A13633BD13429A1E142570F04C755712FC99243D9D",
+        "Size":  38
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\common.py",
+        "Sha":  "EB69711F928F1826F45246D93CD5A9F35364527E0CD5F1B6B0CE3387051CEBB4",
+        "Size":  4241
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs.py",
+        "Sha":  "D29505173C0F5A3B011FBD3633691CF79B597DFEAAA3A22B7C3EB1571077BD09",
+        "Size":  5205
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\experiments.py",
+        "Sha":  "3D01D7B57779828D7727DBA3BAF569E90C4626838F51CEA40745A7506545FCEA",
+        "Size":  6399
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\final_comparison.py",
+        "Sha":  "B3DE7CD1390C96BADD262D600ED870F48DBCF14E110340EEEAE8764C736F3F90",
+        "Size":  3079
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\immutability.py",
+        "Sha":  "3B8A1DA07719CFD044A0784803A3959711D070C425D9887DE0AB1910DA63FD7F",
+        "Size":  4037
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\input_audit.py",
+        "Sha":  "C53CCABCA14CC47A10AFF67B9766C15525609A20CF450A1C0100F2A37470D92E",
+        "Size":  10313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\registry.py",
+        "Sha":  "ED87E083BC6EAB6A4C94603544CBFD8EEB141F2F8E621797FC3CDEAD5FE28C12",
+        "Size":  3023
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\report.py",
+        "Sha":  "F13D68EFEB8FBB7714E01792A8C04B1A8BD42D5B6FF0BD618E5772B363431A0A",
+        "Size":  11565
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\run_phase4.py",
+        "Sha":  "DBEC1C8A9E1E0E5BA9B9ABF61F1A7C539421DA45A4D6194FF3C722BE4C420037",
+        "Size":  23476
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\__init__.py",
+        "Sha":  "2F32AE092248A87F2CE516EC43164B15ED55A268F9A831044C4128A46ED3F3DA",
+        "Size":  329
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\audit_post_completion\\audit_results.json",
+        "Sha":  "AA8B3AC4B5194B1D32446CF1D31A081EA5F08BA68035F3B372BB91DA5E989BA9",
+        "Size":  11501
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\audit_post_completion\\experiment_ranking.csv",
+        "Sha":  "FEA4A23A97F0C7D21BCD427F46570B269524012E99AEE6825166A640985BF315",
+        "Size":  654
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\audit_post_completion\\metric_recalculation.json",
+        "Sha":  "5A01F60CB22189B13582D7D4F9B6951E8081BE21027FE5603087DB418060218E",
+        "Size":  10159
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\audit_post_completion\\POST_COMPLETION_AUDIT.md",
+        "Sha":  "A63C19DCF8CC64FC33942F05A0815D29072AC8283D97DAAE2ADE4B6F8BA1048F",
+        "Size":  7367
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\audit_post_completion\\run_post_completion_audit.py",
+        "Sha":  "410C08C4034DDEE61B63EA498A192C4CD4CFD126427DA41A1C63398656E664BA",
+        "Size":  49468
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\audit_post_completion\\source_immutability_after_audit.json",
+        "Sha":  "526887F1DED5A36CEB0C796F0F48AD57E59C9AD4163DB6E3123994A0AD428E8C",
+        "Size":  1437
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs\\EXP001.json",
+        "Sha":  "4B6AB34572A77C6ECCA713A824F3C201AF460BB6B9FAA7CF1AB1744554EA31A4",
+        "Size":  1015
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs\\EXP002.json",
+        "Sha":  "A8B305BD561FBFB28B45FBFE737EAA9522EB4808D428E19E396416B5109E6441",
+        "Size":  950
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs\\EXP003.json",
+        "Sha":  "E728BD10EB02939F817B5AF9F51AA0B59AA55D0ACB0BA568A3AD8F415F54A966",
+        "Size":  940
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs\\EXP004.json",
+        "Sha":  "70F4931766470673768AB43923FA80FFF37E2A1516BEC78D8B56C9700647C700",
+        "Size":  951
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs\\EXP005.json",
+        "Sha":  "5F2A90EEAEE0A08CB657A5DB755C405FB73DE6E5F2AB78C450667FCFB25DC819",
+        "Size":  1024
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\configs\\EXP006.json",
+        "Sha":  "4939B5CF3FA1CF4BE43BC0ECBDA69536B0CF6450A16B821EA90AB367F5F16A46",
+        "Size":  1027
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\dataloader\\forecasting_dataset.py",
+        "Sha":  "C8ACA78D3D3DA227B20BADFA6245E8DBE3A98EFD01583A97A4E5B331F9063753",
+        "Size":  3191
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\dataloader\\__init__.py",
+        "Sha":  "EA86454FE875E33CB94238C1B445D16D09C68B0099E5A5BB639D66EB11D04078",
+        "Size":  36
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\evaluation\\evaluate.py",
+        "Sha":  "CBEABC016C21C77FE0F31B6C551FF61D1B1DBC67EC526379AFBDD87C5EDCD50A",
+        "Size":  2953
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\evaluation\\selection.py",
+        "Sha":  "9B806DC66C0097183B304C65F1314DA5D8185FD0D53EFEC253F916443086B4E1",
+        "Size":  3827
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\evaluation\\__init__.py",
+        "Sha":  "D80038176DA68B3587D7F941EC8D496DDDFEBA227FE40BFE302A5436E174B1D3",
+        "Size":  36
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\features\\build_feature_dataset.py",
+        "Sha":  "553C17F258385ACDDB55FB7CAAE7201AC7ED212EB5430BF4C8293D2B2EFF4B98",
+        "Size":  15226
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\features\\feature_engineering.py",
+        "Sha":  "A88EB9A6DA55091330C5216C8842787A6EA4ABC8A1510A9107732E2AB6292F25",
+        "Size":  7236
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\features\\FEATURE_ENGINEERING_REPORT.md",
+        "Sha":  "605D32A47BAB75C0EDE448C265EF83D33903FE9055A97EE7699E5FB4CBE6D0CE",
+        "Size":  3408
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\features\\_geo.py",
+        "Sha":  "C512B3DEFFC0115A6DC137AAF4B0C7DBEEF0269A3848BB4576054A1BF8D9C2BC",
+        "Size":  1071
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\features\\__init__.py",
+        "Sha":  "8DC57A0C920E88ACCDDBB83C803B2EDBCDC6E43329D2D40B767D04B3E6A233AE",
+        "Size":  45
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\inference\\forecaster.py",
+        "Sha":  "59C780BD9A457F165BCF9CBBBBE30C98535777A70F394E28469088CAB0DCFFFA",
+        "Size":  3379
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\inference\\__init__.py",
+        "Sha":  "097AE48773F3FC51B0201935972CFF8E1E26648F539ED4BF6A3659F8CAC48047",
+        "Size":  35
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\losses\\forecasting_losses.py",
+        "Sha":  "9700F10B179594CC905968EBA6558F50429A492657BCDAB00BDBD308F67765E4",
+        "Size":  4858
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\losses\\__init__.py",
+        "Sha":  "D914B0A8C40D5138EDC12EF7334024C69099E62EE9A707FDF4691C41952B1801",
+        "Size":  284
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\models\\gru.py",
+        "Sha":  "3F36E0B0CAD37D403E888E149D9EDA83CA5DFE4C146876F6A2A658240623F4F0",
+        "Size":  2324
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\models\\improved_lstm.py",
+        "Sha":  "4977FB3682CA669EBE81C62EC25A981A0A73D10CA6C26A7EED56604EFDC74564",
+        "Size":  2461
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\models\\multitask_lstm.py",
+        "Sha":  "A90789DF389346AAA311AE0DCEBFBA9D9C62EE8BB6C2DF1C2DD7D929DBDFBED9",
+        "Size":  3088
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\models\\__init__.py",
+        "Sha":  "BBC6A3585A93F932901FAABFE534E968A30B90718466AB6F023C421A11957061",
+        "Size":  995
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\reports\\PHASE4_REPORT.md",
+        "Sha":  "7F0CFC78AAFD6D3100F2CE1D4616E9451C3FC741A09AC7E071C41A4BE26D58CF",
+        "Size":  7448
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\champion_model.json",
+        "Sha":  "5B6FB7ACE48E5F62D15278D2D93A288EC2CCBF8FB523EF05C66FA4BA6BAD7C38",
+        "Size":  2620
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\champion_rationale.json",
+        "Sha":  "5F2BE8F6CDF26ECF0B4B892946C6F3A27F3F6C363B6A2D8FE795F5D7C434B380",
+        "Size":  1062
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments_summary.json",
+        "Sha":  "0293261E45989F7F2A6534C849B95F9FA7C0A53E17BAB8E1CB1067AAA91C6A90",
+        "Size":  14929
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiment_registry.csv",
+        "Sha":  "9353096A1D0E5B9AD35D1710F283438DA912CD5E9F651309F0E5A9AEC6BE0A6B",
+        "Size":  1826
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\FEATURE_CONTRACT.md",
+        "Sha":  "C6B74C5B8E85FAF569D980C10533BE669CAFB7BB1B784013A5BC38D247FCDB68",
+        "Size":  1709
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset_summary.json",
+        "Sha":  "3617670491CBC92D2878B05D651C1EF32F2037A38E26CD0F06C52227BC429126",
+        "Size":  3294
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\FINAL_COMPARISON.json",
+        "Sha":  "97CA11D70521B946068A559673BAE604D2B01DC51E8A9A903959A83E36BDDA69",
+        "Size":  11070
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\input_audit.json",
+        "Sha":  "3F9A70ABC59B362D08A2A98834831F3D51D9C18D769E973C83F6A6419C68DDCA",
+        "Size":  5095
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\normalization_stats.json",
+        "Sha":  "A5404A5743B29ABE2E720C5B863883E07B222491DF0D88C5D7A550771641BBC0",
+        "Size":  2508
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\source_immutability_report.json",
+        "Sha":  "1BC94E1689DB114B0E1128FAC8E29B1ACA70E324EA3BD3EC104BF7A476258918",
+        "Size":  28959
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\test_touch.json",
+        "Sha":  "4E57E0C6BFA7D2E8E70DD846F40E4AAE3CBF7F2D363E32E15C22A392F6569D4C",
+        "Size":  304
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\validation_results.json",
+        "Sha":  "F1215320118FC5F0F4CF83B1711139828678D6A65F6107A79F86C63BB543E752",
+        "Size":  4592
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP001\\checkpoint.pt",
+        "Sha":  "03344329A6416EFD8128BA6B410875C6688133D7EA5551969CA4555941FED8C0",
+        "Size":  88934
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP001\\config.json",
+        "Sha":  "4B6AB34572A77C6ECCA713A824F3C201AF460BB6B9FAA7CF1AB1744554EA31A4",
+        "Size":  1015
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP001\\metrics.json",
+        "Sha":  "D0D4DCE8EE6E1E483020ED7B2630B48BCE328BFCCE0AB5A708D3B97C4EB537F5",
+        "Size":  727
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP001\\source_hashes.json",
+        "Sha":  "0755A8A4FC6FB74F0954DE4459168DC957CE8ACC0046BF71FC104372104F547F",
+        "Size":  1313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP001\\training_history.json",
+        "Sha":  "934298AF7E5CEF2474652BE9A041C38A865CE47E00E5D3E51BE063AE1F4AC4ED",
+        "Size":  6175
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP001\\validation_results.json",
+        "Sha":  "6CE7788C658AEB8B41BF85042400FA1AA7F7006E989850A9A9190287E5ADC9A5",
+        "Size":  807
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP002\\checkpoint.pt",
+        "Sha":  "414977E75B911336DD76ABDD63CF9F51AC8D33465BFEB52BA1572DF4E8B07324",
+        "Size":  480290
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP002\\config.json",
+        "Sha":  "A8B305BD561FBFB28B45FBFE737EAA9522EB4808D428E19E396416B5109E6441",
+        "Size":  950
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP002\\metrics.json",
+        "Sha":  "EFD0CD3CD35F229CD2B973EDDF35B85264AF8E54767C0C8A23862353280BC973",
+        "Size":  729
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP002\\source_hashes.json",
+        "Sha":  "7D6B7121E0DAC7ECA9309102CD045F3B1B7815820897B6782BB17D49CFB83C00",
+        "Size":  1313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP002\\training_history.json",
+        "Sha":  "8572651340A9F4F18E65B6F54245BF36A45E733289E28A717E5AFA818AC7E4DD",
+        "Size":  5973
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP002\\validation_results.json",
+        "Sha":  "422E299AA721E28A91FD4422BF4348EEE9383C661F617D1C09B3A9B5D0C5C202",
+        "Size":  807
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP003\\checkpoint.pt",
+        "Sha":  "820B9ACF12BEF922B5FD385CA304D39998FFFCD8A1C494B2B4EA767CDDA92051",
+        "Size":  362018
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP003\\config.json",
+        "Sha":  "E728BD10EB02939F817B5AF9F51AA0B59AA55D0ACB0BA568A3AD8F415F54A966",
+        "Size":  940
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP003\\metrics.json",
+        "Sha":  "20346CC3B0CDA2C3E83432B90452F64F7D812808706607BB6C1EE26D2F3BD7BD",
+        "Size":  728
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP003\\source_hashes.json",
+        "Sha":  "90C0F7BA18BA4AD67BC7DD522C4BE46589655830BC0F6F56147DC188EFE8DA71",
+        "Size":  1313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP003\\training_history.json",
+        "Sha":  "1DE674146A15724E9B319C9D9375CDADA3EEB7C763DB261C5D2438B56722BAF9",
+        "Size":  5403
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP003\\validation_results.json",
+        "Sha":  "3B201D0C899B8E20C424EAFC9E61F83795424C9C278550A94E13B000362AD5BE",
+        "Size":  810
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP004\\checkpoint.pt",
+        "Sha":  "6CE1B97CBA052B0E643D98E3491A70914FCE2EBD29CA6F7169272ABD44CC4199",
+        "Size":  480866
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP004\\config.json",
+        "Sha":  "70F4931766470673768AB43923FA80FFF37E2A1516BEC78D8B56C9700647C700",
+        "Size":  951
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP004\\metrics.json",
+        "Sha":  "9B032E06D111FA72BDA9A3C8F77A6B2938367F513CD608CC104D7D82C5D91D64",
+        "Size":  726
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP004\\source_hashes.json",
+        "Sha":  "3E6C5A7919FBC0D6FA94C0B6E508D63F68C44E1136D4A276882013CC4A715048",
+        "Size":  1313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP004\\training_history.json",
+        "Sha":  "7A72E31020FA552F08FBBF00FB29DAB86797792DF344CD343EFB3C6C1FA78B8D",
+        "Size":  5307
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP004\\validation_results.json",
+        "Sha":  "B3A2C4382D86BB36D9DD5248382DB4266BDEE5DB3290F915B3CCB4C720DE429C",
+        "Size":  807
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\checkpoint.pt",
+        "Sha":  "EA6BBC3239059061F30EB43BD1B8B0C0DB2DD7006B6C8F5E5A5E774D9C124A0A",
+        "Size":  362018
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\config.json",
+        "Sha":  "5F2A90EEAEE0A08CB657A5DB755C405FB73DE6E5F2AB78C450667FCFB25DC819",
+        "Size":  1024
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\metrics.json",
+        "Sha":  "0F6E27B096DDBD6EFCB9387FADA29E6658BE5CA95769157C9383DDBBE91B964C",
+        "Size":  725
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\source_hashes.json",
+        "Sha":  "6143E0BE21AC0A15285A48078C5667A8A82FD0504088CF8195356FB6098641ED",
+        "Size":  1313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\test_results.json",
+        "Sha":  "51450E0F6A21856BE4F1132D48BE820F4C041630B1BCE5E6F0096429DEBDBC7A",
+        "Size":  804
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\training_history.json",
+        "Sha":  "911F9E320B605353A06B6BC47D865AB45F669E2E414A1AB870EC6F2FD7F57BC3",
+        "Size":  3775
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP005\\validation_results.json",
+        "Sha":  "D9E3D54BD3A3328341E8890AA0915DA29D72D3B1C2B62CC6BAAE88554032E95B",
+        "Size":  804
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP006\\checkpoint.pt",
+        "Sha":  "D951472DB87823C4243257B5E05A93C012D6FA34AD0852B003925813488B4B4F",
+        "Size":  362018
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP006\\config.json",
+        "Sha":  "4939B5CF3FA1CF4BE43BC0ECBDA69536B0CF6450A16B821EA90AB367F5F16A46",
+        "Size":  1027
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP006\\metrics.json",
+        "Sha":  "B86CD9C2A1C5837B43EB931E20B5C9991C44B27CECE0DE56DA4C83BB0CDA3BC7",
+        "Size":  724
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP006\\source_hashes.json",
+        "Sha":  "E58B6D43089A15784F671012954B7BF43A071079F8199B127454EFDCA25E2219",
+        "Size":  1313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP006\\training_history.json",
+        "Sha":  "D091AF3F4B35F0D1F294314157C0ED647960C7410E35616D7AE27A4DAB411BD5",
+        "Size":  5400
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\experiments\\EXP006\\validation_results.json",
+        "Sha":  "0550B60FC4956C0A327EC7FEC0833F49B8A1D65FD5D34C2709A9D0C927DCEB05",
+        "Size":  806
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset\\test.npz",
+        "Sha":  "1B5CF2678EC16D3E7F078FE0ECCC62D482C90926B9CAA63D4531E9752EA471F8",
+        "Size":  14704
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset\\test_metadata.csv",
+        "Sha":  "F61FC8FC8B8529413E409511901F30E31DB953142988D13A5AC2798BBB82DBA5",
+        "Size":  31138
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset\\train.npz",
+        "Sha":  "165D909213D3F2BACC7B8F22F048FF1F25308503606BDABB04BB03B6D1355EAB",
+        "Size":  86354
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset\\train_metadata.csv",
+        "Sha":  "BBAEB9F573CC8EB6A6429E65A76C8897A28C844A5777C4575BD195878920C1EB",
+        "Size":  193002
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset\\val.npz",
+        "Sha":  "6B3E43F5185B43FEA03EB440242B1346944BA1EDD8E5A57BDBFE00FF0C1F0690",
+        "Size":  18151
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\results\\feature_dataset\\val_metadata.csv",
+        "Sha":  "21E9DBEB972398AAB4A94AFE2A921D7D85C63A3927E806AEEE7FB6E352DBBAAB",
+        "Size":  36458
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\conftest.py",
+        "Sha":  "146AFCF7D879492C68A5C805AE0005122B20111A0BF3FDE405F39470998D0A0E",
+        "Size":  3559
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_configs.py",
+        "Sha":  "FE27C48EB6556D1168CC69B663004C80F6823297D5A5E9D3315AE6D6BFFDD037",
+        "Size":  3067
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_dataloader.py",
+        "Sha":  "191D0A30BD0C17F02E8202969D3C0B32FEFABE5FAC93F2A63C373482F5B636CB",
+        "Size":  2229
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_evaluation.py",
+        "Sha":  "66F4D6EDF56E2CC4090CD6E46ED3C34495CB043A6CD343A36EC16198AB0D1D26",
+        "Size":  3111
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_experiment_registry.py",
+        "Sha":  "E10D8ED862AC8631F86724FBB1BC961D3DBDC8E9EBC88E178676980840EAAA22",
+        "Size":  3093
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_features.py",
+        "Sha":  "C63E6F828799A7FF88502363B9CC7EAD65E8DAD13953B917C521281A0072CF34",
+        "Size":  5405
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_losses.py",
+        "Sha":  "C51270078F06A2D6EB3742B52721CE0C569CB8482367FAFB92C5F155B17084C1",
+        "Size":  3551
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_models.py",
+        "Sha":  "E12EC5022F0697B5536F16A2223985850A26C39A1415078D20E4F2AA27B3AEB1",
+        "Size":  2755
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_normalization.py",
+        "Sha":  "2FA12607CF60E1E511861AD6A71AA30286E1967FF8D9A745FB4DB9F2C37D714D",
+        "Size":  4858
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_no_future_leak.py",
+        "Sha":  "1BDE1F4A6AAE1A708194AED8EBE5C12AA229ADC8D7BAAA94C7F6EC229729139E",
+        "Size":  3262
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_orchestrator.py",
+        "Sha":  "B964B2E4BC76BAA84EE44C604CD3D5C87BAA08DF89E52BCB4E9AE1D17031EDF4",
+        "Size":  3218
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_reproducibility.py",
+        "Sha":  "1C26FDDF7EEF99A06A461322EC1B580D45126B8764DE44F9E9BC5755468F0954",
+        "Size":  2593
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_source_immutability.py",
+        "Sha":  "227AD98F382BA6A3177E88928DB696F38456D94A9752F4A010EBC460B66EAAA8",
+        "Size":  2671
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\test_training.py",
+        "Sha":  "A7FAC3ECE1BF1A92486732F48249DA0B7DD2AD20CBC6955DDB9B295DCC5FE465",
+        "Size":  3577
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\tests\\__init__.py",
+        "Sha":  "3AC0935B605E651A0042394C2271A33116EA3E724EC03C8BF45A2F565CE27086",
+        "Size":  72
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\training\\normalization.py",
+        "Sha":  "464E9C8D4E21B79E84E2E793F4E22D8122E1E98FCEA4962E5DA8D8D5E493A4F6",
+        "Size":  4998
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\training\\train.py",
+        "Sha":  "265ACD2546D38B51A11EB0298869EA09CCE662D98036D040B43BB6869945D56D",
+        "Size":  8486
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase4\\training\\__init__.py",
+        "Sha":  "1CC54EE50D4A0DFD77E81D080C1A4A232F9D7134D046DA69021FC0E235E39B2A",
+        "Size":  74
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\config.py",
+        "Sha":  "DF61582CAD41A9C7DC3B87EF633C64697CC44E09ED36D3801D77A75180BB0D45",
+        "Size":  4014
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\run_phase5.py",
+        "Sha":  "371759043D2102C0E3DF7455F73766E8D1F228ED2675EE84E18124555543127D",
+        "Size":  31291
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\snapshot.py",
+        "Sha":  "875EB45757A586C8E51B6F515ECFD28B4A916F9C5E4E26FB185509A7473D1D58",
+        "Size":  7007
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\__init__.py",
+        "Sha":  "17559AACD0CFF0CF611679FE7C20D6B3367095BE07BC5101BE71E81EB7F70937",
+        "Size":  384
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\baselines\\movement_vector.py",
+        "Sha":  "5D8A22F3A51354E133C948F4959B74DA2AEA0F445DA5C5EF7982CAFB776FD60C",
+        "Size":  2183
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\baselines\\persistence.py",
+        "Sha":  "75381C43E0F6979AE8E04EF085A904BEFF252C0825318F2AA507A0FAC46FEE09",
+        "Size":  1119
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\baselines\\__init__.py",
+        "Sha":  "EE59258A1AFDF02B88245C3B2B4F4DAA5AD9333F8855F9305F8BF4B58690D483",
+        "Size":  490
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\examples\\example_input.json",
+        "Sha":  "F2950F2AD00691A68B01D3E1D7511A175B8CE7212D874AD8A994E51C7E8DCF2D",
+        "Size":  800
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\inference\\input_validation.py",
+        "Sha":  "F85006A8FDA3BC5176C29DDDC38A61463FBD7987A829EB4EDAD64E7BD6C2C8E5",
+        "Size":  6744
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\inference\\output_contract.py",
+        "Sha":  "5CC3DF97BA485768F902B8D096D507DD39A1705636F86BA3F18E0BE72CAF0D31",
+        "Size":  4293
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\inference\\predictor.py",
+        "Sha":  "5A7242CA1492A299F9DC51B650541D8BD981F17D649179E6AEA3D5D2489379BF",
+        "Size":  6265
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\inference\\preprocessing.py",
+        "Sha":  "F753F54F6C8E8D2AA55D0964F9F8B7801DBC1F96B03C490A583B58763143FBA0",
+        "Size":  3992
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\inference\\__init__.py",
+        "Sha":  "D6FD4F8FAB351EB82523F8BF3602CF8F0E3A71319909941F7F08978F6EC7BF53",
+        "Size":  80
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\reports\\PHASE5_REPORT.md",
+        "Sha":  "BE0F51662B79C93BE4AA51EB3DEECFBCBE269D151D23E858E95190C1D750152E",
+        "Size":  7023
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\results\\contract_validation.json",
+        "Sha":  "879CCB0CE679446E399C50BC0F307BB894A6F999DC55EEAE9B0B66D74AE7AE77",
+        "Size":  1643
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\results\\inference_audit.json",
+        "Sha":  "3CEA9FE93DBFDCD403985C748D2B99917D4457ABE2031C10625DB38DE98C2C11",
+        "Size":  1554
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\results\\phase5_summary.json",
+        "Sha":  "965848558F0505A9201C28443EFFCE427E48C8A4605D003FA2A676AC9FD35EB9",
+        "Size":  1012
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\results\\source_hashes_before.json",
+        "Sha":  "AC2A3A24D78ADD29F748CEACC37EB5FED1A3454390278B68200F9A1A291B52EA",
+        "Size":  34854
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\results\\source_immutability_report.json",
+        "Sha":  "605E21DD372A62181066DFE19512CE70CB65C09179263419411A31028D062B6A",
+        "Size":  537
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\schemas\\forecast_schema.py",
+        "Sha":  "ECE3B37BBF659BB88F205FC16C83A317ED5FBE50030E04A7D64C8558E8204E0D",
+        "Size":  2943
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\schemas\\__init__.py",
+        "Sha":  "0A166A56BBE61B1BA6CA10103B73EB4A0FD24B383EE190471F647831EA063B7F",
+        "Size":  78
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\service\\forecasting_service.py",
+        "Sha":  "971B9F6B145CDCCFBE532D441DD94490671277ED44BECDD74D7C01C8D8A55821",
+        "Size":  4204
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\service\\__init__.py",
+        "Sha":  "F9634F28F63718DBF9196C0093897F2732907E55895E096879C2A3C948985BEC",
+        "Size":  42
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\conftest.py",
+        "Sha":  "2E3E6188E804D071E1B8A508FA055D596656B9D56C8C2CC874AFE4391818F17B",
+        "Size":  2047
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_baselines.py",
+        "Sha":  "227AAD3973C900A605750F8B0E44BCDAAE53FB181AE59BA06D7667F7DCF3B989",
+        "Size":  2070
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_determinism.py",
+        "Sha":  "A0EB165A89C08A74D56C81296911C8DB3EA4D5066CEC131D43AB1D217937153C",
+        "Size":  1537
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_feature_consistency.py",
+        "Sha":  "6F85FD743FC93E018572986ED17B79DB6C7E5D5E64DE3296B770478A688606A7",
+        "Size":  2499
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_forecast_shapes.py",
+        "Sha":  "625AC640486675687A8E3CCAEAF5063C2A31CB16A16A3B34DC80A9F12249AF5D",
+        "Size":  1981
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_inference_contract.py",
+        "Sha":  "CC9BCD95E8292AE540D31BB0E41F3AE564188FFCBA4F272D7674B414F7BE66F5",
+        "Size":  3092
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_input_validation.py",
+        "Sha":  "D1F5FCF9546FDE0CCE99BF000123ABE4C4217815E01594523816991A0A60B3D0",
+        "Size":  4961
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_model_loading.py",
+        "Sha":  "B6ED71C70210F3FD138B11C9C154D435266D3467661AB311A3F6EA4EFE8A6B7E",
+        "Size":  1833
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_no_source_modification.py",
+        "Sha":  "3A3749E5408AE1BE3C8DCF6E93684A8F4A3C7F16EB6D0FE164664E25D992347D",
+        "Size":  3570
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_preprocessing.py",
+        "Sha":  "5A7EB29A0DDD8D8345AA3286158BF91E1715A9EEAD5F4BDD1EDA30108F3B32DF",
+        "Size":  3271
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\test_service.py",
+        "Sha":  "0F2B977B1BAB7AB12BF419676D8CAA56F70FBE440D22E6C58C5FA24AD2C6F956",
+        "Size":  4116
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase5\\tests\\__init__.py",
+        "Sha":  "080FF29B273551147AD24D3FFB218EA6704D1F164E207DDD0B60DB8E6EC57791",
+        "Size":  25
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\config.py",
+        "Sha":  "BD681EAD6D89CD790228B8D9AF56B5220C6FDBFDBC4D5A68C8FFC4DA3E53F346",
+        "Size":  4202
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\run_phase6.py",
+        "Sha":  "7D6AC34E45A5751C267F405ED3F65C56F62501FC06D079288F4F6259F71F6343",
+        "Size":  41955
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\snapshot.py",
+        "Sha":  "29720D42E2A47D21D98728331D4E4685FB950AACD2924B4F7CD7A81B702300DF",
+        "Size":  6956
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\__init__.py",
+        "Sha":  "2D454505BF7145ACBDD32353C136B99B95E24F86AA44DD6BA01C426FC74B0A82",
+        "Size":  313
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\api\\app.py",
+        "Sha":  "7155FF5E891F554844FF4AE4E5A9A516444D5052D4C4801FD833DFEC679FA19C",
+        "Size":  2526
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\api\\error_handlers.py",
+        "Sha":  "3AD07E2863751CFE2945C749E40EA435B3C11CA5BDD3E7B8BBD7E270F8C3BF5B",
+        "Size":  3851
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\api\\routes.py",
+        "Sha":  "C385E3CF9AC606D1BA2218241A219AD82520DEB653BF48533F339CAE23007129",
+        "Size":  1972
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\api\\__init__.py",
+        "Sha":  "2C011A9DB4A1BAF50054FA0F5CB19A963C9FC4389E80270AA35919D769B2E575",
+        "Size":  42
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\examples\\compare_request.json",
+        "Sha":  "82B825A0526E1DF2E8E418CA96F0B1D31981CDE963C43D82BA1C158316EF99B1",
+        "Size":  1188
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\examples\\forecast_request.json",
+        "Sha":  "82B825A0526E1DF2E8E418CA96F0B1D31981CDE963C43D82BA1C158316EF99B1",
+        "Size":  1188
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\integration\\forecasting_adapter.py",
+        "Sha":  "2695C7C27360D7A7CC3909B80097282A7D97C7F42C99C0BAA21461D84A166133",
+        "Size":  5351
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\integration\\__init__.py",
+        "Sha":  "5C75053F8F0639F78ED186BCFF7B1E4003A4D35EF2BADFFF23C0A4FC0D5D6FE6",
+        "Size":  78
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\reports\\PHASE6_REPORT.md",
+        "Sha":  "24D783F497788EFB5783CD50A02D5515D613D5991AB4EAFC1D5A64662683D156",
+        "Size":  6212
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\results\\api_contract.json",
+        "Sha":  "F613BA565252E90036F6C2FC153DCBBF3B595787DB2B1F965769D419353FD643",
+        "Size":  8616
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\results\\api_test_results.json",
+        "Sha":  "68FECC02B706C2045CB36CE171D511DA14451C1E2159E526B0A15754A9EC4951",
+        "Size":  3982
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\results\\phase6_summary.json",
+        "Sha":  "984F26A0A072C9C91D4066B078C954BDDFDFEEFC56235E178DFBFA55011AACF5",
+        "Size":  1241
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\results\\source_hashes_before.json",
+        "Sha":  "1A5888AD313CDAB94AE816E5E17CB5EBBAB823BF4B56C6DE8E26F485D7903495",
+        "Size":  39239
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\results\\source_immutability_report.json",
+        "Sha":  "681C9E8338FB9051689DBF4B7E350C402F902DA1D553605BE124E173B983EDBA",
+        "Size":  579
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\schemas\\requests.py",
+        "Sha":  "4188A671E0437AB8CCE597B7E315B98F7E7AD4FAE217FA4FBC1D43F79F88C636",
+        "Size":  5248
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\schemas\\responses.py",
+        "Sha":  "8330392F4D2682FB735E6E4B7165731393C53B3868BCD4AF907D34092DE27BCD",
+        "Size":  2391
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\schemas\\__init__.py",
+        "Sha":  "C3F611B7B7DA75D298CB6232E5581947ECC725384CFC095708B1C455BE73C6C7",
+        "Size":  88
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\conftest.py",
+        "Sha":  "AEDF84EF9975ACE08E823C05E71E3404F9EA3C10E774B7EDEF23277A12018A57",
+        "Size":  1247
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_causality.py",
+        "Sha":  "DD28DD8B4DC78679C1CDA08662D231D9665DF01FDD81379FEDBAC1F1B477D581",
+        "Size":  4635
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_compare_endpoint.py",
+        "Sha":  "933887742FCDF147CBDE0EE7A54410767DC28DA59289EE447CFD5C3FF0A57DE0",
+        "Size":  2587
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_determinism.py",
+        "Sha":  "263E387BC7BE1ADBCCDDD3C4AEF3A2FC23EF1D4E6DDC45C1F344E10F203AA80F",
+        "Size":  1360
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_forecast_endpoint.py",
+        "Sha":  "C0E1EF6E5C8D5FD41BA182083560DAA070E4CE02426696E8FC14B289DF9C5A67",
+        "Size":  2049
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_health.py",
+        "Sha":  "7D48E49F6EE33F9315765A1E2FC5D72DF07C6E60A375E9B7D8DE4D65C13C937D",
+        "Size":  930
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_model_endpoint.py",
+        "Sha":  "8C8B3348402CA451F5B3F97B8E6F4ECC66DDB1E3262F9089012DB9378F1AA28C",
+        "Size":  1595
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_offline.py",
+        "Sha":  "FA6A237D574D787177AA1DE39600D9D149023EB098BCC06BEE675C4062540C0E",
+        "Size":  3506
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_response_schema.py",
+        "Sha":  "7B61A1AF3FDBBFA0DB6387E817ABEA1EC6B3040AD5435C7265FBC082FE13F080",
+        "Size":  1887
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_source_immutability.py",
+        "Sha":  "C9F9637D6C2BF7B5C11E0BB0459C9410EC121D0A41F2F738E8D370E11FBE63D9",
+        "Size":  2849
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\test_validation_errors.py",
+        "Sha":  "0DA05200414DD7A3DBFE2C15ADE7163F09064FAC53B409CE4F49113C8EE6D7D6",
+        "Size":  4345
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "phase6\\tests\\__init__.py",
+        "Sha":  "79C3B047F6A8742FDC7D7E75485B49A743F825EABFE114A7AFEB0A1BD3C4CF8D",
+        "Size":  25
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "reports\\P4_PHASE1_FINAL_REPORT.md",
+        "Sha":  "93494A8ABD1E3560D000094E21C3EEBDA9B1C1A943FF9EF354243B3CDE65C0CA",
+        "Size":  4825
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "reports\\p4_phase1_summary.json",
+        "Sha":  "B6C002E134E6F6A89C56392DE81AE6E865D7F44E542E872E18529235B06C28B8",
+        "Size":  7281
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "scripts\\run_p4_phase1_audit.py",
+        "Sha":  "CC8C2B05652B9FDFCA56D9A99B968F4B2F12D4FA77B4535317C3AC4154C6419C",
+        "Size":  66084
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\build_datasets.py",
+        "Sha":  "586AE286E39ECE70E69461C66D379D30E87C81B8DCAE1D57E03C2766F8B9BE57",
+        "Size":  13662
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\download_era5.py",
+        "Sha":  "BE1CBDA61AE4F73319A1CF2F484B008C1375D00B8F2B3155D54BD95AE690CA27",
+        "Size":  4374
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\extract_era5_at_points.py",
+        "Sha":  "127AD459BD6BE1B073BFD5D3D314CDFE19B98AE7AED082D259643627948EC22F",
+        "Size":  5722
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\get_ibtracs.py",
+        "Sha":  "C59CEF058BFE84D5C327FE99AF352F3FD354045DA8967B196A94FA757AFCE5C5",
+        "Size":  9006
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\ibtracs_clean.csv",
+        "Sha":  "BCD4BF0E05B63AAFFD458F10F694E692A1CCEFF78F7EBA3EEB2F1C2193DB2ACB",
+        "Size":  1487310
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\ibtracs_with_era5.csv",
+        "Sha":  "35B4CCEA3E086F1008D1A8E1404DD9B8C114BA49AAC8FC403FE75660D779605D",
+        "Size":  709456
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\master_dataset.csv",
+        "Sha":  "003B8B944E856FF2763A40CE57288CDA5D9497246EA73D71CCE2AF6D0F62C5B9",
+        "Size":  738948
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\mosdac_needed_cyclones.csv",
+        "Sha":  "D425C8ADF40D9F6788A1FBAE04ACDC00B9E06EE7698DC85F43F6745DD4352502",
+        "Size":  3697
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\mosdac_priority1_named.csv",
+        "Sha":  "8C9988B0D18D60DBDA0D5484972E0E3A432C7EF9D69CA0AA0F797D66738DEAA1",
+        "Size":  1392
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\mosdac_priority2_unnamed.csv",
+        "Sha":  "3C190D5743BE21DDE9B333357D190BE9271A2CFE7B80A5054102B5BB2C454E3B",
+        "Size":  2641
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\test.csv",
+        "Sha":  "E59FCCCE9AB187D7BC8B185A687FB1138F6E18E47E33980DBE2719C6C88462E4",
+        "Size":  110840
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\test_cyclones.csv",
+        "Sha":  "096FCF2ECEE4F2EE6D32A476359BBE811180870D18FEEF72F81A5EBA0F88FD59",
+        "Size":  347
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\train.csv",
+        "Sha":  "4E8B4724F42B4F66F0380B7B650807D616A6BB93D073325FECECF4EF53B29A59",
+        "Size":  527509
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\train_cyclones.csv",
+        "Sha":  "C4FEB714F31756A059EC489BA3A9F1B5CDE66F69BFE9C1432E9612511F460040",
+        "Size":  1481
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\validation.csv",
+        "Sha":  "41F0DC8BC798C87A79EF428362A2A83C5470A1BB2AEFBA0E8AF49B67DBF663C1",
+        "Size":  100863
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\metadata\\validation_cyclones.csv",
+        "Sha":  "82B5678B94327F2EE062263FDCAD802C3EB9DCDBFE9E483DCFCA3DBF1A225CCC",
+        "Size":  319
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\README.md",
+        "Sha":  "0F943F7E52D5F11CD3CDE30D533578C3D63152C5A74B312DB8255CC52032707D",
+        "Size":  2283
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\test_sequences.npz",
+        "Sha":  "882535A1A8886C45AD094878A5A184C860ACF1C61A3ECC29133CAA576BE7EB04",
+        "Size":  15074
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\test_sequences_metadata.csv",
+        "Sha":  "F2A1526556DC2E176AB5787784F33CB9FF72DD7AE3A0A9DC5BD0C57DF1D7EC16",
+        "Size":  57724
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\train_sequences.npz",
+        "Sha":  "1A65F93F2F698D5956FB1B23C74A80780046F151BC44012122BE97D85F1053F9",
+        "Size":  69267
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\train_sequences_metadata.csv",
+        "Sha":  "54CEE046C6C764FFC7E079CFCCDDFF9DA26665F78EF63E83530632D2745B0539",
+        "Size":  306770
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\val_sequences.npz",
+        "Sha":  "D0E4FD91D207CD1D43AECCF32EDEE49C8DE7E75D8A7079C5335377A45F1A1073",
+        "Size":  13677
+    },
+    {
+        "Scope":  "P4",
+        "Rel":  "_source_p1\\PS70-main\\data\\processed\\forecasting\\val_sequences_metadata.csv",
+        "Sha":  "B182592A68F93C375FD3A3D28012643052CFF4E1E75BB548047242BF28F4086E",
+        "Size":  52265
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  ".gitignore",
+        "Sha":  "F58DC5E321DC43A1812D05DA3BEFA82BAD26CA2648336CF962E65D0236EBD5EE",
+        "Size":  45
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  ".oxlintrc.json",
+        "Sha":  "1BE899E45C49B2A2EDC715BC3BFB31D8ED8E866ED7EBAB2065FF6E55E88C2396",
+        "Size":  231
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "index.html",
+        "Sha":  "A35855012C0DE413EE1752B3E105E7B4F6CD7B4EB5F26E767A029AFAE91B8554",
+        "Size":  698
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "package-lock.json",
+        "Sha":  "384C36812D1B6BBA01DCB9435BDE280456A10D3D943231EE82FDC19F84C39266",
+        "Size":  85105
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "package.json",
+        "Sha":  "8E1C23197A06C944A51041C73850FE5EEB29C9D1E74956CBE3DC3CE7AD3A4F57",
+        "Size":  672
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "README.md",
+        "Sha":  "5CBF5D6A9890820876275F5D974F3AF0089FCD98CAEC8482BAC1C867061E5EC5",
+        "Size":  5844
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "vite.config.js",
+        "Sha":  "326F75983524CB01EACE7D18EB443A947E5B582A68B30FA058C2DC71C952A141",
+        "Size":  478
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "public\\favicon.svg",
+        "Sha":  "61BC9A161DE58248288E6905425D7180F0624C2865007B97D763FDAC12043A66",
+        "Size":  9522
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "public\\icons.svg",
+        "Sha":  "B45FA506195CFCDEF406BA9F0C77B36DDC1A7C224040926EC70ABC2FDEA7B93A",
+        "Size":  5031
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\App.jsx",
+        "Sha":  "395E464B2F6E346E4DE55C6842072F429C2AC3A08174E1A42536F71CB2902E53",
+        "Size":  3470
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\index.css",
+        "Sha":  "569EA6270759CCD260DB133F8514814D335332EC511207AC4778D667A4D25980",
+        "Size":  1722
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\main.jsx",
+        "Sha":  "DEEFF048606A0994A179CDA868C9573E204B47E5C0BB06E21E209A20D9B66124",
+        "Size":  263
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\api\\client.js",
+        "Sha":  "FEA72297659554A13612820A005FD0DC4E07838722840C58C6B7E2A4735335DB",
+        "Size":  2568
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\api\\mockData.js",
+        "Sha":  "FC903B4DF6B2681F174962170504E2681BA20E3EE847004F5C62A9E609B8C7BA",
+        "Size":  4205
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\assets\\hero.png",
+        "Sha":  "881FFBCAAFC212E49ADDAD08846A5B82761355FA20624253AF3477BA33262C5C",
+        "Size":  13057
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\assets\\vite.svg",
+        "Sha":  "5BE21ACD42EB7B896E517F4E0F0F11EB5C5D9E54FBBCEBE9453F033008FCCA6F",
+        "Size":  8709
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\BaselineComparison.jsx",
+        "Sha":  "ADCB5EF14548AA344CE1809DAC44CA98B8BF027F98259FECCAC398D625D6B60B",
+        "Size":  4991
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\CardShell.jsx",
+        "Sha":  "B3B5360932297EC65B1CDBCBC51D0E24CA647B2BE6CFC3A2AA7062B340790EF5",
+        "Size":  1156
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\ClassificationCard.jsx",
+        "Sha":  "1800C1E01EA5B4BCEF1E72655FBBFB33EE80BE50F65B0A7EA77D225AE546B60D",
+        "Size":  1287
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\DetectionCard.jsx",
+        "Sha":  "443A795B1199B99CCF191D25CFBE50E58FAFE68D31B469FD859BAF091335F66C",
+        "Size":  970
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\ForecastCard.jsx",
+        "Sha":  "384F174BEBD8D5C1B9E3EE25311391507C2C120B1247A57BA77F77E66F990F48",
+        "Size":  2794
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\Header.jsx",
+        "Sha":  "0B9AD16A1058DF1F050EB761A4D47475C1950A87E09F9DA37684ABE220815BE9",
+        "Size":  4237
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\LandfallPanel.jsx",
+        "Sha":  "BD1AD8816D425DA41D6B875E79B3D28C77D5916F49A3A35AEFA1A24B0C8C64FF",
+        "Size":  1862
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\LiveCycloneStatus.jsx",
+        "Sha":  "209C3CAEED86AEBE600B997ECC45C1671BA161DB70E9D3CEDCAA0139C5082F36",
+        "Size":  4773
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\ModelIntelligence.jsx",
+        "Sha":  "B9D9F02C8C49BA3C4A31621A119B66D53AC7227936CD94A89265EAA7A3A2EBC3",
+        "Size":  4757
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\PipelineStatus.jsx",
+        "Sha":  "0877680DEF7AC954DF4FEC59867259B21A6C1CCCEECDCA51FA37BD3A9D35E514",
+        "Size":  2212
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\RiskIndicator.jsx",
+        "Sha":  "6AFBC5516E928A76E5070FE3F63979F7614365EFE5D2A04DDE2FDD94857A62E3",
+        "Size":  4078
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\SatelliteViewer.jsx",
+        "Sha":  "C8B406F8F5783E4DAB0837D00D923D154813AD5D7B078DDFE8AAE467846474D5",
+        "Size":  6643
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\charts\\ChartsPanel.jsx",
+        "Sha":  "A3ECB4E093A11DB96B94F3F17253ED9579B520B45E2AA911973C02BDBD58B226",
+        "Size":  7000
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\charts\\MiniLineChart.jsx",
+        "Sha":  "A45AC72FD7164B4477F35AB50BDA24F4414701E6D27BEA13EA06B07EC814E975",
+        "Size":  1389
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\map\\MapView.jsx",
+        "Sha":  "CB519D98325E99CFF231C7104701516BD23A60BE3D74E079570B26061ABE042A",
+        "Size":  8592
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\components\\map\\uncertaintyCone.js",
+        "Sha":  "16C3BD9D1EA757A6278B0F083D0502E5B04B612308C64FB23CD66F404A3C1AC7",
+        "Size":  1170
+    },
+    {
+        "Scope":  "P5_CYCLONE_PROJECT",
+        "Rel":  "src\\lib\\format.js",
+        "Sha":  "FE0DE7B65642DC7E7B6EC8C2C0E92F8783F915B32C37BDBFB550628EB3076A45",
+        "Size":  683
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  ".gitignore",
+        "Sha":  "F58DC5E321DC43A1812D05DA3BEFA82BAD26CA2648336CF962E65D0236EBD5EE",
+        "Size":  45
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  ".oxlintrc.json",
+        "Sha":  "1BE899E45C49B2A2EDC715BC3BFB31D8ED8E866ED7EBAB2065FF6E55E88C2396",
+        "Size":  231
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "index.html",
+        "Sha":  "A35855012C0DE413EE1752B3E105E7B4F6CD7B4EB5F26E767A029AFAE91B8554",
+        "Size":  698
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "package-lock.json",
+        "Sha":  "384C36812D1B6BBA01DCB9435BDE280456A10D3D943231EE82FDC19F84C39266",
+        "Size":  85105
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "package.json",
+        "Sha":  "8E1C23197A06C944A51041C73850FE5EEB29C9D1E74956CBE3DC3CE7AD3A4F57",
+        "Size":  672
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "README.md",
+        "Sha":  "5CBF5D6A9890820876275F5D974F3AF0089FCD98CAEC8482BAC1C867061E5EC5",
+        "Size":  5844
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "vite.config.js",
+        "Sha":  "F01307DAF0105BA9AECB902C1AE21D2FD2F6D5450416D8E35CD980EB01406FF3",
+        "Size":  246
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "public\\favicon.svg",
+        "Sha":  "61BC9A161DE58248288E6905425D7180F0624C2865007B97D763FDAC12043A66",
+        "Size":  9522
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "public\\icons.svg",
+        "Sha":  "B45FA506195CFCDEF406BA9F0C77B36DDC1A7C224040926EC70ABC2FDEA7B93A",
+        "Size":  5031
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\App.jsx",
+        "Sha":  "4B34E76038E6A0FA9C8A41A203AF3AEAB85766BE01B65126D6CFB32EBCD3D111",
+        "Size":  2579
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\index.css",
+        "Sha":  "569EA6270759CCD260DB133F8514814D335332EC511207AC4778D667A4D25980",
+        "Size":  1722
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\main.jsx",
+        "Sha":  "DEEFF048606A0994A179CDA868C9573E204B47E5C0BB06E21E209A20D9B66124",
+        "Size":  263
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\api\\client.js",
+        "Sha":  "FC34B7B9E38F2D08150688E3C10B6631590342ECB9A2C57A23923180C111A957",
+        "Size":  2561
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\api\\mockData.js",
+        "Sha":  "66B8C0A22B2ECD221E03937DF9F12529AEE90D28CC8281D04C9D98299D713B7D",
+        "Size":  3766
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\assets\\hero.png",
+        "Sha":  "881FFBCAAFC212E49ADDAD08846A5B82761355FA20624253AF3477BA33262C5C",
+        "Size":  13057
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\assets\\vite.svg",
+        "Sha":  "5BE21ACD42EB7B896E517F4E0F0F11EB5C5D9E54FBBCEBE9453F033008FCCA6F",
+        "Size":  8709
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\CardShell.jsx",
+        "Sha":  "B3B5360932297EC65B1CDBCBC51D0E24CA647B2BE6CFC3A2AA7062B340790EF5",
+        "Size":  1156
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\ClassificationCard.jsx",
+        "Sha":  "1800C1E01EA5B4BCEF1E72655FBBFB33EE80BE50F65B0A7EA77D225AE546B60D",
+        "Size":  1287
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\DetectionCard.jsx",
+        "Sha":  "443A795B1199B99CCF191D25CFBE50E58FAFE68D31B469FD859BAF091335F66C",
+        "Size":  970
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\ForecastCard.jsx",
+        "Sha":  "A847BEDF954E26A41CB364862673B27F6C822E1BA82BD4A7DB1BC07364B47DD0",
+        "Size":  890
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\Header.jsx",
+        "Sha":  "4818E4EB64DAB05757C6D607477F99CDA2A2B253DDEA202867CEEFE5B219DAAB",
+        "Size":  1372
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\LandfallPanel.jsx",
+        "Sha":  "90A95A3854D9336C336E517D8A15E31561BE43A5BA7ACE16E41B6543850A0A98",
+        "Size":  996
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\RiskIndicator.jsx",
+        "Sha":  "2AC0F57CE9A6E8906151C245D20EC654872CE5F6A444B198C51787F80ED306E7",
+        "Size":  2499
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\SatelliteViewer.jsx",
+        "Sha":  "4A717CA9C21B0EAAE5C390B0BA03EB09FB7239BD712F6F415228484ECDE56326",
+        "Size":  4181
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\charts\\ChartsPanel.jsx",
+        "Sha":  "D2A1868A2451F5514EC383FB0993CE0C44CDC7819424BAA01CAEAF76A81BB15B",
+        "Size":  716
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\charts\\MiniLineChart.jsx",
+        "Sha":  "A45AC72FD7164B4477F35AB50BDA24F4414701E6D27BEA13EA06B07EC814E975",
+        "Size":  1389
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\map\\MapView.jsx",
+        "Sha":  "FD045CF7E74BA139EDB565F2A66981D2DB07BE7A25616A00F6C5F7D379266D62",
+        "Size":  6628
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\components\\map\\uncertaintyCone.js",
+        "Sha":  "16C3BD9D1EA757A6278B0F083D0502E5B04B612308C64FB23CD66F404A3C1AC7",
+        "Size":  1170
+    },
+    {
+        "Scope":  "P5_SIH26_ORIGINAL",
+        "Rel":  "src\\lib\\format.js",
+        "Sha":  "FE0DE7B65642DC7E7B6EC8C2C0E92F8783F915B32C37BDBFB550628EB3076A45",
+        "Size":  683
+    },
+    {
+        "Scope":  "P1_ZIP",
+        "Rel":  "PS70-main.zip",
+        "Sha":  "F653C8E85728F8A75EC0DDB2E677CCF7F540399C94FB76F52F616B4EDE3E2438",
+        "Size":  1231540094
+    }
+]

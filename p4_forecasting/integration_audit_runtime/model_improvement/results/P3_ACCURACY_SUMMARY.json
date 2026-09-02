@@ -1,0 +1,62 @@
+{
+  "current_champion": "LightGBM Classification (champion baseline)",
+  "champion_metrics": {
+    "accuracy": 47.0,
+    "macro_f1": 0.3744,
+    "weighted_f1": 0.4525,
+    "balanced_accuracy": 38.26,
+    "mean_absolute_class_error": 0.8341,
+    "off_by_one": 78.03,
+    "off_by_two": 94.01
+  },
+  "previous_champion": "LightGBM Classification (champion baseline)",
+  "previous_metrics": {
+    "accuracy": 47.0,
+    "macro_f1": 0.3744
+  },
+  "decision": "NO_IMPROVEMENT",
+  "experiments": {
+    "E_champion_baseline": {
+      "approach": "LightGBM Classification (champion baseline)",
+      "val_f1": 0.1994,
+      "test_acc": 47.0,
+      "test_f1": 0.3744
+    },
+    "F_original_params": {
+      "approach": "LightGBM Classification (original params)",
+      "val_f1": 0.1847,
+      "test_acc": 45.93,
+      "test_f1": 0.3541
+    },
+    "A_ordinal_reg_lgbm": {
+      "approach": "Ordinal Regression (LightGBM)",
+      "val_f1": 0.2783,
+      "test_acc": 39.78,
+      "test_f1": 0.3442
+    },
+    "B_cumulative_binary": {
+      "approach": "Cumulative Binary (LightGBM)",
+      "val_f1": 0.2015,
+      "test_acc": 44.24,
+      "test_f1": 0.3507
+    },
+    "C_ordinal_ridge": {
+      "approach": "Ordinal Ridge Regression",
+      "val_f1": 0.1177,
+      "test_acc": 44.39,
+      "test_f1": 0.2285
+    },
+    "D_catboost_ordinal": {
+      "approach": "CatBoost Ordinal Regression",
+      "val_f1": 0.2692,
+      "test_acc": 41.78,
+      "test_f1": 0.3609
+    },
+    "G_proba_rounding": {
+      "approach": "Ordinal Probability Rounding (LightGBM)",
+      "val_f1": 0.2162,
+      "test_acc": 38.86,
+      "test_f1": 0.3367
+    }
+  }
+}

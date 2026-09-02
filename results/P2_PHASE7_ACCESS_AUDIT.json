@@ -1,0 +1,9 @@
+{
+  "audit_name": "P2_PHASE7_ACCESS_AUDIT",
+  "timestamp": "2026-09-01T11:50:00Z",
+  "portal_verified": "ISRO / MOSDAC Open Search (https://mosdac.gov.in)",
+  "product_verified": "3DIMG_L1C_SGP / 3RIMG_L1C_SGP",
+  "primary_channel": "TIR-1 (10.8 um)",
+  "spatial_resolution": "4.0 km nadir",
+  "access_mechanics_status": "VERIFIED_ACCESSIBLE"
+}

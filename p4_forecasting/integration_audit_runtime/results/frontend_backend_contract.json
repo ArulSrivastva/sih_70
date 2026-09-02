@@ -1,0 +1,177 @@
+{
+  "schema": "integration_qa v1",
+  "scope": "cyclone-dashboard/src (components + api client) vs integration_api /api/analyze response contract",
+  "method": "Documentary mapping of the live AnalyzeResponse blocks (from e2e_trace.json response object and integration_api/schemas.py) against the fields each React component consumes. No values invented; honours e2e output including honest nulls.",
+  "result": "CONSISTENT",
+
+  "post_audit_addition": {
+    "note": "Added 2026-08-30 (Option A). Documented after the /api/image endpoint and HistoryEditor were implemented and verified (19 new tests + live HTTP).",
+    "image_endpoint": {
+      "endpoint": "POST /api/image",
+      "method": "multipart form-data (field 'file'), JPEG/PNG only",
+      "request": "user satellite image bytes (never a filesystem path on the server; filename used only as a display label)",
+      "validation": {
+        "missing_file": "422 MISSING_FEATURE",
+        "unsupported_extension_or_mime": "422 INVALID_REQUEST",
+        "undecodable_for_corrupt_or_archive_masquerade": "422 INVALID_REQUEST",
+        "oversized_gt_5MiB": "413/422 INVALID_REQUEST",
+        "unreasonable_dimensions_gt_4096px_or_16.8MP": "422 INVALID_REQUEST"
+      },
+      "response_blocks_consumed": {
+        "meta": ["systemId", "systemName", "basin", "lastPass", "source"],
+        "detection": ["detected", "confidence", "location(null)", "movementDirection(null)", "movementSpeedKmh(null)"],
+        "classification": ["category", "scale", "confidence", "structuralPattern"],
+        "satellite": ["label", "boundingBox(null)", "source"],
+        "provenance": ["pipeline", "sources", "notes", "image_source", "tabular"]
+      },
+      "frontend_consumer": "SatelliteViewer (uploadSatelliteImage), reworked to show selected/uploading/done/failed states; result surfaced via App onImageResult -> ProvenancePanel(image provenance)",
+      "honest_handling": {
+        "detection.location/movement": "null (no localizer, no motion without history)",
+        "satellite.boundingBox": "null (no audited localizer)",
+        "provenance.image_source": "USER-UPLOADED IMAGE (distinguishes from reference-frame path)",
+        "no_forecast_landfall_risk": "absent by design for an image alone"
+      }
+    },
+    "history_input_parameterization": {
+      "change": "fetchAnalyze(history?, meta?) now accepts an optional validated 5x6h history from the HistoryEditor; the POST /api/analyze snake_case body contract is unchanged",
+      "client_side_validation": "exactly 5 obs, 6h spacing, chronological, bounded ranges, NaN/non-finite rejected",
+      "editor_controls": "add observation / per-row delete / clear / reset-to-demo / run forecast; DISABLED submit while invalid",
+      "demo_vs_user_label": "HistoryEditor header switches DEMO DATA -> USER-EDITED HISTORY on any edit; demo never shown as user/model inference",
+      "server_side_authority": "phase-6 rules re-applied; invalid history -> 422 structured error, never silently repaired",
+      "provenance_distinction": "/api/analyze (custom history) has no image_source label (reference frame path); /api/image has image_source=USER-UPLOADED IMAGE"
+    },
+    "nio_policy_guard": {
+      "added": "2026-08-30 (P1). Documented after the upstream North-Indian-Ocean guard was implemented and verified (13 new tests + live HTTP).",
+      "policy": "Input is accepted for /api/analyze, /api/detect, /api/classify, /api/forecast ONLY when every history observation lies inside the North Indian Ocean box: lat in [0, 30] deg N and lon in [40, 100] deg E (canonical degrees-East [0,360)).",
+      "violation": "422 OUT_OF_DOMAIN; message states the request is 'rejected, not clamped' (no silent clamping/repair).",
+      "examples_verified": {
+        "lat_minus40": "422 OUT_OF_DOMAIN (was 200 through phase-6 only)",
+        "lon_120": "422 OUT_OF_DOMAIN (within phase-6 [0,360), outside NIO)",
+        "boundaries": "lat 0/30 and lon 40/100 accepted; just outside rejected",
+        "non_finite": "NaN/Inf latin -> 422 NON_FINITE_VALUE (phase-6 finite check fires first)"
+      },
+      "scope": "allowed_integration only; phase-6 global physical bounds unchanged; no phase artifact modified"
+    }
+  },
+
+  "backend_response_blocks_consumed": {
+    "meta": {
+      "backend_fields": ["systemId", "systemName", "basin", "lastPass", "source"],
+      "frontend_consumers": ["Header", "LiveCycloneStatus", "SatelliteViewer"]
+    },
+    "detection": {
+      "backend_fields": ["detected", "confidence", "location.lat", "location.lon", "movementDirection", "movementSpeedKmh"],
+      "frontend_consumers": ["LiveCycloneStatus", "MapView", "DetectionCard"]
+    },
+    "classification": {
+      "backend_fields": ["category", "scale", "windSpeedKmh", "pressureHpa", "confidence", "structuralPattern"],
+      "frontend_consumers": ["LiveCycloneStatus", "MapView", "ClassificationCard", "RiskIndicator"]
+    },
+    "forecast": {
+      "backend_fields": ["hour", "label", "lat", "lon", "windSpeedKmh", "pressureHpa", "confidence"],
+      "frontend_consumers": ["MapView", "ForecastCard", "ChartsPanel"]
+    },
+    "landfall": {
+      "backend_fields": ["estimated", "latitude", "longitude", "estimated_time", "predictedWindKmh", "distanceToLandKm"],
+      "frontend_consumers": ["LandfallPanel", "MapView", "RiskIndicator"]
+    },
+    "risk": {
+      "backend_fields": ["score", "level"],
+      "frontend_consumers": ["RiskIndicator"]
+    },
+    "historicalTrack": {
+      "backend_fields": ["lat", "lon", "timestamp"],
+      "frontend_consumers": ["MapView", "ChartsPanel"]
+    },
+    "windHistory": {
+      "backend_fields": ["t", "value"],
+      "frontend_consumers": ["ChartsPanel"]
+    },
+    "pressureHistory": {
+      "backend_fields": ["t", "value"],
+      "frontend_consumers": ["ChartsPanel"]
+    },
+    "confidenceHistory": {
+      "backend_fields": ["t", "value"],
+      "frontend_consumers": ["ChartsPanel"]
+    },
+    "sstHistory": {
+      "backend_fields": ["t", "value"],
+      "frontend_consumers": ["ChartsPanel"]
+    },
+    "envWindHistory": {
+      "backend_fields": ["t", "value"],
+      "frontend_consumers": ["ChartsPanel"]
+    },
+    "satellite": {
+      "backend_fields": ["label", "boundingBox", "source"],
+      "frontend_consumers": ["SatelliteViewer"]
+    },
+    "provenance": {
+      "backend_fields": ["pipeline", "sources", "notes", "reference_image", "tabular"],
+      "frontend_consumers": ["ProvenancePanel"]
+    }
+  },
+
+  "matched_fields": [
+    "meta.systemId/systemName/basin/lastPass/source",
+    "detection.detected/confidence/location/movementDirection/movementSpeedKmh",
+    "classification.category/scale/windSpeedKmh/pressureHpa/confidence/structuralPattern",
+    "forecast[].hour/label/lat/lon/windSpeedKmh",
+    "landfall.estimated/latitude/longitude/estimated_time/predictedWindKmh/distanceToLandKm",
+    "risk.score/level",
+    "historicalTrack[].lat/lon/timestamp",
+    "windHistory/pressureHistory/confidenceHistory/sstHistory/envWindHistory [].t/.value",
+    "satellite.label/source",
+    "provenance.pipeline/sources/notes/reference_image/tabular"
+  ],
+
+  "optional_or_null_fields": [
+    {
+      "field": "forecast[].pressureHpa",
+      "value": "null (no calibrated pressure output)",
+      "frontend_handling": "ChartsPanel/MapView filter out falsy pressure values; not plotted"
+    },
+    {
+      "field": "forecast[].confidence",
+      "value": "null (no calibrated uncertainty)",
+      "frontend_handling": "ForecastCard shows 'Awaiting data'; MapView popup hides when falsy"
+    },
+    {
+      "field": "satellite.boundingBox",
+      "value": "null (no audited localizer)",
+      "frontend_handling": "SatelliteViewer renders no bounding box overlay; honest 'Not available' note"
+    },
+    {
+      "field": "provenance.tabular.available",
+      "value": "false (independent eval VERIFIED: acc 47.0% / macro-F1 0.3703 / wind MAE 18.84; still not servable in-process because the defining module lives only in the no-extraction zip)",
+      "frontend_handling": "ProvenancePanel reflects the honest NOT_available state with the precise reason"
+    }
+  ],
+
+  "backend_fields_not_displayed": [
+    "meta.source (long descriptive string; displayed in provenance rather than top-level)",
+    "detection.movementSpeedKmh/movementDirection (computed server-side; used by LiveCycloneStatus)",
+    "classification.scale ('IMD') contributor text (shown contextually)"
+  ],
+
+  "frontend_expectations_not_supplied_by_backend": [],
+
+  "field_name_aliases_handled_by_components": {
+    "hour vs hours": "backend uses 'hour' (6/12/24); components read p.hours ?? p.hour",
+    "lat/lon vs latitude/longitude": "backend uses lat/lon; components read p.latitude ?? p.lat",
+    "windSpeedKmh vs wind_speed_kmh": "backend uses windSpeedKmh; components read p.wind_speed_kmh ?? p.windSpeedKmh"
+  },
+
+  "contract_input_aliases_client_sends": {
+    "history[].{lat,lon,timestamp,wind_speed_kmh,pressure_hPa,sst,env_wind}": "client.js writes DEMO_HISTORY in the snake_case keys the schema expects",
+    "meta.title": "client sends systemName/systemId/basin/lastPass as required by schema"
+  },
+
+  "mock_only_fields_not_sent_by_live_backend": [
+    "static high-confidence dummy map cone widths (illustrative cone only; live backend sends no uncertainty)",
+    "hard-coded demo acquisition time string (replaced by meta.lastPass in the honesty fix)"
+  ],
+
+  "mismatches": []
+}

@@ -1,0 +1,9 @@
+{
+  "acquisition_name": "P2_PHASE9_DATA_ACQUISITION",
+  "timestamp": "2026-09-01T13:00:00Z",
+  "total_extracted_crops": 138,
+  "unique_sha256_hashes": 138,
+  "mock_coordinates_used": false,
+  "synthetic_expansion_used": false,
+  "status": "PASS_100PCT_GENUINE"
+}

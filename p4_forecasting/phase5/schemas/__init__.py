@@ -1,0 +1,1 @@
+"""Phase-5 schema documentation + validation helpers for the JSON contract."""

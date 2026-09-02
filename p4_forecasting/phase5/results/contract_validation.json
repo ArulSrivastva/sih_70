@@ -1,0 +1,79 @@
+{
+  "schema": "phase5 v1",
+  "recorded_at": "2026-08-29T12:06:22.108589+00:00",
+  "input": {
+    "history_hours": 24,
+    "history_steps": 5,
+    "feature_count": 16,
+    "field_order": [
+      "lat",
+      "lon",
+      "wind_speed",
+      "pressure",
+      "sst",
+      "wind_u",
+      "wind_v",
+      "delta_lat",
+      "delta_lon",
+      "movement_speed",
+      "movement_direction",
+      "wind_change",
+      "pressure_change",
+      "sst_change",
+      "environmental_wind_speed",
+      "environmental_wind_direction"
+    ]
+  },
+  "output_schema": {
+    "top_level_keys": [
+      "status",
+      "model",
+      "input",
+      "forecast"
+    ],
+    "forecast_keys": [
+      "hours",
+      "latitude",
+      "longitude",
+      "wind_speed_kmh"
+    ],
+    "horizons_hours": [
+      6,
+      12,
+      24
+    ],
+    "input_block_keys": [
+      "history_hours",
+      "history_steps",
+      "feature_count"
+    ],
+    "model_block_keys": [
+      "experiment_id",
+      "family",
+      "loss"
+    ],
+    "feature_count": 16
+  },
+  "sample_forecast_valid": true,
+  "sample_forecast": [
+    {
+      "hours": 6,
+      "latitude": 22.861923217773438,
+      "longitude": 65.31914520263672,
+      "wind_speed_kmh": 86.10538482666016
+    },
+    {
+      "hours": 12,
+      "latitude": 22.921104431152344,
+      "longitude": 64.67660522460938,
+      "wind_speed_kmh": 86.79544067382812
+    },
+    {
+      "hours": 24,
+      "latitude": 22.54108238220215,
+      "longitude": 63.08529281616211,
+      "wind_speed_kmh": 79.32532501220703
+    }
+  ],
+  "final_status": "PASS"
+}

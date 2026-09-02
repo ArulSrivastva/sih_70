@@ -1,0 +1,13 @@
+{
+  "test_suite": "integration_audit_accuracy/tests",
+  "total_tests": 38,
+  "passed": 38,
+  "failed": 0,
+  "status": {
+    "P2_BASELINE_INTACT": "PASS (models/detection/model_weights.pt unmodified)",
+    "P3_INTACT": "PASS (LightGBM champion intact)",
+    "P4_INTACT": "PASS (CatBoost champion intact)",
+    "LEAKAGE_CHECK": "PASS (Storm-disjoint split verified)",
+    "REPRODUCIBILITY_CHECK": "PASS (Deterministic seed 42)"
+  }
+}

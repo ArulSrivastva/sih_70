@@ -1,0 +1,14 @@
+{
+  "O1_ordinal_regression": {
+    "accuracy": 38.638263404252385,
+    "macro_f1": 0.30689468373419754
+  },
+  "O2_ordinal_decomposition": {
+    "accuracy": 43.0523730502286,
+    "macro_f1": 0.288780402354799
+  },
+  "O3_ordinal_weights": {
+    "accuracy": 41.61808627701563,
+    "macro_f1": 0.2803069930938785
+  }
+}

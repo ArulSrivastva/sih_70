@@ -1,0 +1,53 @@
+{
+  "schema": "phase5 v1",
+  "recorded_at": "2026-08-29T12:06:22.107694+00:00",
+  "phase": 5,
+  "experiment_id": "EXP005",
+  "checkpoint_path": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\experiments\\EXP005\\checkpoint.pt",
+  "input_feature_count": 16,
+  "history_steps": 5,
+  "history_hours": 24,
+  "horizons_hours": [
+    6,
+    12,
+    24
+  ],
+  "normalization_source": "phase4/results/normalization_stats.json (train-only)",
+  "feature_contract_source": "phase4/features/feature_engineering.py + feature_order from stats",
+  "targets": [
+    "lat",
+    "lon",
+    "wind_speed_kmh"
+  ],
+  "causal_verification": "PASS",
+  "deterministic_verification": "PASS",
+  "offline_verification": "PASS",
+  "output_contract_verification": "PASS",
+  "sample_inference": {
+    "history_source": "phase2/results/canonical_chronological_clean/test.npz",
+    "forecast": [
+      {
+        "hours": 6,
+        "latitude": 22.861923217773438,
+        "longitude": 65.31914520263672,
+        "wind_speed_kmh": 86.10538482666016
+      },
+      {
+        "hours": 12,
+        "latitude": 22.921104431152344,
+        "longitude": 64.67660522460938,
+        "wind_speed_kmh": 86.79544067382812
+      },
+      {
+        "hours": 24,
+        "latitude": 22.54108238220215,
+        "longitude": 63.08529281616211,
+        "wind_speed_kmh": 79.32532501220703
+      }
+    ]
+  },
+  "baseline_parity": "PASS",
+  "tests_passed": 69,
+  "tests_total": 69,
+  "final_status": "PASS"
+}

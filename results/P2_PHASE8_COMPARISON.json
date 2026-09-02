@@ -1,0 +1,25 @@
+{
+  "comparison_name": "P2_PHASE8_MODEL_COMPARISON",
+  "timestamp": "2026-09-01T12:00:00Z",
+  "legacy_baseline": {
+    "pattern_f1_macro": 0.3697,
+    "category_f1_macro": 0.1465,
+    "category_accuracy": 0.3333
+  },
+  "E0_clean": {
+    "pattern_f1_macro": 0.23076923076923078,
+    "category_f1_macro": 0.4276094276094276,
+    "category_accuracy": 0.43333333333333335
+  },
+  "E1_balanced": {
+    "pattern_f1_macro": 0.23076923076923078,
+    "category_f1_macro": 0.3301997649823737,
+    "category_accuracy": 0.36666666666666664
+  },
+  "E2_augmented": {
+    "pattern_f1_macro": 0.23076923076923078,
+    "category_f1_macro": 0.4222222222222222,
+    "category_accuracy": 0.5666666666666667
+  },
+  "best_phase8_model": "E0_Clean"
+}

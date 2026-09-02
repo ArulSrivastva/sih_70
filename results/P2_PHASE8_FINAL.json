@@ -1,0 +1,16 @@
+{
+  "phase": "P2_PHASE8_FINAL",
+  "timestamp": "2026-09-01T12:00:00Z",
+  "p2_phase8_status": "CLEAN_RETRAINING_SUCCESS",
+  "p2_phase8_dataset_size": 138,
+  "p2_phase8_unique_scenes": 138,
+  "p2_phase8_unique_cyclones": 18,
+  "p2_phase8_pattern_macro_f1": 0.23076923076923078,
+  "p2_phase8_category_macro_f1": 0.4276094276094276,
+  "p2_phase8_champion_decision": "PHASE8_CANDIDATE_QUALIFIED",
+  "p2_champion_status": "UNCHANGED",
+  "immutability": {
+    "baseline_sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+    "baseline_intact": true
+  }
+}

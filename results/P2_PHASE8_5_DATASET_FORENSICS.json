@@ -1,0 +1,81 @@
+{
+  "audit_name": "P2_PHASE8_5_DATASET_FORENSICS",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "total_genuine_images": 138,
+  "unique_sha256_hashes": 138,
+  "synthetic_images_count": 0,
+  "mock_bbox_instances": 0,
+  "cyclone_count": 18,
+  "split_forensics": {
+    "TRAIN": {
+      "image_count": 84,
+      "cyclone_count": 11,
+      "cyclone_ids": [
+        "AMPHAN_2020",
+        "BULBUL_2019",
+        "FANI_2019",
+        "FENGAL_2024",
+        "GAJA_2018",
+        "GULAB_2021",
+        "HUDHUD_2014",
+        "JAWAD_2021",
+        "TITLI_2018",
+        "UNNAMED_2018_DD",
+        "UNNAMED_2019_D"
+      ],
+      "category_distribution": {
+        "Very Severe Cyclonic Storm": 42,
+        "Depression": 34,
+        "Deep Depression": 7,
+        "Cyclonic Storm": 1
+      },
+      "pattern_distribution": {
+        "eye_visible": 42,
+        "shear_pattern": 41,
+        "curved_band": 1
+      }
+    },
+    "VALIDATION": {
+      "image_count": 24,
+      "cyclone_count": 3,
+      "cyclone_ids": [
+        "SITRANG_2022",
+        "TAUKTAE_2021",
+        "YAAS_2021"
+      ],
+      "category_distribution": {
+        "Very Severe Cyclonic Storm": 12,
+        "Depression": 9,
+        "Deep Depression": 3
+      },
+      "pattern_distribution": {
+        "eye_visible": 12,
+        "shear_pattern": 12
+      }
+    },
+    "TEST": {
+      "image_count": 30,
+      "cyclone_count": 4,
+      "cyclone_ids": [
+        "ASANI_2022",
+        "BIPARJOY_2023",
+        "KYARR_2019",
+        "UNNAMED_2021_DD"
+      ],
+      "category_distribution": {
+        "Very Severe Cyclonic Storm": 21,
+        "Depression": 9
+      },
+      "pattern_distribution": {
+        "eye_visible": 21,
+        "shear_pattern": 9
+      }
+    }
+  },
+  "disjointness_proof": {
+    "train_intersect_val": 0,
+    "train_intersect_test": 0,
+    "val_intersect_test": 0
+  },
+  "status": "PASS_100PCT_GENUINE"
+}

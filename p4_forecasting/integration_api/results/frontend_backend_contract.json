@@ -1,0 +1,45 @@
+{
+  "schema": "integration_qa v1",
+  "scope": "cyclone-dashboard/src vs integration_api response contract",
+  "method": "Compare the /api/analyze response schema (integration_api/schemas.py:AnalyzeResponse) and the live e2e_trace.json with the shapes the React components consume (mockData.js + each component's destructuring).",
+  "summary": {
+    "verdict": "CONSISTENT",
+    "notes_by_design": [
+      "mockData.js has richer fake values (pressureHpa, confidence, boundingBox) that the live backend honestly returns as null/absent (no calibrated pressure/uncertainty, no localizer). Components already guard for null/undefined, so the contract stays consistent.",
+      "mockData.js 'supplementary fields' (historicalTrack, wind/pressure/confidence/sst/envWind History) that the comment calls 'not part of the official contract' ARE actually part of AnalyzeResponse and are returned by the live backend."
+    ]
+  },
+  "contracted_fields_resolved": {
+    "meta+": ["meta.systemId", "meta.systemName", "meta.basin", "meta.lastPass", "meta.source"],
+    "detection": ["detected", "confidence", "location.lat", "location.lon", "movementDirection", "movementSpeedKmh"],
+    "classification": ["category", "scale", "windSpeedKmh", "pressureHpa", "confidence", "structuralPattern"],
+    "forecast[]": ["hour|hours", "label", "lat|latitude", "lon|longitude", "windSpeedKmh|wind_speed_kmh", "pressureHpa", "confidence"],
+    "landfall": ["estimated", "latitude|longitude", "estimated_time", "predictedWindKmh", "distanceToLandKm"],
+    "risk": ["score", "level"],
+    "histories": ["historicalTrack[]", "windHistory[]", "pressureHistory[]", "confidenceHistory[]", "sstHistory[]", "envWindHistory[]"],
+    "satellite": ["label", "boundingBox|null", "source"]
+  },
+  "component_field_usage": {
+    "Header.jsx": ["meta.lastPass", "meta.systemName", "meta.basin"],
+    "LiveCycloneStatus.jsx": ["detection.detected", "detection.confidence", "detection.location.lat/lon", "detection.movementSpeedKmh", "detection.movementDirection", "classification.category", "classification.windSpeedKmh", "classification.pressureHpa", "meta.systemName", "meta.systemId", "meta.basin"],
+    "MapView.jsx": ["detection.location", "detection.confidence", "classification.windSpeedKmh", "classification.category", "forecast[].{hour,label,lat,lon,windSpeedKmh,pressureHpa,confidence}", "historicalTrack[]", "landfall.{estimated,latitude,longitude,predictedWindKmh,distanceToLandKm}"],
+    "SatelliteViewer.jsx": ["satellite.boundingBox|null", "satellite.source", "meta.lastPass"],
+    "ForecastCard.jsx": ["forecast[].{hour,label,lat,lon,windSpeedKmh,confidence}"],
+    "LandfallPanel.jsx": ["landfall.{estimated,latitude,longitude,estimated_time,predictedWindKmh,distanceToLandKm}"],
+    "RiskIndicator.jsx": ["risk.{score,level}", "classification.windSpeedKmh", "classification.pressureHpa", "landfall.distanceToLandKm"],
+    "ChartsPanel.jsx": ["windHistory[]", "pressureHistory[]", "sstHistory[]", "envWindHistory[]", "forecast[].{label,hour,windSpeedKmh,pressureHpa}"],
+    "ProvenancePanel.jsx": ["provenance.{pipeline,sources,notes,reference_image,tabular}"]
+  },
+  "field_name_aliases_handled_by_components": {
+    "hour vs hours": "forecast entries use 'hour' from backend; components read p.hours ?? p.hour",
+    "lat/lon vs latitude/longitude": "backend uses lat/lon; components read p.latitude ?? p.lat",
+    "windSpeedKmh vs wind_speed_kmh": "backend uses windSpeedKmh; components read p.wind_speed_kmh ?? p.windSpeedKmh"
+  },
+  "honest_null_fields_the_UI_guards": [
+    "forecast[].pressureHpa (null -> charts filter it out; map popup hides when falsy)",
+    "forecast[].confidence (null -> ForecastCard shows 'Awaiting data'; map popup hides)",
+    "satellite.boundingBox (null -> no overlay box drawn)"
+  ],
+  "mock_only_props_not_sent_by_backend": [],
+  "mismatches": []
+}

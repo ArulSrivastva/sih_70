@@ -1,0 +1,21 @@
+{
+  "test_metrics": {
+    "base16": {
+      "6": {
+        "track_error_km_mean": 35.1278844067878,
+        "track_error_km_median": 29.632081204213904,
+        "track_error_km_std": 25.158541023160062
+      },
+      "12": {
+        "track_error_km_mean": 73.07248626583431,
+        "track_error_km_median": 64.62909225744468,
+        "track_error_km_std": 50.45325850353654
+      },
+      "24": {
+        "track_error_km_mean": 159.8227411175736,
+        "track_error_km_median": 142.33357155384175,
+        "track_error_km_std": 108.97584772187082
+      }
+    }
+  }
+}

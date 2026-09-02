@@ -1,0 +1,1 @@
+"""Phase-6 integration layer: adapts Phase-5 ForecastingService to the API."""

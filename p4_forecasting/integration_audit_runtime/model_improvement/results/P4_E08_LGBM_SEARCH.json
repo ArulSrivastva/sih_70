@@ -1,0 +1,161 @@
+{
+  "best_config": {
+    "n_estimators": 400,
+    "max_depth": 3,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "subsample": 0.7,
+    "colsample_bytree": 0.7,
+    "reg_lambda": 0.001
+  },
+  "best_val_mte": 71.19338975629573,
+  "best_test": {
+    "6": {
+      "track_error_km_mean": 35.24483656231113,
+      "track_error_km_median": 30.16454940607857,
+      "track_error_km_std": 25.591749642308223
+    },
+    "12": {
+      "track_error_km_mean": 71.99415909159765,
+      "track_error_km_median": 62.887259714978065,
+      "track_error_km_std": 49.295496046256055
+    },
+    "24": {
+      "track_error_km_mean": 161.4489809571092,
+      "track_error_km_median": 144.00178760915807,
+      "track_error_km_std": 102.04098833267334
+    }
+  },
+  "top10": [
+    {
+      "config": {
+        "n_estimators": 400,
+        "max_depth": 3,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "subsample": 0.7,
+        "colsample_bytree": 0.7,
+        "reg_lambda": 0.001
+      },
+      "val_mte_mean": 71.19338975629573,
+      "test_mte_mean": 89.56265887033932
+    },
+    {
+      "config": {
+        "n_estimators": 400,
+        "max_depth": 3,
+        "num_leaves": 63,
+        "learning_rate": 0.1,
+        "subsample": 0.9,
+        "colsample_bytree": 0.7,
+        "reg_lambda": 0.001
+      },
+      "val_mte_mean": 71.19338975629573,
+      "test_mte_mean": 89.56265887033932
+    },
+    {
+      "config": {
+        "n_estimators": 200,
+        "max_depth": 3,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "colsample_bytree": 0.7,
+        "reg_lambda": 0.01
+      },
+      "val_mte_mean": 71.2181505544506,
+      "test_mte_mean": 89.56283356947624
+    },
+    {
+      "config": {
+        "n_estimators": 400,
+        "max_depth": 3,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 0.1
+      },
+      "val_mte_mean": 71.61192422175124,
+      "test_mte_mean": 90.38649739498094
+    },
+    {
+      "config": {
+        "n_estimators": 400,
+        "max_depth": 3,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "subsample": 0.9,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 0.1
+      },
+      "val_mte_mean": 71.61192422175124,
+      "test_mte_mean": 90.38649739498094
+    },
+    {
+      "config": {
+        "n_estimators": 800,
+        "max_depth": 3,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "colsample_bytree": 0.7,
+        "reg_lambda": 0.1
+      },
+      "val_mte_mean": 71.6609437604264,
+      "test_mte_mean": 88.88236402591458
+    },
+    {
+      "config": {
+        "n_estimators": 400,
+        "max_depth": 3,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "subsample": 0.9,
+        "colsample_bytree": 0.7,
+        "reg_lambda": 0.1
+      },
+      "val_mte_mean": 71.6609437604264,
+      "test_mte_mean": 88.88236402591458
+    },
+    {
+      "config": {
+        "n_estimators": 800,
+        "max_depth": 3,
+        "num_leaves": 15,
+        "learning_rate": 0.01,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 0.1
+      },
+      "val_mte_mean": 71.79790001675336,
+      "test_mte_mean": 88.11112191609584
+    },
+    {
+      "config": {
+        "n_estimators": 400,
+        "max_depth": 3,
+        "num_leaves": 63,
+        "learning_rate": 0.05,
+        "subsample": 0.9,
+        "colsample_bytree": 0.9,
+        "reg_lambda": 0.01
+      },
+      "val_mte_mean": 71.86626559868078,
+      "test_mte_mean": 87.39549210913943
+    },
+    {
+      "config": {
+        "n_estimators": 200,
+        "max_depth": 3,
+        "num_leaves": 15,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "colsample_bytree": 0.9,
+        "reg_lambda": 0.001
+      },
+      "val_mte_mean": 71.86627001126169,
+      "test_mte_mean": 87.37661534846264
+    }
+  ]
+}

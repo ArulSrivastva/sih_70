@@ -1,0 +1,407 @@
+{
+  "request": {
+    "path": "/api/analyze",
+    "history_steps": 5,
+    "meta": {
+      "systemId": "BOB07",
+      "systemName": "Cyclonic Storm ANIKA",
+      "basin": "Bay of Bengal",
+      "lastPass": "2026-08-26T05:30:00Z"
+    }
+  },
+  "status_code": 200,
+  "wall_ms": 76.97,
+  "stage_ms": {
+    "p2_detect": 9.45,
+    "p3_classify": 56.19,
+    "p4_forecast": 1.0
+  },
+  "reference_frame": "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg",
+  "invariants": {
+    "status_200": {
+      "pass": true,
+      "status": 200
+    },
+    "status_field": {
+      "pass": true
+    },
+    "key_meta": {
+      "pass": true
+    },
+    "key_detection": {
+      "pass": true
+    },
+    "key_classification": {
+      "pass": true
+    },
+    "key_forecast": {
+      "pass": true
+    },
+    "key_landfall": {
+      "pass": true
+    },
+    "key_risk": {
+      "pass": true
+    },
+    "key_historicalTrack": {
+      "pass": true
+    },
+    "key_windHistory": {
+      "pass": true
+    },
+    "key_pressureHistory": {
+      "pass": true
+    },
+    "key_confidenceHistory": {
+      "pass": true
+    },
+    "key_sstHistory": {
+      "pass": true
+    },
+    "key_envWindHistory": {
+      "pass": true
+    },
+    "key_satellite": {
+      "pass": true
+    },
+    "key_provenance": {
+      "pass": true
+    },
+    "detection_types": {
+      "pass": true,
+      "confidence": 91
+    },
+    "detection_location_equals_last_obs": {
+      "pass": true
+    },
+    "movement_speed_nonneg": {
+      "pass": true,
+      "speed": 21.1,
+      "direction": "North-East (38°)"
+    },
+    "classification_category_imd": {
+      "pass": true,
+      "category": "Cyclonic Storm",
+      "scale": "IMD"
+    },
+    "classification_wind_is_observed": {
+      "pass": true,
+      "wind": 145.0
+    },
+    "classification_pressure_is_observed": {
+      "pass": true,
+      "pressure": 950.0
+    },
+    "forecast_horizons": {
+      "pass": true,
+      "hours": [
+        6,
+        12,
+        24
+      ],
+      "labels": [
+        "+6h",
+        "+12h",
+        "+24h"
+      ]
+    },
+    "forecast_honest_null": {
+      "pass": true
+    },
+    "forecast_bounds": {
+      "pass": true,
+      "points": [
+        {
+          "lat": 18.3924,
+          "lon": 84.063,
+          "wind": 169.4
+        },
+        {
+          "lat": 19.1399,
+          "lon": 83.4031,
+          "wind": 160.7
+        },
+        {
+          "lat": 20.951,
+          "lon": 85.1707,
+          "wind": 131.6
+        }
+      ]
+    },
+    "landfall_shape": {
+      "pass": true
+    },
+    "risk_bounds": {
+      "pass": true,
+      "score": 99,
+      "level": "HIGH"
+    },
+    "history_lengths": {
+      "pass": true
+    },
+    "history_time_labels": {
+      "pass": true
+    },
+    "history_conf_constant": {
+      "pass": true
+    },
+    "satellite_bbox_null": {
+      "pass": true
+    },
+    "satellite_source_ends_jpg": {
+      "pass": true,
+      "source_ref": "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg"
+    },
+    "provenance_complete": {
+      "pass": true
+    },
+    "provenance_tabular_honest": {
+      "pass": true
+    },
+    "risk_deterministic_formula": {
+      "pass": true,
+      "expected_score": 99,
+      "expected_level": "HIGH"
+    }
+  },
+  "invariant_issues": [],
+  "response": {
+    "status": "success",
+    "meta": {
+      "systemId": "BOB07",
+      "systemName": "Cyclonic Storm ANIKA",
+      "basin": "Bay of Bengal",
+      "lastPass": "2026-08-26T05:30:00Z",
+      "source": "INSAT-3D IR · reference frame from PS70-main.zip · frame PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg"
+    },
+    "detection": {
+      "detected": true,
+      "confidence": 91,
+      "location": {
+        "lat": 16.52,
+        "lon": 82.31
+      },
+      "movementDirection": "North-East (38°)",
+      "movementSpeedKmh": 21.1
+    },
+    "classification": {
+      "category": "Cyclonic Storm",
+      "scale": "IMD",
+      "windSpeedKmh": 145.0,
+      "pressureHpa": 950.0,
+      "confidence": 97,
+      "structuralPattern": "eye_visible"
+    },
+    "forecast": [
+      {
+        "hour": 6,
+        "label": "+6h",
+        "lat": 18.3924,
+        "lon": 84.063,
+        "windSpeedKmh": 169.4,
+        "pressureHpa": null,
+        "confidence": null
+      },
+      {
+        "hour": 12,
+        "label": "+12h",
+        "lat": 19.1399,
+        "lon": 83.4031,
+        "windSpeedKmh": 160.7,
+        "pressureHpa": null,
+        "confidence": null
+      },
+      {
+        "hour": 24,
+        "label": "+24h",
+        "lat": 20.951,
+        "lon": 85.1707,
+        "windSpeedKmh": 131.6,
+        "pressureHpa": null,
+        "confidence": null
+      }
+    ],
+    "landfall": {
+      "estimated": true,
+      "latitude": 18.1,
+      "longitude": 83.65,
+      "estimated_time": "2026-08-26T06:00:00Z",
+      "predictedWindKmh": 169.4,
+      "distanceToLandKm": 54
+    },
+    "risk": {
+      "score": 99,
+      "level": "HIGH"
+    },
+    "historicalTrack": [
+      {
+        "lat": 13.8,
+        "lon": 80.1,
+        "timestamp": "2026-08-25T00:00:00Z"
+      },
+      {
+        "lat": 14.35,
+        "lon": 80.55,
+        "timestamp": "2026-08-25T06:00:00Z"
+      },
+      {
+        "lat": 14.98,
+        "lon": 81.1,
+        "timestamp": "2026-08-25T12:00:00Z"
+      },
+      {
+        "lat": 15.62,
+        "lon": 81.58,
+        "timestamp": "2026-08-25T18:00:00Z"
+      },
+      {
+        "lat": 16.52,
+        "lon": 82.31,
+        "timestamp": "2026-08-26T00:00:00Z"
+      }
+    ],
+    "windHistory": [
+      {
+        "t": "-24h",
+        "value": 105.0
+      },
+      {
+        "t": "-18h",
+        "value": 114.0
+      },
+      {
+        "t": "-12h",
+        "value": 122.0
+      },
+      {
+        "t": "-6h",
+        "value": 133.0
+      },
+      {
+        "t": "Now",
+        "value": 145.0
+      }
+    ],
+    "pressureHistory": [
+      {
+        "t": "-24h",
+        "value": 986.0
+      },
+      {
+        "t": "-18h",
+        "value": 979.0
+      },
+      {
+        "t": "-12h",
+        "value": 971.0
+      },
+      {
+        "t": "-6h",
+        "value": 962.0
+      },
+      {
+        "t": "Now",
+        "value": 950.0
+      }
+    ],
+    "confidenceHistory": [
+      {
+        "t": "-24h",
+        "value": 91.2
+      },
+      {
+        "t": "-18h",
+        "value": 91.2
+      },
+      {
+        "t": "-12h",
+        "value": 91.2
+      },
+      {
+        "t": "-6h",
+        "value": 91.2
+      },
+      {
+        "t": "Now",
+        "value": 91.2
+      }
+    ],
+    "sstHistory": [
+      {
+        "t": "-24h",
+        "value": 28.2
+      },
+      {
+        "t": "-18h",
+        "value": 28.3
+      },
+      {
+        "t": "-12h",
+        "value": 28.5
+      },
+      {
+        "t": "-6h",
+        "value": 28.5
+      },
+      {
+        "t": "Now",
+        "value": 28.6
+      }
+    ],
+    "envWindHistory": [
+      {
+        "t": "-24h",
+        "value": 12.21
+      },
+      {
+        "t": "-18h",
+        "value": 12.51
+      },
+      {
+        "t": "-12h",
+        "value": 12.95
+      },
+      {
+        "t": "-6h",
+        "value": 13.26
+      },
+      {
+        "t": "Now",
+        "value": 13.57
+      }
+    ],
+    "satellite": {
+      "label": "INSAT-3D IR · 45(1).jpg (reference frame)",
+      "boundingBox": null,
+      "source": "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg"
+    },
+    "provenance": {
+      "pipeline": "p2 (satellite detect) -> p3 (intensity/classification) -> p4 EXP005 (track/wind forecast) -> server heuristics (landfall/risk)",
+      "sources": {
+        "detection": "PS70-main/models/detection/model_weights.pt (zip, in-memory)",
+        "classification": "PS70-main/models/classification/image_only_model.pt (image)",
+        "tabular": "tabular_multisource_model.pkl NOT_RUN (lightgbm package not installed; pickle contains LGBM models and cannot be unpickled)",
+        "forecast": "phase5 EXP005 (GRU+Huber) via phase6 adapter",
+        "wind_pressure_display": "latest validated observation",
+        "reference_frame": "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg"
+      },
+      "notes": [
+        "detection: P2 model_weights.pt (zip, in-memory) on a reference INSAT-3D IR frame; not a live feed",
+        "classification: P3 image_only_model.pt category/confidence; the P3 wind regressor is degenerate and is NOT displayed",
+        "wind/pressure shown are the latest observed values from the validated history (t = 2026-08-26T00:00:00Z)",
+        "forecast: audited Phase-4 champion EXP005 (GRU+Huber) via the phase6 ForecastingAdapter",
+        "forecast pressureHpa/confidence: null (no calibrated outputs)",
+        "confidenceHistory: placeholder constant from the current P2 detection (no calibrated per-step confidence exists)",
+        "landfall & risk: deterministic server-side heuristics, not ML outputs",
+        "satellite boundingBox: null (no audited localizer exists in the artifact bundle)",
+        "tabular classifier NOT_RUN: lightgbm package not installed; pickle contains LGBM models and cannot be unpickled"
+      ],
+      "reference_image": "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg",
+      "tabular": {
+        "model": "PS70-main/models/classification/tabular_multisource_model.pkl",
+        "available": false,
+        "reason": "lightgbm package not installed; pickle contains LGBM models and cannot be unpickled"
+      }
+    }
+  }
+}

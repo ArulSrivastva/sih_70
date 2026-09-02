@@ -1,0 +1,149 @@
+{
+  "data_quality": {
+    "n_train": 3039,
+    "n_val": 518,
+    "n_test": 651,
+    "n_features": 6,
+    "n_classes": 7,
+    "has_leakage": false,
+    "class_imbalance_severe": true,
+    "missing_classes_in_val": [
+      "Extremely Severe Cyclonic Storm",
+      "Super Cyclonic Storm"
+    ],
+    "missing_classes_in_test": [
+      "Super Cyclonic Storm"
+    ]
+  },
+  "baseline": {
+    "majority_class": {
+      "accuracy": 38.86,
+      "macro_f1": 0.0933
+    },
+    "original_lgbm": {
+      "val_accuracy": 38.61,
+      "val_macro_f1": 0.1847,
+      "test_accuracy": 45.93,
+      "test_macro_f1": 0.3541,
+      "params": {
+        "n_estimators": 200,
+        "learning_rate": 0.05,
+        "max_depth": 6
+      },
+      "test_classification_report": {
+        "Depression": {
+          "precision": 0.6208053691275168,
+          "recall": 0.7312252964426877,
+          "f1-score": 0.6715063520871143,
+          "support": 253.0
+        },
+        "Deep Depression": {
+          "precision": 0.35344827586206895,
+          "recall": 0.4019607843137255,
+          "f1-score": 0.3761467889908257,
+          "support": 102.0
+        },
+        "Cyclonic Storm": {
+          "precision": 0.3229166666666667,
+          "recall": 0.2818181818181818,
+          "f1-score": 0.30097087378640774,
+          "support": 110.0
+        },
+        "Severe Cyclonic Storm": {
+          "precision": 0.2777777777777778,
+          "recall": 0.2777777777777778,
+          "f1-score": 0.2777777777777778,
+          "support": 72.0
+        },
+        "Very Severe Cyclonic Storm": {
+          "precision": 0.375,
+          "recall": 0.16483516483516483,
+          "f1-score": 0.22900763358778625,
+          "support": 91.0
+        },
+        "Extremely Severe Cyclonic Storm": {
+          "precision": 0.2413793103448276,
+          "recall": 0.30434782608695654,
+          "f1-score": 0.2692307692307692,
+          "support": 23.0
+        },
+        "accuracy": 0.4592933947772657,
+        "macro avg": {
+          "precision": 0.3652212332964763,
+          "recall": 0.36032750521241574,
+          "f1-score": 0.3541066992434468,
+          "support": 651.0
+        },
+        "weighted avg": {
+          "precision": 0.4428771735767391,
+          "recall": 0.4592933947772657,
+          "f1-score": 0.4430059570205917,
+          "support": 651.0
+        }
+      }
+    },
+    "stored_claim": {
+      "accuracy": 47.0,
+      "macro_f1": 0.3703
+    }
+  },
+  "best_imbalance_method": "no_weights",
+  "best_model_name": "LightGBM",
+  "best_tuned_params": {
+    "model": "LightGBM",
+    "params": {
+      "n_estimators": 300,
+      "learning_rate": 0.05,
+      "max_depth": 4,
+      "num_leaves": 15
+    },
+    "val_macro_f1": 0.2202,
+    "test_accuracy": 43.47,
+    "test_macro_f1": 0.3626
+  },
+  "ordinal_metrics": {
+    "standard_accuracy": 39.17,
+    "off_by_one_accuracy": 75.58,
+    "off_by_two_accuracy": 94.32,
+    "total_test_samples": 651
+  },
+  "error_summary": {
+    "error_rate": 60.83,
+    "top_confusion": [
+      {
+        "true_class": "Depression",
+        "predicted_class": "Deep Depression",
+        "count": 59
+      },
+      {
+        "true_class": "Deep Depression",
+        "predicted_class": "Depression",
+        "count": 40
+      },
+      {
+        "true_class": "Very Severe Cyclonic Storm",
+        "predicted_class": "Severe Cyclonic Storm",
+        "count": 35
+      },
+      {
+        "true_class": "Depression",
+        "predicted_class": "Cyclonic Storm",
+        "count": 33
+      },
+      {
+        "true_class": "Cyclonic Storm",
+        "predicted_class": "Depression",
+        "count": 29
+      }
+    ],
+    "severe_storm_errors": 20
+  },
+  "improvement_over_stored_claim": {
+    "accuracy_delta": -3.53,
+    "f1_delta": -0.0077,
+    "stored_accuracy": 47.0,
+    "new_accuracy": 43.47,
+    "stored_f1": 0.3703,
+    "new_f1": 0.3626
+  }
+}

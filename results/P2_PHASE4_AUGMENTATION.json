@@ -1,0 +1,47 @@
+{
+  "experiment": "P2_PHASE4_AUGMENTATION_EXPERIMENT",
+  "dataset_split": "5-Fold Stratified Cross-Validation on Development Set (N=112)",
+  "configurations": {
+    "A0_baseline": {
+      "description": "No augmentation (Resize 224x224 + ToTensor)",
+      "pattern_accuracy": "0.5897 +/- 0.0260",
+      "pattern_macro_f1": "0.2767 +/- 0.0651",
+      "pattern_weighted_f1": "0.4552 +/- 0.0647",
+      "category_accuracy": "0.2573 +/- 0.0936",
+      "category_macro_f1": "0.1422 +/- 0.0627",
+      "category_weighted_f1": "0.1984 +/- 0.1011"
+    },
+    "A1_spatial_color": {
+      "description": "Mild RandomResizedCrop (scale 0.9-1.0) + ColorJitter (brightness/contrast 0.1)",
+      "pattern_accuracy": "0.5715 +/- 0.0174",
+      "pattern_macro_f1": "0.2439 +/- 0.0068",
+      "pattern_weighted_f1": "0.4185 +/- 0.0239",
+      "category_accuracy": "0.2854 +/- 0.0656",
+      "category_macro_f1": "0.1502 +/- 0.0555",
+      "category_weighted_f1": "0.2034 +/- 0.0762"
+    },
+    "A2_rotation_spatial": {
+      "description": "A1 + Mild RandomRotation (+/- 10 deg)",
+      "pattern_accuracy": "0.5715 +/- 0.0174",
+      "pattern_macro_f1": "0.2424 +/- 0.0047",
+      "pattern_weighted_f1": "0.4159 +/- 0.0207",
+      "category_accuracy": "0.2763 +/- 0.0641",
+      "category_macro_f1": "0.1056 +/- 0.0271",
+      "category_weighted_f1": "0.1583 +/- 0.0563"
+    }
+  },
+  "deltas_vs_baseline": {
+    "A1_vs_A0": {
+      "pattern_macro_f1_delta": -0.0328,
+      "category_macro_f1_delta": 0.0080,
+      "category_accuracy_delta": 0.0281,
+      "verdict": "WITHIN_NOISE_FLOOR (pattern F1 regresses, category F1 delta within sigma 0.055)"
+    },
+    "A2_vs_A0": {
+      "pattern_macro_f1_delta": -0.0343,
+      "category_macro_f1_delta": -0.0366,
+      "category_accuracy_delta": 0.0190,
+      "verdict": "REGRESSION"
+    }
+  }
+}

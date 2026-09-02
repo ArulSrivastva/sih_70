@@ -1,0 +1,80 @@
+{
+  "analysis_name": "P2_PHASE8_ERROR_ANALYSIS",
+  "timestamp": "2026-09-01T12:00:00Z",
+  "per_class_pattern": {
+    "curved_band": {
+      "support": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "eye_visible": {
+      "support": 21,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "shear_pattern": {
+      "support": 9,
+      "precision": 0.3,
+      "recall": 1.0,
+      "f1": 0.4615384615384615
+    }
+  },
+  "per_class_category": {
+    "Cyclonic Storm": {
+      "support": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "Deep Depression": {
+      "support": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "Depression": {
+      "support": 9,
+      "precision": 0.3333333333333333,
+      "recall": 0.8888888888888888,
+      "f1": 0.48484848484848486
+    },
+    "Very Severe Cyclonic Storm": {
+      "support": 21,
+      "precision": 0.8333333333333334,
+      "recall": 0.23809523809523808,
+      "f1": 0.37037037037037035
+    }
+  },
+  "per_cyclone_test_metrics": {
+    "KYARR_2019": {
+      "samples": 8,
+      "pattern_accuracy": 0.25,
+      "pattern_macro_f1": 0.2,
+      "category_accuracy": 0.25,
+      "category_macro_f1": 0.2
+    },
+    "BIPARJOY_2023": {
+      "samples": 7,
+      "pattern_accuracy": 0.0,
+      "pattern_macro_f1": 0.0,
+      "category_accuracy": 0.2857142857142857,
+      "category_macro_f1": 0.2222222222222222
+    },
+    "ASANI_2022": {
+      "samples": 8,
+      "pattern_accuracy": 0.0,
+      "pattern_macro_f1": 0.0,
+      "category_accuracy": 0.375,
+      "category_macro_f1": 0.2727272727272727
+    },
+    "UNNAMED_2021_DD": {
+      "samples": 7,
+      "pattern_accuracy": 1.0,
+      "pattern_macro_f1": 1.0,
+      "category_accuracy": 0.8571428571428571,
+      "category_macro_f1": 0.46153846153846156
+    }
+  }
+}

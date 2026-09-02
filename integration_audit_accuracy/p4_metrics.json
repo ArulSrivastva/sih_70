@@ -1,0 +1,236 @@
+{
+  "scope": "P4 independent verification (read-only)",
+  "canonical_chrono_sha256_prefixes": {
+    "prefix_train.npz": {
+      "sha256": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "expected_prefix": "df70303e",
+      "match": true
+    },
+    "prefix_val.npz": {
+      "sha256": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "expected_prefix": "48cf065d",
+      "match": true
+    },
+    "prefix_test.npz": {
+      "sha256": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+      "expected_prefix": "89e9c2e2",
+      "match": true
+    }
+  },
+  "feature_dataset_shapes": {
+    "feat_train_Xshape": [
+      1212,
+      5,
+      16
+    ],
+    "feat_train_Yshape": [
+      1212,
+      3,
+      3
+    ],
+    "feat_train_Xnan": 0,
+    "feat_train_Ynan": 0,
+    "feat_val_Xshape": [
+      231,
+      5,
+      16
+    ],
+    "feat_val_Yshape": [
+      231,
+      3,
+      3
+    ],
+    "feat_val_Xnan": 0,
+    "feat_val_Ynan": 0,
+    "feat_test_Xshape": [
+      198,
+      5,
+      16
+    ],
+    "feat_test_Yshape": [
+      198,
+      3,
+      3
+    ],
+    "feat_test_Xnan": 0,
+    "feat_test_Ynan": 0
+  },
+  "EXP005_recomputed_test": {
+    "6h": {
+      "mean": 91.42888641357422,
+      "median": 74.02493286132812,
+      "std": 60.83976364135742,
+      "wind_mae": 6.684532165527344,
+      "wind_rmse": 8.282137870788574
+    },
+    "12h": {
+      "mean": 119.76469421386719,
+      "median": 94.8983154296875,
+      "std": 86.74903106689453,
+      "wind_mae": 9.459010124206543,
+      "wind_rmse": 11.667283058166504
+    },
+    "24h": {
+      "mean": 188.23863220214844,
+      "median": 152.6668243408203,
+      "std": 128.67233276367188,
+      "wind_mae": 16.108442306518555,
+      "wind_rmse": 19.650104522705078
+    }
+  },
+  "EXP005_stored_test_vs_recomputed_max_diff": {
+    "6h": 6.651942399571453e-06,
+    "12h": 6.800463609124563e-06,
+    "24h": 1.2907503588621694e-05
+  },
+  "baselines_recomputed": {
+    "persistence": {
+      "6h": 64.68608366488854,
+      "12h": 123.93622341086457,
+      "24h": 227.32704718077517
+    },
+    "movement": {
+      "6h": 38.05125581673144,
+      "12h": 80.50450892597567,
+      "24h": 180.66053963358797
+    }
+  },
+  "baselines_stored": {
+    "persistence": {
+      "6h": 64.68608366488854,
+      "12h": 123.93622341086457,
+      "24h": 227.32704718077517
+    },
+    "movement_vector": {
+      "6h": 38.05125581673144,
+      "12h": 80.50450892597567,
+      "24h": 180.66053963358797
+    }
+  },
+  "champion_vs_baselines": {
+    "6h": {
+      "EXP005": 91.429,
+      "movement_vector": 38.051,
+      "persistence": 64.686
+    },
+    "12h": {
+      "EXP005": 119.765,
+      "movement_vector": 80.505,
+      "persistence": 123.936
+    },
+    "24h": {
+      "EXP005": 188.239,
+      "movement_vector": 180.661,
+      "persistence": 227.327
+    }
+  },
+  "champion_loses_to_movement_vector_all_horizons": true,
+  "champion_loses_to_persistence_6h_win_12h_24h": true,
+  "EXP005_val_primary_equals_mean_of_val_track": true,
+  "EXP005_val_primary_delta": 1.42e-14,
+  "rank_order_by_val_primary": [
+    "EXP005",
+    "EXP003",
+    "EXP006",
+    "EXP004",
+    "EXP002",
+    "EXP001"
+  ],
+  "EXP006_EXP003_metrics_near_identical_flag": true,
+  "EXP006_diff_from_EXP003": {
+    "val_primary_delta": 1.0162531992818913e-05,
+    "val_track_max_delta": 2.7996915378025733e-05,
+    "best_epoch_identical": true
+  },
+  "registry_experiments": {
+    "EXP001": {
+      "model": "improved_lstm",
+      "loss": "mse",
+      "hidden_size": "64",
+      "layers": "1",
+      "best_epoch": "38",
+      "val_primary": 166.82257509247853,
+      "val_track": [
+        141.69515887039668,
+        161.5701530648459,
+        197.20241334219298
+      ],
+      "status": "PASS"
+    },
+    "EXP002": {
+      "model": "improved_lstm",
+      "loss": "mse",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "36",
+      "val_primary": 147.22877819428768,
+      "val_track": [
+        114.02046005955789,
+        137.62662209631574,
+        190.03925242698946
+      ],
+      "status": "PASS"
+    },
+    "EXP003": {
+      "model": "gru",
+      "loss": "mse",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "31",
+      "val_primary": 127.15301770054243,
+      "val_track": [
+        98.72286303428844,
+        111.02801417120843,
+        171.70817589613046
+      ],
+      "status": "PASS"
+    },
+    "EXP004": {
+      "model": "multitask_lstm",
+      "loss": "mse",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "30",
+      "val_primary": 140.47550703503614,
+      "val_track": [
+        107.72315045004844,
+        136.93023974788835,
+        176.7731309071716
+      ],
+      "status": "PASS"
+    },
+    "EXP005": {
+      "model": "gru",
+      "loss": "huber",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "16",
+      "val_primary": 113.07414084856835,
+      "val_track": [
+        79.8430765890122,
+        101.16757375743805,
+        158.21177219925482
+      ],
+      "status": "PASS"
+    },
+    "EXP006": {
+      "model": "gru",
+      "loss": "weighted",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "31",
+      "val_primary": 127.15302786307443,
+      "val_track": [
+        98.72288529685147,
+        111.02799439932596,
+        171.70820389304583
+      ],
+      "status": "PASS"
+    }
+  },
+  "champion_selection_rule": "lowest equal-weight mean of validation track errors mean(val_track_6h, val_track_12h, val_track_24h); tie-break wind MAE then RMSE; TEST IS NEVER USED FOR SELECTION",
+  "champion_event": {
+    "experiment_id": "EXP005"
+  },
+  "test_population_note": "All P4 reported test/baseline numbers are on phase4/results/feature_dataset/test.npz (198 rows/10 cyclones); canonical_chrono/test.npz (401 rows/14 cyclones) is a different, larger population and would NOT reproduce the reported scores."
+}

@@ -1,0 +1,54 @@
+{
+  "input_size": 16,
+  "output_size": 9,
+  "features": 16,
+  "feature_order": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v",
+    "delta_lat",
+    "delta_lon",
+    "movement_speed",
+    "movement_direction",
+    "wind_change",
+    "pressure_change",
+    "sst_change",
+    "environmental_wind_speed",
+    "environmental_wind_direction"
+  ],
+  "target_order": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "horizons_hours": [
+    6,
+    12,
+    24
+  ],
+  "seed": 42,
+  "learning_rate": 0.001,
+  "batch_size": 64,
+  "max_epochs": 100,
+  "patience": 15,
+  "device": "cpu",
+  "track_weight": 1.0,
+  "intensity_weight": 1.0,
+  "horizon_weights": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "huber_delta": 1.0,
+  "loss_base": "mse",
+  "experiment_id": "EXP003",
+  "model": "gru",
+  "loss": "mse",
+  "hidden_size": 96,
+  "layers": 2,
+  "dropout": 0.1
+}

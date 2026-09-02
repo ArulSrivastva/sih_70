@@ -1,0 +1,32 @@
+{
+  "input_size": 7,
+  "hidden_size": 64,
+  "num_layers": 1,
+  "output_size": 9,
+  "learning_rate": 0.001,
+  "batch_size": 64,
+  "seed": 42,
+  "max_epochs": 100,
+  "patience": 12,
+  "feature_order": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v"
+  ],
+  "target_order": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "horizons_hours": [
+    6,
+    12,
+    24
+  ],
+  "parameters": 19273,
+  "architecture": "LSTM(7->64) -> Linear(64->9) -> reshape(3,3)"
+}

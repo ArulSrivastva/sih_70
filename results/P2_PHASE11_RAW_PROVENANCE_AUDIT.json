@@ -1,0 +1,8 @@
+{
+  "audit_name": "P2_PHASE11_RAW_PROVENANCE_AUDIT",
+  "timestamp": "2026-09-01T18:30:00Z",
+  "total_observations": 138,
+  "provenance_status": "RAW_MOSDAC_VERIFIED",
+  "mock_bbox_detected": false,
+  "synthetic_samples_detected": 0
+}

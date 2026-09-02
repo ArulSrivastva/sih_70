@@ -1,0 +1,38 @@
+{
+  "audit_name": "P2_PHASE5G_LABEL_AUDIT",
+  "timestamp": "2026-09-01T11:09:00Z",
+  "label_source_provenance": {
+    "intensity_category": "Official WMO/IMD Best Track Maximum Sustained Wind Speed (WMO_WIND in knots / kmh from IBTrACS)",
+    "structural_pattern": "Standard Dvorak cloud system morphology based on IMD operational cyclone forecast bulletins and physical wind speed thresholds",
+    "circular_ai_labeling": "STRICTLY_AVOIDED (No CNN predictions used as ground truth)"
+  },
+  "imd_category_mapping_rules": {
+    "Depression": "31 - 49 km/h (17 - 27 kt)",
+    "Deep Depression": "50 - 61 km/h (28 - 33 kt)",
+    "Cyclonic Storm": "62 - 88 km/h (34 - 47 kt)",
+    "Severe Cyclonic Storm": "89 - 117 km/h (48 - 63 kt)",
+    "Very Severe Cyclonic Storm": "118 - 165 km/h (64 - 89 kt)",
+    "Extremely Severe Cyclonic Storm": "166 - 221 km/h (90 - 119 kt)",
+    "Super Cyclonic Storm": ">= 222 km/h (>= 120 kt)"
+  },
+  "pilot_distribution": {
+    "total_pilot_frames": 45,
+    "categories": {
+      "Extremely Severe Cyclonic Storm": 7,
+      "Very Severe Cyclonic Storm": 5,
+      "Severe Cyclonic Storm": 3,
+      "Cyclonic Storm": 12,
+      "Deep Depression": 10,
+      "Depression": 8
+    },
+    "structural_patterns": {
+      "eye_visible": 12,
+      "curved_band": 18,
+      "shear_pattern": 15
+    },
+    "missing_labels": 0,
+    "ambiguous_labels": 0,
+    "duplicate_timestamps": 0
+  },
+  "label_audit_status": "PASS"
+}

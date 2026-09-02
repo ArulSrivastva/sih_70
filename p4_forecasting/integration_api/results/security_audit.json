@@ -1,0 +1,29 @@
+{
+  "zip_members_total": 1207,
+  "zip_never_extracted_to_disk": true,
+  "traversal_attempts": [
+    {
+      "attempt": "../../etc/passwd",
+      "result": "ModelNotReady"
+    },
+    {
+      "attempt": "PS70-main/../x",
+      "result": "ModelNotReady"
+    },
+    {
+      "attempt": "/etc/passwd",
+      "result": "ModelNotReady"
+    },
+    {
+      "attempt": "PS70-main\\..\\evil",
+      "result": "ModelNotReady"
+    },
+    {
+      "attempt": "PS70-main\\..\\evil",
+      "result": "ModelNotReady"
+    }
+  ],
+  "traversal_all_rejected": true,
+  "member_names_and_backslashes_check": true,
+  "user_image_path_inputs": "no image path is accepted by the API"
+}

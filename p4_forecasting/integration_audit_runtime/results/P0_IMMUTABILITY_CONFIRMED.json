@@ -1,0 +1,46 @@
+{
+  "schema": "p0_workflow_immutability v1",
+  "check": "Source immutability re-verification after P0 workflow implementation (POST /api/image + HistoryEditor)",
+  "pre_snapshot": "p4_forecasting/integration_api/results/pre_audit_snapshot.json",
+  "snapshot_files": 426,
+  "method": "Recompute SHA256 of every file in the pre-audit snapshot tree and compare to stored hash; recompute the PS70-main.zip hash + per-member hashes of the P2/P3 artifacts and reference frame.",
+  "result": "PASS",
+  "missing_files": 0,
+  "changed_total": 12,
+  "changed_by_bucket": {
+    "p1": 0,
+    "phase1": 0,
+    "phase2": 0,
+    "phase3": 0,
+    "phase4": 0,
+    "phase5": 0,
+    "phase6": 0,
+    "outside": 0,
+    "frontend": 9,
+    "allowed_integration": 3
+  },
+  "only_changed_files_all_in_approved_scope": [
+    "cyclone-dashboard/src/App.jsx",
+    "cyclone-dashboard/src/api/client.js",
+    "cyclone-dashboard/src/components/Header.jsx",
+    "cyclone-dashboard/src/components/LandfallPanel.jsx",
+    "cyclone-dashboard/src/components/LiveCycloneStatus.jsx",
+    "cyclone-dashboard/src/components/PipelineStatus.jsx",
+    "cyclone-dashboard/src/components/RiskIndicator.jsx",
+    "cyclone-dashboard/src/components/SatelliteViewer.jsx",
+    "cyclone-dashboard/src/components/map/MapView.jsx",
+    "p4_forecasting/integration_api/analyzer.py",
+    "p4_forecasting/integration_api/routes.py",
+    "p4_forecasting/integration_api/schemas.py"
+  ],
+  "forbidden_scope_changes": 0,
+  "p1_phase1_phase2_phase3_phase4_phase5_changed": 0,
+  "zip": {
+    "file_sha256_matches": true,
+    "n_members": 1207,
+    "n_recorded_members_unchanged": true,
+    "reference_frame_and_models_byte_identical": true
+  },
+  "note": "The 9 frontend + 3 allowed_integration changes are the task-required P0 integration work (image endpoint code + UI wiring). New files HistoryEditor.jsx, ProvenancePanel.jsx (prior QA), and tests/test_image_upload.py are additions in approved scope, not counted as changes. No audited source/dataset/model/phase file was modified.",
+  "recorded_at": "2026-08-30"
+}

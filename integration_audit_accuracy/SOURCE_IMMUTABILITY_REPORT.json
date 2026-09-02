@@ -1,0 +1,22 @@
+{
+  "schema": "source-immutability v1",
+  "generated": "2026-08-30",
+  "policy": "audit created only integration_audit_accuracy/; all P1-P5 consumed artifacts hashed before and after",
+  "manifest_sizes": {
+    "before_items": 1595,
+    "after_items": 1595
+  },
+  "changed_by_scope": {
+    "P1": 0,
+    "P2": 0,
+    "P3": 0,
+    "P4": 0,
+    "P5": 0,
+    "other": 0
+  },
+  "total_changed": 0,
+  "immutable": true,
+  "changed_entries": [],
+  "note_torch_hub_cache": "two ImageNet backbone downloads occurred in %USERPROFILE%\\.cache\\torch\\hub\\checkpoints (outside this workspace) solely to rebuild MobileNet/ResNet architectures for metric recomputation; no workspace file was created, modified, or deleted.",
+  "note_era5": "94 ERA5 .nc files were not individually hashed (1.1 GB); they are covered by the archive-level PS70-main.zip hash which is unchanged."
+}

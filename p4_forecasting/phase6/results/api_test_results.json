@@ -1,0 +1,173 @@
+{
+  "schema": "phase6 v1",
+  "recorded_at": "2026-08-29T12:27:34.344355+00:00",
+  "endpoints": {
+    "health": {
+      "pass": true,
+      "status_code": 200,
+      "body": {
+        "status": "ok",
+        "service": "cyclone-forecasting",
+        "phase": "phase6",
+        "offline": true,
+        "model_ready": true
+      }
+    },
+    "model": {
+      "pass": true,
+      "status_code": 200,
+      "body": {
+        "experiment_id": "EXP005",
+        "model": "GRU",
+        "loss": "Huber",
+        "hidden_size": 96,
+        "layers": 2,
+        "input_size": 16,
+        "output_size": 9,
+        "history_steps": 5,
+        "history_hours": 24,
+        "feature_count": 16,
+        "horizons": [
+          6,
+          12,
+          24
+        ],
+        "targets": [
+          "lat",
+          "lon",
+          "wind_speed_kmh"
+        ],
+        "validation_primary_score": 113.07414084856835
+      }
+    },
+    "forecast": {
+      "pass": true,
+      "status_code": 200,
+      "n_forecasts": 3,
+      "horizons": [
+        6,
+        12,
+        24
+      ]
+    },
+    "compare": {
+      "pass": true,
+      "status_code": 200,
+      "present": [
+        "model_forecast",
+        "persistence_forecast",
+        "movement_vector_forecast"
+      ]
+    }
+  },
+  "validation": {
+    "cases": {
+      "4 steps": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_HISTORY_LENGTH",
+        "expected": "INVALID_HISTORY_LENGTH"
+      },
+      "6 steps": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_HISTORY_LENGTH",
+        "expected": "INVALID_HISTORY_LENGTH"
+      },
+      "nan": {
+        "pass": true,
+        "status_code": 422,
+        "code": "NON_FINITE_VALUE",
+        "expected": "NON_FINITE_VALUE"
+      },
+      "malformed timestamp": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_TIMESTAMP",
+        "expected": "INVALID_TIMESTAMP"
+      },
+      "wrong spacing": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_HISTORY_SPACING",
+        "expected": "INVALID_HISTORY_SPACING"
+      },
+      "non-monotonic": {
+        "pass": true,
+        "status_code": 422,
+        "code": "NON_MONOTONIC_HISTORY",
+        "expected": "NON_MONOTONIC_HISTORY"
+      },
+      "missing feature": {
+        "pass": true,
+        "status_code": 422,
+        "code": "MISSING_FEATURE",
+        "expected": "MISSING_FEATURE"
+      },
+      "impossible lat": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_LATITUDE",
+        "expected": "INVALID_LATITUDE"
+      },
+      "invalid lon": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_LONGITUDE",
+        "expected": "INVALID_LONGITUDE"
+      },
+      "negative wind": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_WIND",
+        "expected": "INVALID_WIND"
+      },
+      "malformed json": {
+        "pass": true,
+        "status_code": 422,
+        "code": "INVALID_REQUEST",
+        "expected": "INVALID_REQUEST"
+      }
+    },
+    "pass": true
+  },
+  "causality": {
+    "pass": true,
+    "future_rejected": true,
+    "responds_to_latest_change": true
+  },
+  "determinism": {
+    "pass": true,
+    "exact_byte_identical": true
+  },
+  "offline": {
+    "pass": true,
+    "import_problems": []
+  },
+  "baseline_integration": {
+    "pass": true,
+    "persistence_parity": true,
+    "movement_vector_parity": true
+  },
+  "openapi": {
+    "pass": true
+  },
+  "latency": {
+    "pass": true,
+    "cold_load_ms": 0.001,
+    "warm": {
+      "n": 15,
+      "mean_ms": 1.915,
+      "median_ms": 1.88,
+      "min_ms": 1.649,
+      "max_ms": 2.28
+    }
+  },
+  "tests": {
+    "passed": 67,
+    "failed": 0,
+    "total": 67,
+    "rc": 0
+  },
+  "final_status": "PASS"
+}

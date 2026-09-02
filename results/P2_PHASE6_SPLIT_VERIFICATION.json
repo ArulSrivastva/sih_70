@@ -1,0 +1,34 @@
+{
+  "verification_name": "P2_PHASE6_SPLIT_VERIFICATION",
+  "timestamp": "2026-09-01T11:35:00Z",
+  "total_records_checked": 2120,
+  "unique_cyclone_keys": 24,
+  "disjointness_mathematical_proof": {
+    "train_intersect_val_count": 0,
+    "train_intersect_test_count": 0,
+    "val_intersect_test_count": 0,
+    "train_intersect_val_elements": [],
+    "train_intersect_test_elements": [],
+    "val_intersect_test_elements": []
+  },
+  "verified_cyclone_assignments": {
+    "train_cyclones": [
+      "AMPHAN_2020", "BULBUL_2019", "DANA_2024", "FANI_2019", "FENGAL_2024",
+      "GAJA_2018", "GULAB_2021", "HUDHUD_2014", "JAWAD_2021", "MICHAUNG_2023",
+      "MIDHILI_2023", "MOCHA_2023", "REMAL_2024", "TITLI_2018", "UNNAMED_2018",
+      "UNNAMED_2019", "UNNAMED_2020"
+    ],
+    "val_cyclones": [
+      "SITRANG_2022", "TAUKTAE_2021", "YAAS_2021"
+    ],
+    "test_cyclones": [
+      "ASANI_2022", "BIPARJOY_2023", "KYARR_2019", "UNNAMED_2021"
+    ]
+  },
+  "verified_sample_counts": {
+    "train_samples": 1500,
+    "val_samples": 280,
+    "test_samples": 340
+  },
+  "disjointness_status": "VERIFIED_STRICTLY_DISJOINT"
+}

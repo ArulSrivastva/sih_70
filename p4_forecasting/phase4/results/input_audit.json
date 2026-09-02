@@ -1,0 +1,162 @@
+{
+  "audit_version": "phase4 v1",
+  "recorded_at": "2026-08-29T09:45:57.968666+00:00",
+  "overall_pass": true,
+  "checks": [
+    {
+      "check": "check_1",
+      "pass": true,
+      "detail": "all source files exist (0 missing): []"
+    },
+    {
+      "check": "check_2",
+      "pass": true,
+      "detail": "canonical_chrono npz hash prefixes match Phase-1/2 records ({'train.npz': 'df70303e20c3...', 'val.npz': '48cf065d75a1...', 'test.npz': '89e9c2e23d42...'})"
+    },
+    {
+      "check": "check_3",
+      "pass": true,
+      "detail": "train: shapes=[1212, 5, 7]/[1212, 3, 3] dtype=float32 feat_ok=True tgt_ok=True align=True nan_inf=False cycles=57/57 seq=1212/1212 clean_only=True"
+    },
+    {
+      "check": "check_4",
+      "pass": true,
+      "detail": "val: shapes=[231, 5, 7]/[231, 3, 3] dtype=float32 feat_ok=True tgt_ok=True align=True nan_inf=False cycles=13/13 seq=231/231 clean_only=True"
+    },
+    {
+      "check": "check_5",
+      "pass": true,
+      "detail": "test: shapes=[198, 5, 7]/[198, 3, 3] dtype=float32 feat_ok=True tgt_ok=True align=True nan_inf=False cycles=10/10 seq=198/198 clean_only=True"
+    },
+    {
+      "check": "check_6",
+      "pass": true,
+      "detail": "clean-split cyclone disjointness (train=57, val=13, test=10)"
+    },
+    {
+      "check": "check_7",
+      "pass": true,
+      "detail": "strictly chronological storms: all train storms end before all val storms begin before all test storms (2022-08-14 03:00:00 < 2022-08-17 12:00:00 < 2024-05-28 06:00:00 < 2024-08-25 00:00:00)"
+    },
+    {
+      "check": "check_8",
+      "pass": true,
+      "detail": "canonical_chrono CLEAN counts vs Phase-2 clean rows: [('train', 1212, 1212), ('val', 231, 231), ('test', 198, 198)]"
+    }
+  ],
+  "source_paths": {
+    "chrono_dir": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\canonical_chrono",
+    "canonical_dir": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\canonical",
+    "phase2_clean_dir": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase2\\results\\canonical_chronological_clean",
+    "phase2_baseline_json": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase2\\results\\baseline_results.json",
+    "phase3_comparison_json": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase3\\results\\model_comparison.json",
+    "phase3_stats_json": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase3\\results\\normalization_stats.json",
+    "quality_csv": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\canonical\\sample_quality.csv"
+  },
+  "details": {
+    "chrono_sha256": {
+      "train.npz": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "val.npz": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "test.npz": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d"
+    },
+    "splits": {
+      "train": {
+        "X_shape": [
+          1212,
+          5,
+          7
+        ],
+        "Y_shape": [
+          1212,
+          3,
+          3
+        ],
+        "dtype": "float32",
+        "shapes_ok": true,
+        "feature_order_ok": true,
+        "target_order_ok": true,
+        "horizons": [
+          6,
+          12,
+          24
+        ],
+        "meta_align": true,
+        "nan_inf": false,
+        "cyclones": 57,
+        "sequences": 1212,
+        "expected": {
+          "sequences": 1212,
+          "cyclones": 57
+        },
+        "counts_ok": true,
+        "quality_clean_only": true
+      },
+      "val": {
+        "X_shape": [
+          231,
+          5,
+          7
+        ],
+        "Y_shape": [
+          231,
+          3,
+          3
+        ],
+        "dtype": "float32",
+        "shapes_ok": true,
+        "feature_order_ok": true,
+        "target_order_ok": true,
+        "horizons": [
+          6,
+          12,
+          24
+        ],
+        "meta_align": true,
+        "nan_inf": false,
+        "cyclones": 13,
+        "sequences": 231,
+        "expected": {
+          "sequences": 231,
+          "cyclones": 13
+        },
+        "counts_ok": true,
+        "quality_clean_only": true
+      },
+      "test": {
+        "X_shape": [
+          198,
+          5,
+          7
+        ],
+        "Y_shape": [
+          198,
+          3,
+          3
+        ],
+        "dtype": "float32",
+        "shapes_ok": true,
+        "feature_order_ok": true,
+        "target_order_ok": true,
+        "horizons": [
+          6,
+          12,
+          24
+        ],
+        "meta_align": true,
+        "nan_inf": false,
+        "cyclones": 10,
+        "sequences": 198,
+        "expected": {
+          "sequences": 198,
+          "cyclones": 10
+        },
+        "counts_ok": true,
+        "quality_clean_only": true
+      }
+    }
+  },
+  "audit_summary": {
+    "checks_total": 8,
+    "checks_failed": 0
+  }
+}

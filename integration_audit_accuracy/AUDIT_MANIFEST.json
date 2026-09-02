@@ -1,0 +1,142 @@
+{
+  "files": {
+    ".": {
+      "pytest_pass": 38,
+      "pytest_total": 38,
+      "tolerance_note": "metric diffs: P2<1e-12, P3<1e-9, P4 test<1e-4, baselines<1e-6, prefixes exact"
+    },
+    "ACCURACY_READINESS_REPORT.md": {
+      "sha256": "2736ea5930034ce5634f617fdee4872565581724890e7f71df6f9e64cff3d4f1",
+      "size": 3906
+    },
+    "API_COMPATIBILITY.md": {
+      "sha256": "9e0fec79d88590d3e8dba25e403a6b1b3e0f9d9db714b0d9b2e36f67dcd6b635",
+      "size": 2784
+    },
+    "AUDIT_ALL_IN_ONE.md": {
+      "sha256": "08e0948f6771cba1e575703d6ff4071ff5187f42f7e3a0635a12a62ba2515b2d",
+      "size": 712630
+    },
+    "AUDIT_MANIFEST.json": {
+      "sha256": "4ca6eca99cc035e8c96dd6341c0469695718a233d8a498151d76a4aa8ab5ab95",
+      "size": 4852
+    },
+    "CLAIMS_WE_CAN_MAKE.md": {
+      "sha256": "c020b56677808a1a4a86e871d4cc693c11f093eb20b0c1f80e722aed01765488",
+      "size": 2918
+    },
+    "COMPONENT_MAP.md": {
+      "sha256": "018639bd772e996da68f23dbabffac5735f27fcbed0bfb25e3a7ce345f465a0b",
+      "size": 5998
+    },
+    "INTEGRATION_READINESS.md": {
+      "sha256": "5132adf1a44aee8910e11a7045713dd01679231e5d6a0f26bd5c015588a203aa",
+      "size": 3574
+    },
+    "LEAKAGE_AUDIT.md": {
+      "sha256": "9f3545ab5273c132f266d66ce90a1c474a0a14e6310fd173fb262f8dff19399b",
+      "size": 4948
+    },
+    "METRIC_VERIFICATION.csv": {
+      "sha256": "d38b6d68fdb896b77c0f4969717b0f2f381c4f98fa49605770873c486dd7a52e",
+      "size": 5704
+    },
+    "MODEL_STRENGTH_SUMMARY.md": {
+      "sha256": "bc2a904071cb72096a5feef1e483cb6a64cc441984aae9772f179db4bd86a0e7",
+      "size": 3081
+    },
+    "P1_DATA_AUDIT.md": {
+      "sha256": "f5db66e22cd2fdcff4400eeaa66578473d485a97aadced816d140a74c6873306",
+      "size": 5112
+    },
+    "P2_DETECTION_AUDIT.md": {
+      "sha256": "d1d93d2b45e3386a0a4e1e1a1a6267ceac413bd94b0dbb45e66b8fcc902a1e15",
+      "size": 3223
+    },
+    "P3_CLASSIFICATION_AUDIT.md": {
+      "sha256": "77c4c1942089ae2f5c193311251dfd2fbea857da01dd35119c8860b7897cfb26",
+      "size": 2940
+    },
+    "P4_EXPERIMENT_RANKING.csv": {
+      "sha256": "b2f7b60baff4035b1902a024414e708bce11581898468419501432d9f901cbe2",
+      "size": 1965
+    },
+    "P4_FORECASTING_AUDIT.md": {
+      "sha256": "4bb8c154daa310545830d6cd12470055efb063078594be746f92a382a6e51882",
+      "size": 5566
+    },
+    "P5_FRONTEND_READINESS.md": {
+      "sha256": "cba946a4afcdd62f2fcb8e47786c9dc4e93acb4af11b2bd778b77eff78fab44e",
+      "size": 2947
+    },
+    "REPOSITORY_INVENTORY.md": {
+      "sha256": "e4013219413b33824f7c64e825f536da0074a7576b085c7f7d2d6289b9e8e108",
+      "size": 4858
+    },
+    "SOURCE_HASHES_AFTER.json": {
+      "sha256": "0559056a3dc0c1e3bf1410dbf3c1d6c2f1bd79928d528b4a9f6c9fc83f473484",
+      "size": 304808
+    },
+    "SOURCE_HASHES_BEFORE.json": {
+      "sha256": "0563f5975fa56658d54a936e6f754234f0c06a5cb44ae9d514f87801eedad4a0",
+      "size": 304940
+    },
+    "SOURCE_IMMUTABILITY_REPORT.json": {
+      "sha256": "711d634f93a96a04948af3121b351121a7418110c9ded287cf5565a08761abdd",
+      "size": 885
+    },
+    "p1_metrics.json": {
+      "sha256": "cedaba4b0e15e608f6d8028122d815d3c5f2d181c837c5f99dfb7860c1773422",
+      "size": 10655
+    },
+    "p2_metrics.json": {
+      "sha256": "98ba0e13f07004033c2cd0fcb3eae0a973add7ab3ae6f98348a68711e2c035e3",
+      "size": 1737
+    },
+    "p3_metrics.json": {
+      "sha256": "adadbccddde2815095c0d2372dfea442cc126b4216f61c18ead87dea41d94967",
+      "size": 1391
+    },
+    "p4_metrics.json": {
+      "sha256": "e24f36466abb5f933b1ae1d8a82db2147f957e316eb4c5d419fee293d7ad599c",
+      "size": 6129
+    },
+    "p5_metrics.json": {
+      "sha256": "fff37c99b3364bb0bc94625e27b3354aa4f4013d693ec8302a860bf587ef46be",
+      "size": 940
+    },
+    "tests/conftest.py": {
+      "sha256": "d18c0f49496fc50df2bd3730accfa3020787e412a0c73dab62924ec4f4008ff9",
+      "size": 1716
+    },
+    "tests/test_immutability.py": {
+      "sha256": "f52f3f78bb8b9162a69f3f4f8339a738ad2bd1170c5b94a8053ac668d0becb54",
+      "size": 1417
+    },
+    "tests/test_p1_pipeline.py": {
+      "sha256": "11834c049287b3df03aee5ab07c6646567b775c3e3b1641c3ec948713c8acc82",
+      "size": 2877
+    },
+    "tests/test_p2_detection.py": {
+      "sha256": "a28fd01691eba7aa927e5ee9d3c6d9e1beadc4c8ca326cd83217a97c53b1a644",
+      "size": 1169
+    },
+    "tests/test_p3_classification.py": {
+      "sha256": "117cb47e2dd48bfa4783774ee5dbcdc4a58f5aa091a3bff818dbfa429a7e3959",
+      "size": 1214
+    },
+    "tests/test_p4_forecasting.py": {
+      "sha256": "4c5050743abef3a5c6255c963c0b6af442dbcf3efe5f71c70aa146aec86f5290",
+      "size": 1810
+    },
+    "tests/test_p5_api.py": {
+      "sha256": "5f94722e3d0d15944ede5eac6a159972434db9275a3de4b347417aa47eed428a",
+      "size": 2281
+    }
+  },
+  "generated": "2026-08-30",
+  "immutability": "SOURCE_IMMUTABILITY_REPORT.json total_changed=0 / 1595 hashed artifacts",
+  "pytest": "38/38 passed",
+  "schema": "audit-manifest v1",
+  "scope": "integration_audit_accuracy only; zero writes outside this directory"
+}

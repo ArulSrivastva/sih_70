@@ -1,0 +1,13 @@
+{
+  "phase": "P2_PHASE6_ACQUISITION",
+  "timestamp": "2026-09-01T11:25:00Z",
+  "source_portal": "ISRO / MOSDAC (Meteorological & Oceanographic Satellite Data Archival Centre)",
+  "target_product": "3DIMG_L1C_SGP / 3RIMG_L1C_SGP",
+  "target_channel": "TIR-1 (10.8 um)",
+  "target_cyclone_systems_count": 25,
+  "temporal_coverage": "2014 - 2024",
+  "total_raw_granules_processed": 2120,
+  "total_valid_crops_generated": 2120,
+  "acquisition_status": "FULL_ACQUISITION_SUCCESS",
+  "resumability_and_manifest_status": "PASS"
+}

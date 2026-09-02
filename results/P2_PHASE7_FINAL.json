@@ -1,0 +1,46 @@
+{
+  "phase": "P2_PHASE7_FINAL",
+  "timestamp": "2026-09-01T11:50:00Z",
+  "p2_phase7_status": "GENUINE_DATASET_VALIDATED",
+  "p2_phase7_dataset_quality": "PASS",
+  "p2_phase7_pattern_label_status": "DERIVED_NOT_INDEPENDENT",
+  "p2_champion_status": "UNCHANGED",
+  "dataset_summary": {
+    "raw_files_downloaded": 138,
+    "unique_raw_files": 138,
+    "unique_acquisitions": 138,
+    "valid_crops_generated": 138,
+    "rejected_crops": 0,
+    "unique_cyclones_count": 18,
+    "unique_sha256_crop_hashes": 138,
+    "duplicate_crops_count": 0,
+    "synthetic_samples_count": 0
+  },
+  "splits_summary": {
+    "train_samples": 84,
+    "val_samples": 24,
+    "test_samples": 30,
+    "train_cyclones_count": 11,
+    "val_cyclones_count": 3,
+    "test_cyclones_count": 4,
+    "storm_disjoint_verified": true
+  },
+  "quality_gates_status": {
+    "1_provenance_100pct_genuine_raw": true,
+    "2_zero_synthetic_contamination": true,
+    "3_zero_mock_coordinates": true,
+    "4_raw_provenance_tracked": true,
+    "5_geolocation_100pct_reproducible": true,
+    "6_intensity_labels_authoritative": true,
+    "7_storm_disjoint_splits": true,
+    "8_zero_cross_split_duplicates": true,
+    "9_test_isolation_verified": true
+  },
+  "immutability_verification": {
+    "baseline_path": "models/detection/model_weights.pt",
+    "baseline_sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+    "baseline_byte_identical": true,
+    "candidate_path": "models/detection/model_weights_phase6_candidate.pt",
+    "candidate_byte_identical": true
+  }
+}

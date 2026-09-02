@@ -1,0 +1,101 @@
+{
+  "D0_legacy": {
+    "pattern_accuracy": 0.7143,
+    "pattern_f1_macro": 0.3697,
+    "category_accuracy": 0.3333,
+    "category_f1_macro": 0.1465,
+    "samples": 133
+  },
+  "D1_25pct": {
+    "pattern_accuracy": 0.40294117647058825,
+    "pattern_f1_macro": 0.19147449336128583,
+    "category_accuracy": 0.09117647058823529,
+    "category_f1_macro": 0.02701839486580631,
+    "samples": 400
+  },
+  "D2_50pct": {
+    "pattern_accuracy": 0.7382352941176471,
+    "pattern_f1_macro": 0.7244274613227585,
+    "category_accuracy": 0.35,
+    "category_f1_macro": 0.18732545649838883,
+    "samples": 780
+  },
+  "D3_100pct": {
+    "pattern_accuracy": 0.9852941176470589,
+    "pattern_f1_macro": 0.9862691002934248,
+    "pattern_f1_weighted": 0.9853467946269329,
+    "category_accuracy": 0.5588235294117647,
+    "category_f1_macro": 0.4137662454782487,
+    "category_f1_weighted": 0.4917663626341591,
+    "per_class_pattern": {
+      "curved_band": {
+        "support": 121,
+        "precision": 0.9603174603174603,
+        "recall": 1.0,
+        "f1": 0.9797570850202428
+      },
+      "eye_visible": {
+        "support": 137,
+        "precision": 1.0,
+        "recall": 0.9708029197080292,
+        "f1": 0.9851851851851852
+      },
+      "shear_pattern": {
+        "support": 82,
+        "precision": 1.0,
+        "recall": 0.9878048780487805,
+        "f1": 0.9938650306748467
+      }
+    },
+    "per_class_category": {
+      "Cyclonic Storm": {
+        "support": 50,
+        "precision": 0.5057471264367817,
+        "recall": 0.88,
+        "f1": 0.6423357664233577
+      },
+      "Deep Depression": {
+        "support": 30,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Depression": {
+        "support": 52,
+        "precision": 0.6419753086419753,
+        "recall": 1.0,
+        "f1": 0.7819548872180451
+      },
+      "Extremely Severe Cyclonic Storm": {
+        "support": 30,
+        "precision": 0.3103448275862069,
+        "recall": 0.3,
+        "f1": 0.3050847457627119
+      },
+      "Severe Cyclonic Storm": {
+        "support": 71,
+        "precision": 0.7948717948717948,
+        "recall": 0.43661971830985913,
+        "f1": 0.5636363636363636
+      },
+      "Super Cyclonic Storm": {
+        "support": 32,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Very Severe Cyclonic Storm": {
+        "support": 75,
+        "precision": 0.5192307692307693,
+        "recall": 0.72,
+        "f1": 0.6033519553072626
+      }
+    },
+    "samples_train": 1500,
+    "samples_val": 280,
+    "samples_test": 340,
+    "val_pattern_f1_macro": 0.9728033744321869,
+    "val_category_f1_macro": 0.49301587301587296,
+    "val_category_accuracy": 0.6428571428571429
+  }
+}

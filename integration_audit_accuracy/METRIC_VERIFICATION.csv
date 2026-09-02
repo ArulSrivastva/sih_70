@@ -1,0 +1,45 @@
+scope,metric,stored_reported,independently_recomputed,abs_diff,verdict,method_note
+P2,category_accuracy,0.3333333333333333,0.3333333333333333,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,category_f1,0.23050379572118704,0.23050379572118704,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,category_precision,0.2566137566137566,0.2566137566137566,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,category_recall,0.3333333333333333,0.3333333333333333,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_accuracy,0.7142857142857143,0.7142857142857143,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_f1,0.6306522609043617,0.6306522609043617,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_precision,0.7523809523809524,0.7523809523809524,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_recall,0.7142857142857143,0.7142857142857143,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P3-image,category_accuracy_percent,38.1,38.1,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-image,category_macro_f1,0.2076,0.2076,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-image,wind_speed_mae_kmh,109.81,109.81,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-image,wind_speed_rmse_kmh,118.39,118.39,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-tabular,category_accuracy_percent,47.0,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,category_macro_f1,0.3703,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,wind_speed_mae_kmh,18.84,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,wind_speed_rmse_kmh,27.28,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,pressure_mae_hpa,5.11,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,pressure_rmse_hpa,8.33,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P4-EXP005-test-6h,track_error_km_mean,91.42888638974553,91.42888641357422,2.3828690132177144e-08,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,track_error_km_median,74.02492620938573,74.02493286132812,6.651942399571453e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,track_error_km_std,60.83976594752267,60.83976364135742,2.3061652498768126e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,wind_mae,6.684532165527344,6.684532165527344,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,wind_rmse,8.282137870788574,8.282137870788574,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,track_error_km_mean,119.7647010143308,119.76469421386719,6.800463609124563e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,track_error_km_median,94.8983150308597,94.8983154296875,3.988277939015461e-07,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,track_error_km_std,86.7490289263626,86.74903106689453,2.140531933036982e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,wind_mae,9.459010124206543,9.459010124206543,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,wind_rmse,11.667283058166504,11.667283058166504,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,track_error_km_mean,188.23862416257154,188.23863220214844,8.039576897544976e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,track_error_km_median,152.66682240390162,152.6668243408203,1.93691869299073e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,track_error_km_std,128.67234567117546,128.67233276367188,1.2907503588621694e-05,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,wind_mae,16.108442306518555,16.108442306518555,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,wind_rmse,19.650104522705078,19.650104522705078,0.0,PASS,independent GRU re-run + train-only normalization
+P4-baseline-persistence,track_mean_6h,64.68608366488854,64.68608366488854,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-persistence,track_mean_12h,123.93622341086457,123.93622341086457,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-persistence,track_mean_24h,227.32704718077517,227.32704718077517,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-movement,track_mean_6h,38.05125581673144,38.05125581673144,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-movement,track_mean_12h,80.50450892597567,80.50450892597567,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-movement,track_mean_24h,180.66053963358797,180.66053963358797,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P1,master_rows,5481,5481,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,master_cyclones,151,151,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,sst_missing,1538,1538,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,split_cyclones_train/val/test,105/22/24,105/22/24,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,era5_join_coverage,5481/5481,5481/5481,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads

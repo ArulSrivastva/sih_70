@@ -1,0 +1,23 @@
+{
+  "6h": {
+    "latitude_mae_deg": 0.36347606778144836,
+    "longitude_mae_deg": 0.5413097739219666,
+    "wind_speed_mae_kmh": 5.892156600952148,
+    "track_error_km": 78.4474868774414,
+    "n_samples": 1191
+  },
+  "12h": {
+    "latitude_mae_deg": 0.719563364982605,
+    "longitude_mae_deg": 1.0794291496276855,
+    "wind_speed_mae_kmh": 11.242711067199707,
+    "track_error_km": 155.46490478515625,
+    "n_samples": 1191
+  },
+  "24h": {
+    "latitude_mae_deg": 1.4184719324111938,
+    "longitude_mae_deg": 2.133333444595337,
+    "wind_speed_mae_kmh": 20.671682357788086,
+    "track_error_km": 306.0921936035156,
+    "n_samples": 1191
+  }
+}

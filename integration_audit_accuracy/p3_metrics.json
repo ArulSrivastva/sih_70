@@ -1,0 +1,79 @@
+{
+  "tabular_zero_attempt": null,
+  "tabular_lightgbm_available": false,
+  "tabular_lightgbm_error": "No module named 'lightgbm'",
+  "tabular_verification": "NOT_RUN",
+  "image_ckpt_is_state_dict": true,
+  "image_recomputed": {
+    "category_accuracy_percent": 38.1,
+    "category_macro_f1": 0.2076,
+    "wind_speed_mae_kmh": 109.81,
+    "wind_speed_rmse_kmh": 118.39
+  },
+  "image_y_pred": [
+    3,
+    3,
+    2,
+    2,
+    4,
+    4,
+    4,
+    4,
+    4,
+    2,
+    4,
+    4,
+    4,
+    4,
+    2,
+    2,
+    3,
+    5,
+    2,
+    3,
+    4
+  ],
+  "image_y_true": [
+    2,
+    2,
+    1,
+    2,
+    4,
+    4,
+    4,
+    3,
+    5,
+    3,
+    3,
+    3,
+    5,
+    6,
+    2,
+    3,
+    3,
+    4,
+    2,
+    4,
+    4
+  ],
+  "image_stored": {
+    "category_accuracy_percent": 38.1,
+    "category_macro_f1": 0.2076,
+    "wind_speed_mae_kmh": 109.81,
+    "wind_speed_rmse_kmh": 118.39
+  },
+  "multisource_stored_claims": {
+    "category_accuracy_percent": 47.0,
+    "category_macro_f1": 0.3703,
+    "wind_speed_mae_kmh": 18.84,
+    "wind_speed_rmse_kmh": 27.28,
+    "pressure_mae_hpa": 5.11,
+    "pressure_rmse_hpa": 8.33
+  },
+  "multisource_delta_text": {
+    "accuracy_lift_percent": "+8.91%",
+    "macro_f1_lift": "+0.1627",
+    "wind_mae_reduction_kmh": "-90.97 km/h",
+    "wind_rmse_reduction_kmh": "-91.12 km/h"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "audit_name": "P2_PHASE6_DATASET_BALANCE",
+  "timestamp": "2026-09-01T11:26:00Z",
+  "comparison_summary": {
+    "legacy_dataset_samples": 133,
+    "expanded_dataset_samples": 2120,
+    "expansion_factor": "15.94x",
+    "legacy_unique_cyclones": 66,
+    "expanded_unique_cyclones": 25,
+    "average_samples_per_cyclone_expanded": 84.8
+  },
+  "class_balance_comparison": {
+    "Depression": {
+      "legacy_count": 1,
+      "expanded_count": 428,
+      "multiplier": "428x increase"
+    },
+    "Deep Depression": {
+      "legacy_count": 10,
+      "expanded_count": 209,
+      "multiplier": "20.9x increase"
+    },
+    "Cyclonic Storm": {
+      "legacy_count": 43,
+      "expanded_count": 457,
+      "multiplier": "10.6x increase"
+    },
+    "Severe Cyclonic Storm": {
+      "legacy_count": 36,
+      "expanded_count": 368,
+      "multiplier": "10.2x increase"
+    },
+    "Very Severe Cyclonic Storm": {
+      "legacy_count": 31,
+      "expanded_count": 375,
+      "multiplier": "12.1x increase"
+    },
+    "Extremely Severe Cyclonic Storm": {
+      "legacy_count": 11,
+      "expanded_count": 214,
+      "multiplier": "19.5x increase"
+    },
+    "Super Cyclonic Storm": {
+      "legacy_count": 1,
+      "expanded_count": 69,
+      "multiplier": "69x increase"
+    },
+    "shear_pattern": {
+      "legacy_count": 11,
+      "expanded_count": 637,
+      "multiplier": "57.9x increase"
+    },
+    "curved_band": {
+      "legacy_count": 44,
+      "expanded_count": 825,
+      "multiplier": "18.8x increase"
+    },
+    "eye_visible": {
+      "legacy_count": 78,
+      "expanded_count": 658,
+      "multiplier": "8.4x increase"
+    }
+  },
+  "imbalance_ratio_comparison": {
+    "legacy_category_max_to_min_ratio": 43.0,
+    "expanded_category_max_to_min_ratio": 6.62,
+    "legacy_pattern_max_to_min_ratio": 7.09,
+    "expanded_pattern_max_to_min_ratio": 1.29
+  },
+  "balance_verdict": "MASSIVE_REBALANCING_ACHIEVED (Pattern imbalance ratio reduced from 7.09:1 to near-parity 1.29:1)"
+}

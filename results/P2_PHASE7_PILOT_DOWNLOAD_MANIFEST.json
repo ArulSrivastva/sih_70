@@ -1,0 +1,12 @@
+{
+  "pilot_name": "P2_PHASE7_PILOT_DOWNLOAD_MANIFEST",
+  "timestamp": "2026-09-01T11:50:00Z",
+  "pilot_cyclones": [
+    "FANI_2019",
+    "AMPHAN_2020",
+    "GULAB_2021"
+  ],
+  "pilot_samples_count": 24,
+  "pilot_raw_files_verified": 24,
+  "pilot_status": "PILOT_VALIDATED"
+}

@@ -1,0 +1,2693 @@
+{
+  "E0_baseline": {
+    "lambda_phys": 0.0,
+    "summary": {
+      "pattern_accuracy": {
+        "mean": 0.5897233201581027,
+        "std": 0.025996970201431397,
+        "values": [
+          0.5652173913043478,
+          0.5652173913043478,
+          0.6363636363636364,
+          0.5909090909090909,
+          0.5909090909090909
+        ]
+      },
+      "pattern_precision_weighted": {
+        "mean": 0.38168230019124155,
+        "std": 0.09564724820939995,
+        "values": [
+          0.31947069943289225,
+          0.31947069943289225,
+          0.5711229946524065,
+          0.3491735537190083,
+          0.3491735537190083
+        ]
+      },
+      "pattern_recall_weighted": {
+        "mean": 0.5897233201581027,
+        "std": 0.025996970201431397,
+        "values": [
+          0.5652173913043478,
+          0.5652173913043478,
+          0.6363636363636364,
+          0.5909090909090909,
+          0.5909090909090909
+        ]
+      },
+      "pattern_f1_weighted": {
+        "mean": 0.4551944939950937,
+        "std": 0.06469373345367035,
+        "values": [
+          0.40821256038647347,
+          0.40821256038647347,
+          0.5816252712804437,
+          0.438961038961039,
+          0.438961038961039
+        ]
+      },
+      "pattern_f1_macro": {
+        "mean": 0.2766878587568243,
+        "std": 0.0650886569598897,
+        "values": [
+          0.24074074074074073,
+          0.24074074074074073,
+          0.40671971706454463,
+          0.24761904761904763,
+          0.24761904761904763
+        ]
+      },
+      "category_accuracy": {
+        "mean": 0.2573122529644269,
+        "std": 0.09360498308752974,
+        "values": [
+          0.2608695652173913,
+          0.43478260869565216,
+          0.22727272727272727,
+          0.18181818181818182,
+          0.18181818181818182
+        ]
+      },
+      "category_precision_weighted": {
+        "mean": 0.2775766999336794,
+        "std": 0.2012411773461634,
+        "values": [
+          0.1505016722408027,
+          0.553623188405797,
+          0.48325358851674644,
+          0.050505050505050504,
+          0.15000000000000002
+        ]
+      },
+      "category_recall_weighted": {
+        "mean": 0.2573122529644269,
+        "std": 0.09360498308752974,
+        "values": [
+          0.2608695652173913,
+          0.43478260869565216,
+          0.22727272727272727,
+          0.18181818181818182,
+          0.18181818181818182
+        ]
+      },
+      "category_f1_weighted": {
+        "mean": 0.19837524794046532,
+        "std": 0.10108615521819403,
+        "values": [
+          0.19047619047619047,
+          0.38184424271380796,
+          0.19808018068887634,
+          0.07905138339920949,
+          0.1424242424242424
+        ]
+      },
+      "category_f1_macro": {
+        "mean": 0.14217932791845836,
+        "std": 0.06270600424251649,
+        "values": [
+          0.1295238095238095,
+          0.2558241758241758,
+          0.1493167701863354,
+          0.06956521739130435,
+          0.10666666666666666
+        ]
+      },
+      "physical_consistency_rate": {
+        "mean": 0.824110671936759,
+        "std": 0.20370116563992294,
+        "values": [
+          0.43478260869565216,
+          0.9130434782608695,
+          0.8181818181818182,
+          1.0,
+          0.9545454545454546
+        ]
+      },
+      "incompatible_prediction_rate": {
+        "mean": 0.1486166007905138,
+        "std": 0.21010944641218962,
+        "values": [
+          0.5652173913043478,
+          0.08695652173913043,
+          0.045454545454545456,
+          0.0,
+          0.045454545454545456
+        ]
+      },
+      "incompatible_prediction_count": {
+        "mean": 3.4,
+        "std": 4.841487374764082,
+        "values": [
+          13,
+          2,
+          1,
+          0,
+          1
+        ]
+      },
+      "mean_physics_loss": {
+        "mean": 0.22883033007383347,
+        "std": 0.01616340945757262,
+        "values": [
+          0.23674140870571136,
+          0.21926552057266235,
+          0.2139727771282196,
+          0.21714668720960617,
+          0.25702525675296783
+        ]
+      }
+    },
+    "raw_folds": [
+      {
+        "pattern_accuracy": 0.5652173913043478,
+        "pattern_precision_weighted": 0.31947069943289225,
+        "pattern_recall_weighted": 0.5652173913043478,
+        "pattern_f1_weighted": 0.40821256038647347,
+        "pattern_f1_macro": 0.24074074074074073,
+        "category_accuracy": 0.2608695652173913,
+        "category_precision_weighted": 0.1505016722408027,
+        "category_recall_weighted": 0.2608695652173913,
+        "category_f1_weighted": 0.19047619047619047,
+        "category_f1_macro": 0.1295238095238095,
+        "physical_consistency_rate": 0.43478260869565216,
+        "incompatible_prediction_rate": 0.5652173913043478,
+        "incompatible_prediction_count": 13,
+        "mean_physics_loss": 0.23674140870571136,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5652173913043478,
+            "recall": 1.0,
+            "f1": 0.7222222222222222
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 0.3076923076923077,
+            "recall": 0.5,
+            "f1": 0.380952380952381
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.2,
+            "recall": 0.4,
+            "f1": 0.26666666666666666
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            4,
+            0,
+            0,
+            0,
+            4,
+            0
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            3,
+            0
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5652173913043478,
+        "pattern_precision_weighted": 0.31947069943289225,
+        "pattern_recall_weighted": 0.5652173913043478,
+        "pattern_f1_weighted": 0.40821256038647347,
+        "pattern_f1_macro": 0.24074074074074073,
+        "category_accuracy": 0.43478260869565216,
+        "category_precision_weighted": 0.553623188405797,
+        "category_recall_weighted": 0.43478260869565216,
+        "category_f1_weighted": 0.38184424271380796,
+        "category_f1_macro": 0.2558241758241758,
+        "physical_consistency_rate": 0.9130434782608695,
+        "incompatible_prediction_rate": 0.08695652173913043,
+        "incompatible_prediction_count": 2,
+        "mean_physics_loss": 0.21926552057266235,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5652173913043478,
+            "recall": 1.0,
+            "f1": 0.7222222222222222
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4
+          },
+          "Deep Depression": {
+            "support": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.3333333333333333,
+            "recall": 0.2857142857142857,
+            "f1": 0.30769230769230765
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285715
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            2,
+            0,
+            0,
+            0,
+            2,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            5
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            6
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.6363636363636364,
+        "pattern_precision_weighted": 0.5711229946524065,
+        "pattern_recall_weighted": 0.6363636363636364,
+        "pattern_f1_weighted": 0.5816252712804437,
+        "pattern_f1_macro": 0.40671971706454463,
+        "category_accuracy": 0.22727272727272727,
+        "category_precision_weighted": 0.48325358851674644,
+        "category_recall_weighted": 0.22727272727272727,
+        "category_f1_weighted": 0.19808018068887634,
+        "category_f1_macro": 0.1493167701863354,
+        "physical_consistency_rate": 0.8181818181818182,
+        "incompatible_prediction_rate": 0.045454545454545456,
+        "incompatible_prediction_count": 1,
+        "mean_physics_loss": 0.2139727771282196,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.6,
+            "recall": 0.375,
+            "f1": 0.4615384615384615
+          },
+          "eye_visible": {
+            "support": 12,
+            "precision": 0.6470588235294118,
+            "recall": 0.9166666666666666,
+            "f1": 0.7586206896551724
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 0.5,
+            "recall": 0.125,
+            "f1": 0.2
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 1.0,
+            "recall": 0.16666666666666666,
+            "f1": 0.2857142857142857
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 4,
+            "precision": 0.15789473684210525,
+            "recall": 0.75,
+            "f1": 0.2608695652173913
+          }
+        },
+        "confusion_pattern": [
+          [
+            3,
+            5,
+            0
+          ],
+          [
+            1,
+            11,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            5
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            3
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5909090909090909,
+        "pattern_precision_weighted": 0.3491735537190083,
+        "pattern_recall_weighted": 0.5909090909090909,
+        "pattern_f1_weighted": 0.438961038961039,
+        "pattern_f1_macro": 0.24761904761904763,
+        "category_accuracy": 0.18181818181818182,
+        "category_precision_weighted": 0.050505050505050504,
+        "category_recall_weighted": 0.18181818181818182,
+        "category_f1_weighted": 0.07905138339920949,
+        "category_f1_macro": 0.06956521739130435,
+        "physical_consistency_rate": 1.0,
+        "incompatible_prediction_rate": 0.0,
+        "incompatible_prediction_count": 0,
+        "mean_physics_loss": 0.21714668720960617,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5909090909090909,
+            "recall": 1.0,
+            "f1": 0.7428571428571429
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.2222222222222222,
+            "recall": 0.8,
+            "f1": 0.3478260869565218
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            0,
+            0,
+            0,
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            4,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            5,
+            0
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5909090909090909,
+        "pattern_precision_weighted": 0.3491735537190083,
+        "pattern_recall_weighted": 0.5909090909090909,
+        "pattern_f1_weighted": 0.438961038961039,
+        "pattern_f1_macro": 0.24761904761904763,
+        "category_accuracy": 0.18181818181818182,
+        "category_precision_weighted": 0.15000000000000002,
+        "category_recall_weighted": 0.18181818181818182,
+        "category_f1_weighted": 0.1424242424242424,
+        "category_f1_macro": 0.10666666666666666,
+        "physical_consistency_rate": 0.9545454545454546,
+        "incompatible_prediction_rate": 0.045454545454545456,
+        "incompatible_prediction_count": 1,
+        "mean_physics_loss": 0.25702525675296783,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5909090909090909,
+            "recall": 1.0,
+            "f1": 0.7428571428571429
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.4,
+            "recall": 0.2857142857142857,
+            "f1": 0.3333333333333333
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 4,
+            "precision": 0.125,
+            "recall": 0.5,
+            "f1": 0.2
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            2,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            2
+          ]
+        ]
+      }
+    ],
+    "patterns": [
+      "curved_band",
+      "eye_visible",
+      "shear_pattern"
+    ],
+    "categories": [
+      "Cyclonic Storm",
+      "Deep Depression",
+      "Depression",
+      "Extremely Severe Cyclonic Storm",
+      "Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm"
+    ],
+    "incompatible_pairs": [
+      [
+        "eye_visible",
+        "Cyclonic Storm"
+      ],
+      [
+        "eye_visible",
+        "Deep Depression"
+      ],
+      [
+        "eye_visible",
+        "Depression"
+      ],
+      [
+        "shear_pattern",
+        "Extremely Severe Cyclonic Storm"
+      ]
+    ]
+  },
+  "E1_lambda_001": {
+    "lambda_phys": 0.01,
+    "summary": {
+      "pattern_accuracy": {
+        "mean": 0.5897233201581027,
+        "std": 0.025996970201431397,
+        "values": [
+          0.5652173913043478,
+          0.5652173913043478,
+          0.6363636363636364,
+          0.5909090909090909,
+          0.5909090909090909
+        ]
+      },
+      "pattern_precision_weighted": {
+        "mean": 0.38168230019124155,
+        "std": 0.09564724820939995,
+        "values": [
+          0.31947069943289225,
+          0.31947069943289225,
+          0.5711229946524065,
+          0.3491735537190083,
+          0.3491735537190083
+        ]
+      },
+      "pattern_recall_weighted": {
+        "mean": 0.5897233201581027,
+        "std": 0.025996970201431397,
+        "values": [
+          0.5652173913043478,
+          0.5652173913043478,
+          0.6363636363636364,
+          0.5909090909090909,
+          0.5909090909090909
+        ]
+      },
+      "pattern_f1_weighted": {
+        "mean": 0.4551944939950937,
+        "std": 0.06469373345367035,
+        "values": [
+          0.40821256038647347,
+          0.40821256038647347,
+          0.5816252712804437,
+          0.438961038961039,
+          0.438961038961039
+        ]
+      },
+      "pattern_f1_macro": {
+        "mean": 0.2766878587568243,
+        "std": 0.0650886569598897,
+        "values": [
+          0.24074074074074073,
+          0.24074074074074073,
+          0.40671971706454463,
+          0.24761904761904763,
+          0.24761904761904763
+        ]
+      },
+      "category_accuracy": {
+        "mean": 0.266403162055336,
+        "std": 0.08786268773391324,
+        "values": [
+          0.2608695652173913,
+          0.43478260869565216,
+          0.22727272727272727,
+          0.18181818181818182,
+          0.22727272727272727
+        ]
+      },
+      "category_precision_weighted": {
+        "mean": 0.28394033629731574,
+        "std": 0.19757603973418184,
+        "values": [
+          0.1505016722408027,
+          0.553623188405797,
+          0.48325358851674644,
+          0.050505050505050504,
+          0.18181818181818182
+        ]
+      },
+      "category_recall_weighted": {
+        "mean": 0.266403162055336,
+        "std": 0.08786268773391324,
+        "values": [
+          0.2608695652173913,
+          0.43478260869565216,
+          0.22727272727272727,
+          0.18181818181818182,
+          0.22727272727272727
+        ]
+      },
+      "category_f1_weighted": {
+        "mean": 0.2065337560989735,
+        "std": 0.09783507718770867,
+        "values": [
+          0.19047619047619047,
+          0.38184424271380796,
+          0.19808018068887634,
+          0.07905138339920949,
+          0.18321678321678322
+        ]
+      },
+      "category_f1_macro": {
+        "mean": 0.1473075330466635,
+        "std": 0.060605317393071984,
+        "values": [
+          0.1295238095238095,
+          0.2558241758241758,
+          0.1493167701863354,
+          0.06956521739130435,
+          0.13230769230769232
+        ]
+      },
+      "physical_consistency_rate": {
+        "mean": 0.833201581027668,
+        "std": 0.21022912476019182,
+        "values": [
+          0.43478260869565216,
+          0.9130434782608695,
+          0.8181818181818182,
+          1.0,
+          1.0
+        ]
+      },
+      "incompatible_prediction_rate": {
+        "mean": 0.13952569169960474,
+        "std": 0.2152956843910596,
+        "values": [
+          0.5652173913043478,
+          0.08695652173913043,
+          0.045454545454545456,
+          0.0,
+          0.0
+        ]
+      },
+      "incompatible_prediction_count": {
+        "mean": 3.2,
+        "std": 4.955804677345548,
+        "values": [
+          13,
+          2,
+          1,
+          0,
+          0
+        ]
+      },
+      "mean_physics_loss": {
+        "mean": 0.227913199365139,
+        "std": 0.015486045935676426,
+        "values": [
+          0.23592712730169296,
+          0.21875077486038208,
+          0.213289313018322,
+          0.21692251414060593,
+          0.2546762675046921
+        ]
+      }
+    },
+    "raw_folds": [
+      {
+        "pattern_accuracy": 0.5652173913043478,
+        "pattern_precision_weighted": 0.31947069943289225,
+        "pattern_recall_weighted": 0.5652173913043478,
+        "pattern_f1_weighted": 0.40821256038647347,
+        "pattern_f1_macro": 0.24074074074074073,
+        "category_accuracy": 0.2608695652173913,
+        "category_precision_weighted": 0.1505016722408027,
+        "category_recall_weighted": 0.2608695652173913,
+        "category_f1_weighted": 0.19047619047619047,
+        "category_f1_macro": 0.1295238095238095,
+        "physical_consistency_rate": 0.43478260869565216,
+        "incompatible_prediction_rate": 0.5652173913043478,
+        "incompatible_prediction_count": 13,
+        "mean_physics_loss": 0.23592712730169296,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5652173913043478,
+            "recall": 1.0,
+            "f1": 0.7222222222222222
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 0.3076923076923077,
+            "recall": 0.5,
+            "f1": 0.380952380952381
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.2,
+            "recall": 0.4,
+            "f1": 0.26666666666666666
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            4,
+            0,
+            0,
+            0,
+            4,
+            0
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            3,
+            0
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5652173913043478,
+        "pattern_precision_weighted": 0.31947069943289225,
+        "pattern_recall_weighted": 0.5652173913043478,
+        "pattern_f1_weighted": 0.40821256038647347,
+        "pattern_f1_macro": 0.24074074074074073,
+        "category_accuracy": 0.43478260869565216,
+        "category_precision_weighted": 0.553623188405797,
+        "category_recall_weighted": 0.43478260869565216,
+        "category_f1_weighted": 0.38184424271380796,
+        "category_f1_macro": 0.2558241758241758,
+        "physical_consistency_rate": 0.9130434782608695,
+        "incompatible_prediction_rate": 0.08695652173913043,
+        "incompatible_prediction_count": 2,
+        "mean_physics_loss": 0.21875077486038208,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5652173913043478,
+            "recall": 1.0,
+            "f1": 0.7222222222222222
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4
+          },
+          "Deep Depression": {
+            "support": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.3333333333333333,
+            "recall": 0.2857142857142857,
+            "f1": 0.30769230769230765
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285715
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            2,
+            0,
+            0,
+            0,
+            2,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            5
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            6
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.6363636363636364,
+        "pattern_precision_weighted": 0.5711229946524065,
+        "pattern_recall_weighted": 0.6363636363636364,
+        "pattern_f1_weighted": 0.5816252712804437,
+        "pattern_f1_macro": 0.40671971706454463,
+        "category_accuracy": 0.22727272727272727,
+        "category_precision_weighted": 0.48325358851674644,
+        "category_recall_weighted": 0.22727272727272727,
+        "category_f1_weighted": 0.19808018068887634,
+        "category_f1_macro": 0.1493167701863354,
+        "physical_consistency_rate": 0.8181818181818182,
+        "incompatible_prediction_rate": 0.045454545454545456,
+        "incompatible_prediction_count": 1,
+        "mean_physics_loss": 0.213289313018322,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.6,
+            "recall": 0.375,
+            "f1": 0.4615384615384615
+          },
+          "eye_visible": {
+            "support": 12,
+            "precision": 0.6470588235294118,
+            "recall": 0.9166666666666666,
+            "f1": 0.7586206896551724
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 0.5,
+            "recall": 0.125,
+            "f1": 0.2
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 1.0,
+            "recall": 0.16666666666666666,
+            "f1": 0.2857142857142857
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 4,
+            "precision": 0.15789473684210525,
+            "recall": 0.75,
+            "f1": 0.2608695652173913
+          }
+        },
+        "confusion_pattern": [
+          [
+            3,
+            5,
+            0
+          ],
+          [
+            1,
+            11,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            5
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            3
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5909090909090909,
+        "pattern_precision_weighted": 0.3491735537190083,
+        "pattern_recall_weighted": 0.5909090909090909,
+        "pattern_f1_weighted": 0.438961038961039,
+        "pattern_f1_macro": 0.24761904761904763,
+        "category_accuracy": 0.18181818181818182,
+        "category_precision_weighted": 0.050505050505050504,
+        "category_recall_weighted": 0.18181818181818182,
+        "category_f1_weighted": 0.07905138339920949,
+        "category_f1_macro": 0.06956521739130435,
+        "physical_consistency_rate": 1.0,
+        "incompatible_prediction_rate": 0.0,
+        "incompatible_prediction_count": 0,
+        "mean_physics_loss": 0.21692251414060593,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5909090909090909,
+            "recall": 1.0,
+            "f1": 0.7428571428571429
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.2222222222222222,
+            "recall": 0.8,
+            "f1": 0.3478260869565218
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            0,
+            0,
+            0,
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            4,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            5,
+            0
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5909090909090909,
+        "pattern_precision_weighted": 0.3491735537190083,
+        "pattern_recall_weighted": 0.5909090909090909,
+        "pattern_f1_weighted": 0.438961038961039,
+        "pattern_f1_macro": 0.24761904761904763,
+        "category_accuracy": 0.22727272727272727,
+        "category_precision_weighted": 0.18181818181818182,
+        "category_recall_weighted": 0.22727272727272727,
+        "category_f1_weighted": 0.18321678321678322,
+        "category_f1_macro": 0.13230769230769232,
+        "physical_consistency_rate": 1.0,
+        "incompatible_prediction_rate": 0.0,
+        "incompatible_prediction_count": 0,
+        "mean_physics_loss": 0.2546762675046921,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5909090909090909,
+            "recall": 1.0,
+            "f1": 0.7428571428571429
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.5,
+            "recall": 0.42857142857142855,
+            "f1": 0.4615384615384615
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 4,
+            "precision": 0.125,
+            "recall": 0.5,
+            "f1": 0.2
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            2
+          ]
+        ]
+      }
+    ],
+    "patterns": [
+      "curved_band",
+      "eye_visible",
+      "shear_pattern"
+    ],
+    "categories": [
+      "Cyclonic Storm",
+      "Deep Depression",
+      "Depression",
+      "Extremely Severe Cyclonic Storm",
+      "Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm"
+    ],
+    "incompatible_pairs": [
+      [
+        "eye_visible",
+        "Cyclonic Storm"
+      ],
+      [
+        "eye_visible",
+        "Deep Depression"
+      ],
+      [
+        "eye_visible",
+        "Depression"
+      ],
+      [
+        "shear_pattern",
+        "Extremely Severe Cyclonic Storm"
+      ]
+    ]
+  },
+  "E2_lambda_005": {
+    "lambda_phys": 0.05,
+    "summary": {
+      "pattern_accuracy": {
+        "mean": 0.5897233201581027,
+        "std": 0.025996970201431397,
+        "values": [
+          0.5652173913043478,
+          0.5652173913043478,
+          0.6363636363636364,
+          0.5909090909090909,
+          0.5909090909090909
+        ]
+      },
+      "pattern_precision_weighted": {
+        "mean": 0.38168230019124155,
+        "std": 0.09564724820939995,
+        "values": [
+          0.31947069943289225,
+          0.31947069943289225,
+          0.5711229946524065,
+          0.3491735537190083,
+          0.3491735537190083
+        ]
+      },
+      "pattern_recall_weighted": {
+        "mean": 0.5897233201581027,
+        "std": 0.025996970201431397,
+        "values": [
+          0.5652173913043478,
+          0.5652173913043478,
+          0.6363636363636364,
+          0.5909090909090909,
+          0.5909090909090909
+        ]
+      },
+      "pattern_f1_weighted": {
+        "mean": 0.4551944939950937,
+        "std": 0.06469373345367035,
+        "values": [
+          0.40821256038647347,
+          0.40821256038647347,
+          0.5816252712804437,
+          0.438961038961039,
+          0.438961038961039
+        ]
+      },
+      "pattern_f1_macro": {
+        "mean": 0.2766878587568243,
+        "std": 0.0650886569598897,
+        "values": [
+          0.24074074074074073,
+          0.24074074074074073,
+          0.40671971706454463,
+          0.24761904761904763,
+          0.24761904761904763
+        ]
+      },
+      "category_accuracy": {
+        "mean": 0.2754940711462451,
+        "std": 0.08070019626146657,
+        "values": [
+          0.2608695652173913,
+          0.43478260869565216,
+          0.22727272727272727,
+          0.22727272727272727,
+          0.22727272727272727
+        ]
+      },
+      "category_precision_weighted": {
+        "mean": 0.2867942583732057,
+        "std": 0.1947218867577256,
+        "values": [
+          0.155467720685112,
+          0.553623188405797,
+          0.48325358851674644,
+          0.05980861244019138,
+          0.18181818181818182
+        ]
+      },
+      "category_recall_weighted": {
+        "mean": 0.2754940711462451,
+        "std": 0.08070019626146657,
+        "values": [
+          0.2608695652173913,
+          0.43478260869565216,
+          0.22727272727272727,
+          0.22727272727272727,
+          0.22727272727272727
+        ]
+      },
+      "category_f1_weighted": {
+        "mean": 0.2102632874372005,
+        "std": 0.09376276084579792,
+        "values": [
+          0.19347826086956524,
+          0.38184424271380796,
+          0.19808018068887634,
+          0.09469696969696971,
+          0.18321678321678322
+        ]
+      },
+      "category_f1_macro": {
+        "mean": 0.1501563943303074,
+        "std": 0.05719538948522919,
+        "values": [
+          0.13,
+          0.2558241758241758,
+          0.1493167701863354,
+          0.08333333333333334,
+          0.13230769230769232
+        ]
+      },
+      "physical_consistency_rate": {
+        "mean": 0.841897233201581,
+        "std": 0.19382909162089376,
+        "values": [
+          0.4782608695652174,
+          0.9130434782608695,
+          0.8181818181818182,
+          1.0,
+          1.0
+        ]
+      },
+      "incompatible_prediction_rate": {
+        "mean": 0.1308300395256917,
+        "std": 0.19811954794558764,
+        "values": [
+          0.5217391304347826,
+          0.08695652173913043,
+          0.045454545454545456,
+          0.0,
+          0.0
+        ]
+      },
+      "incompatible_prediction_count": {
+        "mean": 3.0,
+        "std": 4.560701700396552,
+        "values": [
+          12,
+          2,
+          1,
+          0,
+          0
+        ]
+      },
+      "mean_physics_loss": {
+        "mean": 0.2252849206328392,
+        "std": 0.01575971907958655,
+        "values": [
+          0.23381323367357254,
+          0.21506832540035248,
+          0.2107628583908081,
+          0.21438410878181458,
+          0.2523960769176483
+        ]
+      }
+    },
+    "raw_folds": [
+      {
+        "pattern_accuracy": 0.5652173913043478,
+        "pattern_precision_weighted": 0.31947069943289225,
+        "pattern_recall_weighted": 0.5652173913043478,
+        "pattern_f1_weighted": 0.40821256038647347,
+        "pattern_f1_macro": 0.24074074074074073,
+        "category_accuracy": 0.2608695652173913,
+        "category_precision_weighted": 0.155467720685112,
+        "category_recall_weighted": 0.2608695652173913,
+        "category_f1_weighted": 0.19347826086956524,
+        "category_f1_macro": 0.13,
+        "physical_consistency_rate": 0.4782608695652174,
+        "incompatible_prediction_rate": 0.5217391304347826,
+        "incompatible_prediction_count": 12,
+        "mean_physics_loss": 0.23381323367357254,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5652173913043478,
+            "recall": 1.0,
+            "f1": 0.7222222222222222
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.18181818181818182,
+            "recall": 0.4,
+            "f1": 0.25000000000000006
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            4,
+            0,
+            0,
+            0,
+            4,
+            0
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            2,
+            0,
+            0,
+            0,
+            4,
+            0
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5652173913043478,
+        "pattern_precision_weighted": 0.31947069943289225,
+        "pattern_recall_weighted": 0.5652173913043478,
+        "pattern_f1_weighted": 0.40821256038647347,
+        "pattern_f1_macro": 0.24074074074074073,
+        "category_accuracy": 0.43478260869565216,
+        "category_precision_weighted": 0.553623188405797,
+        "category_recall_weighted": 0.43478260869565216,
+        "category_f1_weighted": 0.38184424271380796,
+        "category_f1_macro": 0.2558241758241758,
+        "physical_consistency_rate": 0.9130434782608695,
+        "incompatible_prediction_rate": 0.08695652173913043,
+        "incompatible_prediction_count": 2,
+        "mean_physics_loss": 0.21506832540035248,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5652173913043478,
+            "recall": 1.0,
+            "f1": 0.7222222222222222
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4
+          },
+          "Deep Depression": {
+            "support": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 1,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.3333333333333333,
+            "recall": 0.2857142857142857,
+            "f1": 0.30769230769230765
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285715
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            2,
+            0,
+            0,
+            0,
+            2,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            5
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            6
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.6363636363636364,
+        "pattern_precision_weighted": 0.5711229946524065,
+        "pattern_recall_weighted": 0.6363636363636364,
+        "pattern_f1_weighted": 0.5816252712804437,
+        "pattern_f1_macro": 0.40671971706454463,
+        "category_accuracy": 0.22727272727272727,
+        "category_precision_weighted": 0.48325358851674644,
+        "category_recall_weighted": 0.22727272727272727,
+        "category_f1_weighted": 0.19808018068887634,
+        "category_f1_macro": 0.1493167701863354,
+        "physical_consistency_rate": 0.8181818181818182,
+        "incompatible_prediction_rate": 0.045454545454545456,
+        "incompatible_prediction_count": 1,
+        "mean_physics_loss": 0.2107628583908081,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 8,
+            "precision": 0.6,
+            "recall": 0.375,
+            "f1": 0.4615384615384615
+          },
+          "eye_visible": {
+            "support": 12,
+            "precision": 0.6470588235294118,
+            "recall": 0.9166666666666666,
+            "f1": 0.7586206896551724
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 8,
+            "precision": 0.5,
+            "recall": 0.125,
+            "f1": 0.2
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 6,
+            "precision": 1.0,
+            "recall": 0.16666666666666666,
+            "f1": 0.2857142857142857
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 4,
+            "precision": 0.15789473684210525,
+            "recall": 0.75,
+            "f1": 0.2608695652173913
+          }
+        },
+        "confusion_pattern": [
+          [
+            3,
+            5,
+            0
+          ],
+          [
+            1,
+            11,
+            0
+          ],
+          [
+            1,
+            1,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            5
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            3
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5909090909090909,
+        "pattern_precision_weighted": 0.3491735537190083,
+        "pattern_recall_weighted": 0.5909090909090909,
+        "pattern_f1_weighted": 0.438961038961039,
+        "pattern_f1_macro": 0.24761904761904763,
+        "category_accuracy": 0.22727272727272727,
+        "category_precision_weighted": 0.05980861244019138,
+        "category_recall_weighted": 0.22727272727272727,
+        "category_f1_weighted": 0.09469696969696971,
+        "category_f1_macro": 0.08333333333333334,
+        "physical_consistency_rate": 1.0,
+        "incompatible_prediction_rate": 0.0,
+        "incompatible_prediction_count": 0,
+        "mean_physics_loss": 0.21438410878181458,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5909090909090909,
+            "recall": 1.0,
+            "f1": 0.7428571428571429
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 3,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.2631578947368421,
+            "recall": 1.0,
+            "f1": 0.4166666666666667
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 5,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            0,
+            0,
+            0,
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            5,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            5,
+            0
+          ]
+        ]
+      },
+      {
+        "pattern_accuracy": 0.5909090909090909,
+        "pattern_precision_weighted": 0.3491735537190083,
+        "pattern_recall_weighted": 0.5909090909090909,
+        "pattern_f1_weighted": 0.438961038961039,
+        "pattern_f1_macro": 0.24761904761904763,
+        "category_accuracy": 0.22727272727272727,
+        "category_precision_weighted": 0.18181818181818182,
+        "category_recall_weighted": 0.22727272727272727,
+        "category_f1_weighted": 0.18321678321678322,
+        "category_f1_macro": 0.13230769230769232,
+        "physical_consistency_rate": 1.0,
+        "incompatible_prediction_rate": 0.0,
+        "incompatible_prediction_count": 0,
+        "mean_physics_loss": 0.2523960769176483,
+        "per_class_pattern": {
+          "curved_band": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "eye_visible": {
+            "support": 13,
+            "precision": 0.5909090909090909,
+            "recall": 1.0,
+            "f1": 0.7428571428571429
+          },
+          "shear_pattern": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "per_class_category": {
+          "Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Deep Depression": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Depression": {
+            "support": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Extremely Severe Cyclonic Storm": {
+            "support": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "Severe Cyclonic Storm": {
+            "support": 7,
+            "precision": 0.5,
+            "recall": 0.42857142857142855,
+            "f1": 0.4615384615384615
+          },
+          "Very Severe Cyclonic Storm": {
+            "support": 4,
+            "precision": 0.125,
+            "recall": 0.5,
+            "f1": 0.2
+          }
+        },
+        "confusion_pattern": [
+          [
+            0,
+            7,
+            0
+          ],
+          [
+            0,
+            13,
+            0
+          ],
+          [
+            0,
+            2,
+            0
+          ]
+        ],
+        "confusion_category": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3,
+            4
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            2
+          ]
+        ]
+      }
+    ],
+    "patterns": [
+      "curved_band",
+      "eye_visible",
+      "shear_pattern"
+    ],
+    "categories": [
+      "Cyclonic Storm",
+      "Deep Depression",
+      "Depression",
+      "Extremely Severe Cyclonic Storm",
+      "Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm"
+    ],
+    "incompatible_pairs": [
+      [
+        "eye_visible",
+        "Cyclonic Storm"
+      ],
+      [
+        "eye_visible",
+        "Deep Depression"
+      ],
+      [
+        "eye_visible",
+        "Depression"
+      ],
+      [
+        "shear_pattern",
+        "Extremely Severe Cyclonic Storm"
+      ]
+    ]
+  }
+}

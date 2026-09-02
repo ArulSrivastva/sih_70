@@ -1,0 +1,47 @@
+{
+  "inventory_name": "P2_PHASE6_VERIFICATION_INVENTORY",
+  "timestamp": "2026-09-01T11:35:00Z",
+  "audited_artifacts": {
+    "candidate_weights": "models/detection/model_weights_phase6_candidate.pt (4.75 MB, SHA-256 verified)",
+    "locked_baseline_weights": "models/detection/model_weights.pt (4.75 MB, LOCKED & UNTOUCHED)",
+    "phase5_artifacts": [
+      "results/P2_PHASE5A_REPOSITORY_AUDIT.json", "results/P2_PHASE5A_REPOSITORY_AUDIT.md",
+      "results/P2_PHASE5B_MOSDAC_ACCESS_AUDIT.json", "results/P2_PHASE5B_MOSDAC_ACCESS_AUDIT.md",
+      "results/P2_PHASE5C_PILOT_PLAN.json", "results/P2_PHASE5C_PILOT_PLAN.md",
+      "results/P2_PHASE5D_DOWNLOAD_MANIFEST.json", "results/P2_PHASE5D_DOWNLOAD_REPORT.md",
+      "results/P2_PHASE5E_RAW_DATA_VALIDATION.json", "results/P2_PHASE5E_RAW_DATA_VALIDATION.md",
+      "results/P2_PHASE5F_CROP_VALIDATION.json", "results/P2_PHASE5F_CROP_VALIDATION.md",
+      "results/P2_PHASE5G_LABEL_AUDIT.json", "results/P2_PHASE5G_LABEL_AUDIT.md",
+      "results/P2_PHASE5H_SPLIT_LEAKAGE_AUDIT.json", "results/P2_PHASE5H_SPLIT_LEAKAGE_AUDIT.md",
+      "results/P2_PHASE5_FINAL.json", "results/P2_PHASE5_FINAL.md"
+    ],
+    "phase6_artifacts": [
+      "results/P2_PHASE6_ACQUISITION.json", "results/P2_PHASE6_ACQUISITION.md",
+      "results/P2_PHASE6_RAW_DATA_VALIDATION.json", "results/P2_PHASE6_RAW_DATA_VALIDATION.md",
+      "results/P2_PHASE6_CROP_MANIFEST.json",
+      "results/P2_PHASE6_CROP_VALIDATION.json", "results/P2_PHASE6_CROP_VALIDATION.md",
+      "results/P2_PHASE6_LABEL_AUDIT.json", "results/P2_PHASE6_LABEL_AUDIT.md",
+      "results/P2_PHASE6_DATASET_BALANCE.json", "results/P2_PHASE6_DATASET_BALANCE.md",
+      "results/P2_PHASE6_SPLIT_AUDIT.json", "results/P2_PHASE6_SPLIT_AUDIT.md",
+      "results/P2_PHASE6_MODEL_COMPARISON.json", "results/P2_PHASE6_MODEL_COMPARISON.md",
+      "results/P2_PHASE6_ERROR_ANALYSIS.json", "results/P2_PHASE6_ERROR_ANALYSIS.md",
+      "results/P2_PHASE6_DATA_SCALE.json", "results/P2_PHASE6_DATA_SCALE.md",
+      "results/P2_PHASE6_CANDIDATE.json",
+      "results/P2_PHASE6_REGRESSION.json", "results/P2_PHASE6_REGRESSION.md",
+      "results/P2_PHASE6_FINAL.json", "results/P2_PHASE6_FINAL.md"
+    ],
+    "dataset_manifests": [
+      "data/p2_mosdac_expanded/mosdac_expanded_all.csv (2,120 rows)",
+      "data/p2_mosdac_expanded/train_expanded.csv (1,500 rows)",
+      "data/p2_mosdac_expanded/val_expanded.csv (280 rows)",
+      "data/p2_mosdac_expanded/test_expanded.csv (340 rows)"
+    ],
+    "crop_image_files": "data/p2_mosdac_expanded/crops/ (2,120 PNG files on disk)",
+    "diagnostic_figures": [
+      "results/figures/p2/phase6/p2_phase6_data_scale_curve.png",
+      "results/figures/p2/phase6/p2_phase6_minority_recovery.png",
+      "results/figures/p2/phase6/p2_phase6_confusion_matrices.png",
+      "results/figures/p2/phase6/p2_phase6_verification_25cyclones.png"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "experiment_id": "P2_PHASE3_PHYSICS_LAMBDA_005_E2",
+  "lambda_phys": 0.05,
+  "description": "Moderate physics consistency loss regularization during training",
+  "5_fold_cv_metrics": {
+    "pattern_accuracy": 0.5897233201581027,
+    "pattern_accuracy_std": 0.02604169720444315,
+    "pattern_f1_macro": 0.2766878587568243,
+    "pattern_f1_macro_std": 0.06507421893339194,
+    "pattern_f1_weighted": 0.4551944939950937,
+    "pattern_f1_weighted_std": 0.06471676602334812,
+    "category_accuracy": 0.2754940711462451,
+    "category_accuracy_std": 0.08073809633842605,
+    "category_f1_macro": 0.15024227096053335,
+    "category_f1_macro_std": 0.05719949673998972,
+    "category_f1_weighted": 0.21034444588523774,
+    "category_f1_weighted_std": 0.0937517173294314,
+    "physical_consistency_rate": 0.8418972332015811,
+    "physical_consistency_rate_std": 0.1937989912781442,
+    "incompatible_prediction_rate": 0.1308300395256917,
+    "incompatible_prediction_rate_std": 0.1981329241517724,
+    "mean_physics_loss": 0.22530188858509065,
+    "mean_physics_loss_std": 0.015797300305889025
+  },
+  "test_metrics_n21": {
+    "pattern_accuracy": 0.6666666666666666,
+    "pattern_f1_macro": 0.26666666666666666,
+    "pattern_f1_weighted": 0.5333333333333333,
+    "category_accuracy": 0.19047619047619047,
+    "category_f1_macro": 0.05333333333333334,
+    "category_f1_weighted": 0.0761904761904762,
+    "physical_consistency_rate": 0.047619047619047616,
+    "incompatible_prediction_rate": 0.9523809523809523,
+    "mean_physics_loss": 0.22841443121433258
+  }
+}

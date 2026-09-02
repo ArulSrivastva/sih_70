@@ -1,0 +1,8 @@
+{
+  "champion": "EXP005",
+  "checkpoint_sha256": "ea6bbc3239059061f30eb43bd1b8b0c0db2dd7006b6c8f5e5a5e774d9c124a0a",
+  "split": "test",
+  "evaluated_at": "2026-08-29T09:41:25.990067+00:00",
+  "evaluated_times": 1,
+  "note": "TEST evaluated exactly once, champion only; election never uses test."
+}

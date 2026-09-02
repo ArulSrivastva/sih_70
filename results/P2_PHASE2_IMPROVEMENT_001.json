@@ -1,0 +1,58 @@
+{
+  "experiment_id": "P2_PHASE2_IMPROVEMENT_001",
+  "timestamp": "2026-09-01T10:05:00Z",
+  "experiment_type": "SINGLE_CONTROLLED_ABLATION",
+  "target_component": "P2_CycloneDetector_Input_Transform",
+  "baseline_config": {
+    "model": "CycloneDetector (MobileNetV3-small + 3 heads)",
+    "transforms": "Resize((224,224)) + ToTensor() [Raw range 0-1, unnormalized]",
+    "batch_size": 16,
+    "epochs": 10,
+    "lr": 0.0001,
+    "seed": 42
+  },
+  "candidate_config": {
+    "model": "CycloneDetector (MobileNetV3-small + 3 heads)",
+    "transforms": "Resize((224,224)) + ToTensor() + Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])",
+    "batch_size": 16,
+    "epochs": 10,
+    "lr": 0.0001,
+    "seed": 42
+  },
+  "leakage_audit": {
+    "status": "PASS",
+    "leakage_from_future": false,
+    "leakage_from_targets": false,
+    "leakage_from_test_statistics": false,
+    "notes": "ImageNet normalization constants are standard constants, not fitted on any split."
+  },
+  "5_fold_cross_validation_results": {
+    "baseline": {
+      "pattern_accuracy_mean": 0.5897233201581027,
+      "pattern_accuracy_std": 0.0290654962897185,
+      "pattern_f1_macro_mean": 0.2766878587568243,
+      "pattern_f1_macro_std": 0.07277133076323909,
+      "category_accuracy_mean": 0.2573122529644269,
+      "category_accuracy_std": 0.10465355260821732,
+      "category_f1_macro_mean": 0.14217932791845836,
+      "category_f1_macro_std": 0.07010744404182853,
+      "physical_consistency_mean": 0.824110671936759,
+      "physical_consistency_std": 0.22774482673340607
+    },
+    "candidate": {
+      "pattern_accuracy_mean": 0.5715415019762846,
+      "pattern_accuracy_std": 0.019434023350102046,
+      "pattern_f1_macro_mean": 0.2424027388733271,
+      "pattern_f1_macro_std": 0.005255395446237934,
+      "category_accuracy_mean": 0.2936758893280632,
+      "category_accuracy_std": 0.052800465936209476,
+      "category_f1_macro_mean": 0.15236461830389728,
+      "category_f1_macro_std": 0.03931939061992626,
+      "physical_consistency_mean": 0.7363636363636364,
+      "physical_consistency_std": 0.42079224767393153
+    }
+  },
+  "decision": "NO_IMPROVEMENT",
+  "champion": "P2_BASELINE_RETAINED",
+  "rationale": "Candidate (ImageNet transform normalization) does not consistently outperform the baseline across stratified 5-fold cross-validation. Category accuracy improves slightly (+3.64% absolute) but pattern accuracy and macro-F1 decline (-1.82% and -0.0344 absolute), with all shifts remaining within the cross-validation standard deviation noise floor. Therefore, the locked P2 baseline is retained without modification."
+}

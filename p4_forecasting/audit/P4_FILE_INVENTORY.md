@@ -1,0 +1,138 @@
+# P4 FILE INVENTORY (PHASE 1)
+
+Every P1 source file inspected by Phase 1 is recorded below with its SHA256 hash.
+Originals live in **PS70-main.zip** (read-only). Immutable working copies are staged
+under `p4_forecasting/_source_p1/` (P4-generated copies, used solely for auditing).
+
+- Archive zip SHA256 : `f015bc3b98fe4a99d0a75e65cc1391bc97bca70b1d2b8df4867ad41020a6e5ac`
+- Archive           : `PS70-main.zip`
+- Staging root      : `p4_forecasting/_source_p1/PS70-main/`
+
+## Staged P1 members (audited)
+
+| file (archive path) | size (bytes) | mtime (ISO) | SHA256 | status |
+|---|---|---|---|---|
+| `PS70-main/data/processed/forecasting/train_sequences.npz` | 69267 | 2026-08-28T23:25:46 | `1a65f93f2f698d5956fb1b23c74a80780046f151bc44012122be97d85f1053f9` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/processed/forecasting/val_sequences.npz` | 13677 | 2026-08-28T23:25:46 | `d0e4fd91d207cd1d43aeccf32edee49c8de7e75d8a7079c5335377a45f1a1073` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/processed/forecasting/test_sequences.npz` | 15074 | 2026-08-28T23:25:46 | `882535a1a8886c45ad094878a5a184c860acf1c61a3ecc29133caa576be7eb04` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/processed/forecasting/train_sequences_metadata.csv` | 306770 | 2026-08-28T23:25:46 | `54cee046c6c764ffc7e079cfccddff9da26665f78ef63e83530632d2745b0539` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/processed/forecasting/val_sequences_metadata.csv` | 52265 | 2026-08-28T23:25:46 | `b182592a68f93c375fd3a3d28012643052cff4e1e75bb548047242bf28f4086e` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/processed/forecasting/test_sequences_metadata.csv` | 57724 | 2026-08-28T23:25:46 | `f2a1526556dc2e176ab5787784f33cb9ff72dd7ae3a0a9dc5bd0c57df1d7ec16` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/processed/forecasting/README.md` | 2283 | 2026-08-28T23:25:46 | `0f943f7e52d5f11cd3cde30d533578c3d63152c5a74b312db8255cc52032707d` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/master_dataset.csv` | 738948 | 2026-08-28T23:25:46 | `003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/ibtracs_clean.csv` | 1487310 | 2026-08-28T23:25:46 | `bcd4bf0e05b63aaffd458f10f694e692a1cceff78f7eba3eeb2f1c2193db2acb` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/ibtracs_with_era5.csv` | 709456 | 2026-08-28T23:25:46 | `35b4ccea3e086f1008d1a8e1404dd9b8c114ba49aac8fc403fe75660d779605d` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/mosdac_needed_cyclones.csv` | 3697 | 2026-08-28T23:25:46 | `d425c8adf40d9f6788a1fbae04acdc00b9e06ee7698dc85f43f6745dd4352502` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/mosdac_priority1_named.csv` | 1392 | 2026-08-28T23:25:46 | `8c9988b0d18d60dbda0d5484972e0e3a432c7ef9d69ca0aa0f797d66738deaa1` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/mosdac_priority2_unnamed.csv` | 2641 | 2026-08-28T23:25:46 | `3c190d5743be21dde9b333357d190be9271a2cfe7b80a5054102b5bb2c454e3b` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/train.csv` | 527509 | 2026-08-28T23:25:46 | `4e8b4724f42b4f66f0380b7b650807d616a6bb93d073325fececf4ef53b29a59` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/validation.csv` | 100863 | 2026-08-28T23:25:46 | `41f0dc8bc798c87a79ef428362a2a83c5470a1bb2aefba0e8af49b67dbf663c1` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/test.csv` | 110840 | 2026-08-28T23:25:46 | `e59fccce9ab187d7bc8b185a687fb1138f6e18e47e33980dbe2719c6c88462e4` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/train_cyclones.csv` | 1481 | 2026-08-28T23:25:46 | `c4feb714f31756a059ec489ba3a9f1b5cde66f69bfe9c1432e9612511f460040` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/validation_cyclones.csv` | 319 | 2026-08-28T23:25:46 | `82b5678b94327f2ee062263fdcad802c3eb9dcdbfe9e483dcfca3dbf1a225ccc` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/data/metadata/test_cyclones.csv` | 347 | 2026-08-28T23:25:46 | `096fcf2ecee4f2ee6d32a476359bbe811180870d18feef72f81a5eba0f88fd59` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/build_datasets.py` | 13662 | 2026-08-28T23:25:46 | `586ae286e39ece70e69461c66d379d30e87c81b8dcae1d57e03c2766f8b9be57` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/extract_era5_at_points.py` | 5722 | 2026-08-28T23:25:46 | `127ad459bd6be1b073bfd5d3d314cdfe19b98ae7aed082d259643627948ec22f` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/download_era5.py` | 4374 | 2026-08-28T23:25:46 | `be1cbda61ae4f73319a1cf2f484b008c1375d00b8f2b3155d54bd95ae690ca27` | P1 ORIGINAL - DO NOT MODIFY |
+| `PS70-main/get_ibtracs.py` | 9006 | 2026-08-28T23:25:46 | `c59cef058bfe84d5c327fe99af352f3fd354045da8967b196a94fa757afce5c5` | P1 ORIGINAL - DO NOT MODIFY |
+
+## ERA5 raw NetCDF files (94, hashed from archive; not staged)
+
+| file | size (bytes) | SHA256 |
+|---|---|---|
+| `PS70-main/data/raw/era5/era5_2013_05.nc` | 17088655 | `7bae257c703aea2f5b41d465ba6d4d722a423a750783ab4d8f94964a8ff3e403` |
+| `PS70-main/data/raw/era5/era5_2013_07.nc` | 3105865 | `3a6e06a9c00367ffb7d13fce4a809085e13a907add31b959446ca5f3407d8f34` |
+| `PS70-main/data/raw/era5/era5_2013_08.nc` | 7683704 | `591ebe2e7ebca68c7c9095920a3b2c3c0e32fde1618c60d3433cfd282d47d418` |
+| `PS70-main/data/raw/era5/era5_2013_10.nc` | 12305123 | `d6ce28e6906a43fb4748062ccf778de278782c0e825e2366f25adba42e18c380` |
+| `PS70-main/data/raw/era5/era5_2013_11.nc` | 45212120 | `d5b98cefb4bee4f7b2ddcb4abeccba014cfce53536f917f08001190af6585cd9` |
+| `PS70-main/data/raw/era5/era5_2013_12.nc` | 12267791 | `00afd6a67335d8d2be6974ecc12324adb7baad29d3ed5fac696ddb3897dbd5dd` |
+| `PS70-main/data/raw/era5/era5_2014_01.nc` | 10613320 | `bf1f9efa3b12be2be7cde7498c47a1312bf17c5a083d04d9dacf40b43041d905` |
+| `PS70-main/data/raw/era5/era5_2014_05.nc` | 4669992 | `8968d726179442e4dc91068bbbcc34a686442b69938b402db7de1f26d21c8e35` |
+| `PS70-main/data/raw/era5/era5_2014_06.nc` | 10994898 | `01b8390334a043e1b21ec0aaf40342b4f306a97efd1e41837cbf513b98b34a5a` |
+| `PS70-main/data/raw/era5/era5_2014_07.nc` | 4668727 | `66e9e3463a913212d1475ae7e18968f66f4d71a2a23e3345ee79f65054c7bb5b` |
+| `PS70-main/data/raw/era5/era5_2014_08.nc` | 7718394 | `5a1e025138348c9d480a072f60f533de2acdf44aabcab494c00119eb8e09811c` |
+| `PS70-main/data/raw/era5/era5_2014_10.nc` | 28071194 | `5d664b4122f25a3ab34ce248a066d90bab7a1c33d48d64539370feb39d73dc6e` |
+| `PS70-main/data/raw/era5/era5_2014_11.nc` | 9346667 | `5da8b3892196c28cfee43769f5ac6036d26d2a3c570207badc6c075b4a9bc9c5` |
+| `PS70-main/data/raw/era5/era5_2015_06.nc` | 18501972 | `814b08c05d89a53ea1cf0d7a02376d47da9ff05223669a7a80227ff53e24d036` |
+| `PS70-main/data/raw/era5/era5_2015_07.nc` | 13819225 | `67bc45eabde46db075268a4eab03307e4e4402f9ac4d8d02ebbe007366457ca4` |
+| `PS70-main/data/raw/era5/era5_2015_08.nc` | 4643234 | `c93cd80f984ac05ab75b98b9f49217bc644500c4103766695410a46823121068` |
+| `PS70-main/data/raw/era5/era5_2015_09.nc` | 6239958 | `0a299dc742fe9247620a6a789c265ed2585c712d51bc0dec71a090e1fde59867` |
+| `PS70-main/data/raw/era5/era5_2015_10.nc` | 17002221 | `6484e9fa0bf76c9a6981c0ac77f7d43196cb73dc308e5c9220939f0246e71dce` |
+| `PS70-main/data/raw/era5/era5_2015_11.nc` | 15395999 | `ca00e3df562c4cb69234c62898048ba67a068d4a6ef52d937b134b51e8cdc7eb` |
+| `PS70-main/data/raw/era5/era5_2016_05.nc` | 9346149 | `b18f9d396746d07052a418899e8037ffad17ab98239b46185055f16b4450d0c8` |
+| `PS70-main/data/raw/era5/era5_2016_06.nc` | 6151937 | `62cb24d23c50ea2654ce485feb230479254820677c80cee2ba34e56e6bf4bd0d` |
+| `PS70-main/data/raw/era5/era5_2016_08.nc` | 13858643 | `491801c2b52502b0a088bf57d5a0964b627708cf1bafecff11b9a1193deed140` |
+| `PS70-main/data/raw/era5/era5_2016_10.nc` | 13708822 | `959b9e7145cc52446cd7723e7faf55d83d3cf60448ee622a415e4a653a499f5a` |
+| `PS70-main/data/raw/era5/era5_2016_11.nc` | 10744475 | `52593019c1767ec42903aca1974485209d4a3bb2e3927819dda9e4fde71825bf` |
+| `PS70-main/data/raw/era5/era5_2016_12.nc` | 24302504 | `bca443b2d250a2f6de0aad305043aa4a2befba7bffc7fb0e1a4d83fdfadc9ff3` |
+| `PS70-main/data/raw/era5/era5_2017_04.nc` | 6195861 | `ff8cf574898c04d35ebd3a468c5f3e8f051ca0cfe02ada231f83c70ad67cc503` |
+| `PS70-main/data/raw/era5/era5_2017_05.nc` | 6158867 | `b466b447056502076c3771febdc88182b7f3f682123e172add524d8848b0ff98` |
+| `PS70-main/data/raw/era5/era5_2017_06.nc` | 3087440 | `e761861a23862ddddc9a8c547b4a9e626eda57388b7b77dc3144e46662a2944f` |
+| `PS70-main/data/raw/era5/era5_2017_07.nc` | 6210736 | `6c67bebe0fe015a3e04975dec06871f533d0fde0305871bb4594ccb2ff23662f` |
+| `PS70-main/data/raw/era5/era5_2017_08.nc` | 10731945 | `926c17a5f9703fc94eda45ba47b12c2554f5af7304042365f83faa45fdd71234` |
+| `PS70-main/data/raw/era5/era5_2017_10.nc` | 4573339 | `a9183b0b1750eb499f9678a1ca7c12340bdc128f47d3f8c18f5f2067a444f72f` |
+| `PS70-main/data/raw/era5/era5_2017_11.nc` | 18368885 | `535d87d09878e9c8ed7cc6652f6691912734f5fc858a26b166d862fd5b175b4f` |
+| `PS70-main/data/raw/era5/era5_2017_12.nc` | 15347216 | `eabe56934d2b143b465213f2a1779f8b5c42d13dd771ec5e15542f84f0bb26ab` |
+| `PS70-main/data/raw/era5/era5_2018_03.nc` | 3099784 | `c0071c1228636dad6653f21ff10d47d939d00afb9d8f15afa54f302e3f74a081` |
+| `PS70-main/data/raw/era5/era5_2018_05.nc` | 25107110 | `21811cfb0fe2c7327da1c32d2907f0d3ed7e5598725c788c17f61e736670b863` |
+| `PS70-main/data/raw/era5/era5_2018_06.nc` | 1614035 | `085e1f49aebe13e14e170e70e29b15da9d9c651577a7a35630e4a2bd8b5fe1ea` |
+| `PS70-main/data/raw/era5/era5_2018_07.nc` | 4678378 | `7e8c133ff3e4a86469359989e709527011887406a8bdb982e38a590e4d58a3ea` |
+| `PS70-main/data/raw/era5/era5_2018_08.nc` | 7694666 | `218b6dba6d83668afd2ad3ee994b6c1341b978205f421a294c03ebf3582c5a19` |
+| `PS70-main/data/raw/era5/era5_2018_09.nc` | 9278992 | `0030d81bb0a57760eb1dfeb69761fb5708d00df35826ba6c47272095a9b9fea5` |
+| `PS70-main/data/raw/era5/era5_2018_10.nc` | 17194453 | `abd193320a5d9945c17180c557b0dfe39954d95441dbfcbbd81efba8cc5bc45f` |
+| `PS70-main/data/raw/era5/era5_2018_11.nc` | 15344172 | `f6098b3d47ab06e14cf92173baa69e1f34e444559ba12955785710069394d4fc` |
+| `PS70-main/data/raw/era5/era5_2018_12.nc` | 10774017 | `3a585b629428e44e07f59bd6d0a97ee59409c3f62ddf31206fddcb5da9eee9e5` |
+| `PS70-main/data/raw/era5/era5_2019_01.nc` | 10597120 | `1358ce448a925a252c7968e2aeb65dbdeb41855b6610e3a394866a163f9b7442` |
+| `PS70-main/data/raw/era5/era5_2019_04.nc` | 9332901 | `4a8c4235aa18cde1fbf18b894cbc4606d3ab932468e5607363e58d11ea75cb50` |
+| `PS70-main/data/raw/era5/era5_2019_05.nc` | 6145412 | `cb917d42a1436d5530d93f1175a9bb4c3fa9847a970370f2289950bf6535ef01` |
+| `PS70-main/data/raw/era5/era5_2019_06.nc` | 17022793 | `f3e2e163dbdc35a373d8a5f7d275aea358d5231640d45e1de5ebc339163b3169` |
+| `PS70-main/data/raw/era5/era5_2019_08.nc` | 6092452 | `bea2d958e76e413495a084b65b16dab0802533b06074a9de64555a5c85a15c63` |
+| `PS70-main/data/raw/era5/era5_2019_09.nc` | 13867879 | `2114e9c16e8c54390ca23afa945897d72cb17da78e97ebe114a1f5f0ff4682e4` |
+| `PS70-main/data/raw/era5/era5_2019_10.nc` | 17067749 | `7608fe107475650c43bb5f7cce3dadea8842cf3eb72150b00bfa47e7f86e026d` |
+| `PS70-main/data/raw/era5/era5_2019_11.nc` | 18459434 | `0f7233b9a062491f86e883ce2b4bc0466ec1c4cff8edd6dbc096011b22316ad4` |
+| `PS70-main/data/raw/era5/era5_2019_12.nc` | 15358440 | `667bc4bfd8f4c0725c5aff83e46287c3e8160b7d5b6a3785680752cb53ce6b15` |
+| `PS70-main/data/raw/era5/era5_2020_05.nc` | 15537870 | `ec3993b964cafd91061dfb3c9c5ac9a3d7b31b78e5ccb4165bbb5108c8a8e667` |
+| `PS70-main/data/raw/era5/era5_2020_06.nc` | 6129457 | `263737f3773b244d6749ad3e96285fbef96bbd4fec42386ba72dce2d0190bd70` |
+| `PS70-main/data/raw/era5/era5_2020_10.nc` | 12252856 | `53743d9894508cb9c15b17e9df0bb567dd6724385e3473bea85e14ae29c0359b` |
+| `PS70-main/data/raw/era5/era5_2020_11.nc` | 15277629 | `a0b38dc7695c4c386882d0e2812a8d4769b421d99ae26611a2f47fe07cda61d2` |
+| `PS70-main/data/raw/era5/era5_2020_12.nc` | 21223418 | `ebf04b7601f5cfa960904fd0d13078dd9b3e090d7116ac94008b053ac628295a` |
+| `PS70-main/data/raw/era5/era5_2021_04.nc` | 3103737 | `a0251163a9f45697da440fb6108b9fab737da3fe6998c92695102e420a313aa9` |
+| `PS70-main/data/raw/era5/era5_2021_05.nc` | 18625106 | `540284779713943cc8b0fc189a4982743e9179aab8d33a0b8468643f521171cf` |
+| `PS70-main/data/raw/era5/era5_2021_09.nc` | 19983123 | `6ac3f08b00881a7058c589b5e0acc06d3f8e09a1e549ec5f1dfb88b41b605a27` |
+| `PS70-main/data/raw/era5/era5_2021_10.nc` | 9138441 | `b301bef8f199397cacad082081ed85681de6816053d9e161a2104dafc57daff0` |
+| `PS70-main/data/raw/era5/era5_2021_11.nc` | 10728589 | `b6df0906bc818ade5d92c55f066f2518eddeecfe75a971ba359d2d1d67217696` |
+| `PS70-main/data/raw/era5/era5_2021_12.nc` | 9189589 | `b8b46e6d5599dd9fe38740a14dc7acab5c17a1e08e3a15ce1ab1db07b370f729` |
+| `PS70-main/data/raw/era5/era5_2022_03.nc` | 12201129 | `6aa9cf2eb728140ad4db26532fe21394b59a8119dc69701c0f56878ce9bb3e03` |
+| `PS70-main/data/raw/era5/era5_2022_05.nc` | 15421653 | `ac9ae6690ca0ec5c99e9eb4f4b92b473c1e4e21b2e2a2f888925a77e14a6067b` |
+| `PS70-main/data/raw/era5/era5_2022_07.nc` | 3162380 | `de7910fa1edef0a01112b418022e2830d949942bee2c21a7898fff72a50655de` |
+| `PS70-main/data/raw/era5/era5_2022_08.nc` | 21563881 | `3efba7baecc8127c5e198c1e0f3d852832648372650bdd3859e2349abf9060e8` |
+| `PS70-main/data/raw/era5/era5_2022_09.nc` | 3101056 | `5e039d09ef24b8e3d21df01c66307b37bad48ce697988c28b62d53c90131f6db` |
+| `PS70-main/data/raw/era5/era5_2022_10.nc` | 7681853 | `723580dc0e46e2a2b5461ee7ad244626f2c8d177091d283f34c682a7fa39bb86` |
+| `PS70-main/data/raw/era5/era5_2022_11.nc` | 4598128 | `4dd925caa1bd8d574ad0e75f53f7dfea155b23e1588d97cff0dc77d48ecade90` |
+| `PS70-main/data/raw/era5/era5_2022_12.nc` | 29569833 | `7a5214ef4fa7eb3e7f0b6a7e3381cd4bcc358a40ca9ffffd4447ab25222cc29b` |
+| `PS70-main/data/raw/era5/era5_2023_01.nc` | 3104872 | `2e8ca5fa41e8f28e7f15aa3e130fae7d061734643410c512fd0630778b772769` |
+| `PS70-main/data/raw/era5/era5_2023_02.nc` | 3057082 | `0b31bf1afb0e7f5940908580dd6b68486c0e9bbb1261f5dcf7efcf5e54f9ac4a` |
+| `PS70-main/data/raw/era5/era5_2023_05.nc` | 12422286 | `6d1ba291dcb287beb82a3cf331c5d1aaae21014452307ab562f4371489266552` |
+| `PS70-main/data/raw/era5/era5_2023_06.nc` | 22990192 | `3acbfaa09ca74fb2cfb61fd6518329c30a82035cd59144629a1bc40bfbccaa8c` |
+| `PS70-main/data/raw/era5/era5_2023_07.nc` | 3146721 | `38406594d13fc636003c2fda33227dd3188ecc5a6256762209954c02da76043c` |
+| `PS70-main/data/raw/era5/era5_2023_08.nc` | 4646776 | `5215c4cdf7e5d9ed7c1080e2af776e54123980b303d0829aee3e9d7b2c2b95a5` |
+| `PS70-main/data/raw/era5/era5_2023_09.nc` | 1585961 | `181fc08bf76d2604d7457c7a151a563bfe5faeae261cf66c05648e0db9c1d6a1` |
+| `PS70-main/data/raw/era5/era5_2023_10.nc` | 12202825 | `0712ca2b0da1c40e62d9a73008f9d943ab596c7774baee3b260599e2c0687d59` |
+| `PS70-main/data/raw/era5/era5_2023_11.nc` | 10602059 | `d4783eae949b0167eb1ba4bfd87f1e2e7c5a2f361a8531ca61e9dfa5b6a9c81c` |
+| `PS70-main/data/raw/era5/era5_2023_12.nc` | 9281726 | `835513d234e44bed7047bdb8f26cda7fa4101e31ab4f208423251b25a2c37976` |
+| `PS70-main/data/raw/era5/era5_2024_05.nc` | 9383002 | `ee7f217e19fb61206bbcbadaedc691227828d7685e33ea9d44d90c567f37f3c6` |
+| `PS70-main/data/raw/era5/era5_2024_07.nc` | 3148817 | `6bbeb34f24ee5808f9ec75819032c3e21c9c1b9ed17be1e12b7c288cc6d7a454` |
+| `PS70-main/data/raw/era5/era5_2024_08.nc` | 16858376 | `76b68d5de84a6cb511ae0f5e39920aca37c6ba70f4e94cf1dff6045190931225` |
+| `PS70-main/data/raw/era5/era5_2024_09.nc` | 19875360 | `7c68e58d53cffcd8f368a84b03334099a2506fa3b72e2c3e12ef441e12c60fd8` |
+| `PS70-main/data/raw/era5/era5_2024_10.nc` | 15296182 | `70e8299dfd1bae2bf2d6922a3cd21ceab6b9a9f6b3cff41111ccb8864d2cfcbf` |
+| `PS70-main/data/raw/era5/era5_2024_11.nc` | 12203755 | `d494c50d107ee8f28b5d416870831d2bd9b3c93205c24dc242da25455c0903d6` |
+| `PS70-main/data/raw/era5/era5_2024_12.nc` | 9109466 | `66a950f2fd0ddae5333708abc8b71b47ae10688b6dadc0e82ecd002d42b60d40` |
+| `PS70-main/data/raw/era5/era5_2025_05.nc` | 4668617 | `c6d402a122f56cfefe14057518b510bdf107e98f5cab5837813fe66d9d4dd9cc` |
+| `PS70-main/data/raw/era5/era5_2025_07.nc` | 10825880 | `ca38a38f7e6d3ac987fa44fa2b632da4de8ea43caea30bae5d3170dbc1ce6f9a` |
+| `PS70-main/data/raw/era5/era5_2025_08.nc` | 13757774 | `750242700b43a469dbda91a8dc867aaf371edd4b1d4e39b04d38508ef1314df8` |
+| `PS70-main/data/raw/era5/era5_2025_09.nc` | 21381154 | `86b9e6bc653d2c11ade5086d703b19e3706aeae7ba43859eedf77b37a1284b5c` |
+| `PS70-main/data/raw/era5/era5_2025_10.nc` | 26467172 | `a39b63d83c52949751dd5d6fb9a1cf725912341ae3c0793ac5547232c724585f` |
+| `PS70-main/data/raw/era5/era5_2025_11.nc` | 9237723 | `95118e7a0db99e0a8c8b67d6b0a226460dbf8ab477abe96da45f24f1ddec78de` |
+| `PS70-main/data/raw/era5/era5_2025_12.nc` | 3072193 | `655dde2f4030c936435268f3e51765e3ff58804c187633e729c8f4d1c06689f3` |
+
+Total P1 files inventoried: 23 staged + 94 ERA5 NetCDF.

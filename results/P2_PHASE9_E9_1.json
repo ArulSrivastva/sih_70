@@ -1,0 +1,562 @@
+{
+  "experiment": "E9_1",
+  "validation": {
+    "p_true": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      2,
+      2,
+      1,
+      2,
+      2,
+      1,
+      2,
+      2,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "p_pred": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "c_true": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      2,
+      2,
+      3,
+      2,
+      2,
+      3,
+      1,
+      2,
+      3,
+      1,
+      2,
+      2,
+      1,
+      2
+    ],
+    "c_pred": [
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      3,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      2,
+      2,
+      3,
+      2,
+      2,
+      2,
+      3,
+      3,
+      2,
+      3
+    ],
+    "cyclones": [
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021",
+      "SITRANG_2022"
+    ],
+    "pattern_accuracy": 0.5,
+    "pattern_macro_precision": 0.25,
+    "pattern_macro_recall": 0.5,
+    "pattern_macro_f1": 0.3333333333333333,
+    "pattern_weighted_f1": 0.3333333333333333,
+    "category_accuracy": 0.375,
+    "category_macro_precision": 0.2540792540792541,
+    "category_macro_recall": 0.28703703703703703,
+    "category_macro_f1": 0.2661396574440053,
+    "category_weighted_f1": 0.35375494071146246,
+    "cohen_kappa": -0.10091743119266061,
+    "per_class_pattern": {
+      "curved_band": {
+        "support": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "eye_visible": {
+        "support": 12,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "shear_pattern": {
+        "support": 12,
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666
+      }
+    },
+    "per_class_category": {
+      "Cyclonic Storm": {
+        "support": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Deep Depression": {
+        "support": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Depression": {
+        "support": 9,
+        "precision": 0.3076923076923077,
+        "recall": 0.4444444444444444,
+        "f1": 0.3636363636363637
+      },
+      "Very Severe Cyclonic Storm": {
+        "support": 12,
+        "precision": 0.45454545454545453,
+        "recall": 0.4166666666666667,
+        "f1": 0.43478260869565216
+      }
+    },
+    "per_cyclone_metrics": {
+      "SITRANG_2022": {
+        "N": 8,
+        "pattern_accuracy": 0.625,
+        "pattern_macro_f1": 0.38461538461538464,
+        "category_accuracy": 0.375,
+        "category_macro_f1": 0.36507936507936506
+      },
+      "TAUKTAE_2021": {
+        "N": 8,
+        "pattern_accuracy": 0.125,
+        "pattern_macro_f1": 0.1111111111111111,
+        "category_accuracy": 0.375,
+        "category_macro_f1": 0.2727272727272727
+      },
+      "YAAS_2021": {
+        "N": 8,
+        "pattern_accuracy": 0.75,
+        "pattern_macro_f1": 0.42857142857142855,
+        "category_accuracy": 0.375,
+        "category_macro_f1": 0.3
+      }
+    },
+    "confusion_pattern": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        12
+      ],
+      [
+        0,
+        0,
+        12
+      ]
+    ],
+    "confusion_category": [
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        2,
+        1
+      ],
+      [
+        0,
+        0,
+        4,
+        5
+      ],
+      [
+        0,
+        0,
+        7,
+        5
+      ]
+    ]
+  },
+  "test": {
+    "p_true": [
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1
+    ],
+    "p_pred": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "c_true": [
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      3,
+      2,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3,
+      2,
+      2,
+      3,
+      3
+    ],
+    "c_pred": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      2,
+      2,
+      3,
+      2,
+      3,
+      3,
+      2
+    ],
+    "cyclones": [
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022",
+      "UNNAMED_2021_DD",
+      "KYARR_2019",
+      "BIPARJOY_2023",
+      "ASANI_2022"
+    ],
+    "pattern_accuracy": 0.3,
+    "pattern_macro_precision": 0.15,
+    "pattern_macro_recall": 0.5,
+    "pattern_macro_f1": 0.23076923076923078,
+    "pattern_weighted_f1": 0.13846153846153847,
+    "category_accuracy": 0.4,
+    "category_macro_precision": 0.5093167701863355,
+    "category_macro_recall": 0.5079365079365079,
+    "category_macro_f1": 0.3973214285714286,
+    "category_weighted_f1": 0.38125,
+    "cohen_kappa": 0.010989010989011172,
+    "per_class_pattern": {
+      "curved_band": {
+        "support": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "eye_visible": {
+        "support": 21,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "shear_pattern": {
+        "support": 9,
+        "precision": 0.3,
+        "recall": 1.0,
+        "f1": 0.4615384615384615
+      }
+    },
+    "per_class_category": {
+      "Cyclonic Storm": {
+        "support": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Deep Depression": {
+        "support": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Depression": {
+        "support": 9,
+        "precision": 0.30434782608695654,
+        "recall": 0.7777777777777778,
+        "f1": 0.43750000000000006
+      },
+      "Very Severe Cyclonic Storm": {
+        "support": 21,
+        "precision": 0.7142857142857143,
+        "recall": 0.23809523809523808,
+        "f1": 0.35714285714285715
+      }
+    },
+    "per_cyclone_metrics": {
+      "ASANI_2022": {
+        "N": 8,
+        "pattern_accuracy": 0.0,
+        "pattern_macro_f1": 0.0,
+        "category_accuracy": 0.375,
+        "category_macro_f1": 0.2727272727272727
+      },
+      "BIPARJOY_2023": {
+        "N": 7,
+        "pattern_accuracy": 0.0,
+        "pattern_macro_f1": 0.0,
+        "category_accuracy": 0.2857142857142857,
+        "category_macro_f1": 0.2222222222222222
+      },
+      "KYARR_2019": {
+        "N": 8,
+        "pattern_accuracy": 0.25,
+        "pattern_macro_f1": 0.2,
+        "category_accuracy": 0.125,
+        "category_macro_f1": 0.1111111111111111
+      },
+      "UNNAMED_2021_DD": {
+        "N": 7,
+        "pattern_accuracy": 1.0,
+        "pattern_macro_f1": 1.0,
+        "category_accuracy": 0.8571428571428571,
+        "category_macro_f1": 0.46153846153846156
+      }
+    },
+    "confusion_pattern": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        21
+      ],
+      [
+        0,
+        0,
+        9
+      ]
+    ],
+    "confusion_category": [
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        7,
+        2
+      ],
+      [
+        0,
+        0,
+        16,
+        5
+      ]
+    ]
+  },
+  "bootstrap": {
+    "acc_mean": 0.40015666666666666,
+    "acc_ci_95": [
+      0.23333333333333334,
+      0.5666666666666667
+    ],
+    "f1_mean": 0.38965243198152255,
+    "f1_ci_95": [
+      0.2255892255892256,
+      0.5661846496106786
+    ]
+  }
+}

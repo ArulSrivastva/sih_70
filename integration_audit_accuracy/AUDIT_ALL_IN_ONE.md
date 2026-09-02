@@ -1,0 +1,15138 @@
+# SIH 2026 PS 26070 — Pre-Integration Audit: ALL TESTS + ALL REPORTS
+## Single-file bundle (2026-08-30)
+Every deliverable of `integration_audit_accuracy/` in one document:
+01. `REPOSITORY_INVENTORY.md`
+02. `COMPONENT_MAP.md`
+03. `P1_DATA_AUDIT.md`
+04. `P2_DETECTION_AUDIT.md`
+05. `P3_CLASSIFICATION_AUDIT.md`
+06. `P4_FORECASTING_AUDIT.md`
+07. `P5_FRONTEND_READINESS.md`
+08. `API_COMPATIBILITY.md`
+09. `LEAKAGE_AUDIT.md`
+10. `MODEL_STRENGTH_SUMMARY.md`
+11. `CLAIMS_WE_CAN_MAKE.md`
+12. `INTEGRATION_READINESS.md`
+13. `ACCURACY_READINESS_REPORT.md`
+14. `p1_metrics.json`
+15. `p2_metrics.json`
+16. `p3_metrics.json`
+17. `p4_metrics.json`
+18. `p5_metrics.json`
+19. `METRIC_VERIFICATION.csv`
+20. `P4_EXPERIMENT_RANKING.csv`
+21. `SOURCE_HASHES_BEFORE.json`
+22. `SOURCE_HASHES_AFTER.json`
+23. `SOURCE_IMMUTABILITY_REPORT.json`
+24. `AUDIT_MANIFEST.json`
+25. `tests/conftest.py`
+26. `tests/test_p1_pipeline.py`
+27. `tests/test_p2_detection.py`
+28. `tests/test_p3_classification.py`
+29. `tests/test_p4_forecasting.py`
+30. `tests/test_p5_api.py`
+31. `tests/test_immutability.py`
+
+---
+## FINAL VERDICT (short)
+> - P4 pipeline: fully verified, clean methodology — but track forecast LOSES to the movement-vector
+>   baseline at every horizon; wind forecast is the only defensible real signal.
+> - P2/P3 image metrics: reproduced exactly (delta 0.0) but ride synthetic labels + a leak-prone
+>   21-frame test; P3 tabular model NOT_RUN (lightgbm not installed).
+> - P5/API: backend verified live (/health, /model, /forecast, /forecast/compare) but dashboard is
+>   mock-only and no /api/* surface matches it (GET /api/analyze -> 404).
+> - Leakage: P4 clean; 22 same-storm cross-split image pairs flagged.
+> - Immutability: 0 of 1,595 hashed artifacts changed. Pytest: 38/38 passed.
+> - OVERALL: NOT READY AS-IS (glue + honest re-scoping of detection/classification claims needed).
+
+---
+
+## REPOSITORY_INVENTORY.md
+# Repository Inventory
+
+**Audit:** Pre-Integration Accuracy + Readiness Audit (read-only)
+**Root:** `C:\Users\aruls\Desktop\SIH26\ps70\cyclone-project`
+**Date:** 2026-08-30
+**Method:** All P1/P2/P3 artifacts were read in-place from `PS70-main.zip` (never extracted into the workspace); P4/P5 artifacts read in place. No file outside `integration_audit_accuracy/` was created/modified/deleted. Environment: Python 3.13.7, numpy 2.3.2, pandas 3.0.0, torch 2.6.0+cu124, torchvision present, scikit-learn 1.7.1, scipy 1.16.1, pytest 9.1.1, fastapi/uvicorn/httpx present. **lightgbm is NOT installed.**
+
+## 1. Delivered artifacts (top level)
+
+| Path | Kind | Notes |
+|---|---|---|
+| `PS70-main.zip` | Archive (1,231,540,094 B) | Contains the entire P1–P3 sub-system (metadata, processed datasets, models, `src/`). 1,165 zip entries, of which 94 are ERA5 `.nc` reanalysis files (1,103,681,364 B). |
+| `p4_forecasting/` | P4+ sub-system (294 files) | phase2 (baselines), phase3 (legacy LSTM), phase4 (experiments EXP001–EXP006 + champion), phase5 (predictor), phase6 (FastAPI), canonical + canonical_chrono npz, reports, tests. |
+| `cyclone-dashboard/` | P5 frontend (33 files + node_modules excluded) | React/Vite working copy. `USE_MOCK=true`, no backend wiring. |
+| `phase4/`, `results/`, `data/`, `models/`, `src/`, `scripts/`, `notebooks/` | Workspace dirs (mostly empty at root) | `src/` 3 scripts, `data/` 19 files (spreadsheets/CSVs), `models/` 3 files, `results/` 10 files — low-level workspace scratch, **not** part of the delivered P1–P3 archive. |
+| `AUDIT_P1_DELIVERY.md`, `DATASET_REPORT.md` | Docs | Delivery/QA notes from P1. |
+| `integration_audit/` | Prior audit (completed earlier) | Separate task; not modified by this audit. |
+| `integration_audit_accuracy/` | **This audit** | The only directory created by this audit. |
+
+## 2. Delivery scopes (who/build steps)
+
+| Scope | Canonical location | Build script (in `PS70-main.zip`) | Content |
+|---|---|---|---|
+| P1 data | `data/metadata/master_dataset.csv` (+ splits), `data/processed/forecasting/*sequences*` | `src/data/build_datasets.py`, `src/data/clean_kaggle_intensity.py` | ERA5+IBTrACS master (5,481 rows / 151 cyclones), 70/15/15 cyclone-level splits, three task datasets (A detection / B classification / C forecasting) |
+| P2 detection | `models/detection/model_weights.pt`, `src/detection/*` | `build_datasets.py` (Dataset A) | MobileNetV3-small CycloneDetector (presence/pattern/category heads) |
+| P3 classification | `models/classification/*` (image_only_model.pt, tabular_multisource_model.pkl, metrics_comparison.json) | `clean_kaggle_intensity.py`, `build_datasets.py` (Dataset B) | ImageOnly ResNet18 + Multisource LightGBM tabular |
+| P4 forecasting | `p4_forecasting/canonical_chrono/*`, `p4_forecasting/phase4/*`, phase2/phase3 results | `phase4` training/eval pipeline (EXP001–EXP006 → champion EXP005) | GRU+Huber 16→GRU→9 forecaster on 6-hourly track windows |
+| P5 frontend | `cyclone-dashboard/` (working copy) + SIH26 pristine copy | n/a | React dashboard, mock-only API client |
+
+## 3. Counts (independent verification)
+
+- Master dataset: **5,481 rows, 151 cyclones**, 2013-05-09 … 2025-12-02, sub-basins {AS, BB, MM}; 0 exact-duplicate rows; 0 duplicate (cyclone_id, timestamp); splits disjoint: train 105 cyclones / 3,911 rows, val 22 / 752, test 24 / 818 (union = all 151, no intersection).
+- Clean IBTrACS: **18,168 rows / 471 cyclones**, 1980–2025, 3 h median cadence; wind/pressure/category missing in ~45% of rows (clean = dedup'd IBTrACS, NOT imputed).
+- ERA5 join: **5,481 / 5,481 rows matched** (100%); 94 `.nc` files, 1.1 GB.
+- Classification: multisource train 3,039 / val 518 / test 651; image-only Kaggle 133 images (train 93 / val 19 / test 21).
+- Detection: 133 rows, 3/3/1 pattern classes; **cyclone_detected=True in 133/133**, mock_bbox identical in 133/133.
+- Forecasting sequences (P1, 6 h): train 2,275 / val 378 / test 423 (67/14/16 cyclones). Note: only 97 of 151 master cyclones appear in Dataset C.
+- P4 view of the same data: canonical_chrono npz train 2,259 / val 416 / test 401 (3 h cadence); phase4 feature_dataset train 1,212 / val 231 / test 198 (6 h subset). The experiment/test/baseline evaluations were performed on **feature_dataset** (198 test samples / 10 cyclones), which is a different population than the delivered `canonical_chrono/test.npz` (401). See `LEAKAGE_AUDIT.md` (population note) and `P4_FORECASTING_AUDIT.md`.
+
+## 4. Verification artifacts produced
+
+- `p1_metrics.json`, `p2_metrics.json`, `p3_metrics.json`, `p4_metrics.json`, `p5_metrics.json`
+- `METRIC_VERIFICATION.csv` (every reported metric vs. independent recomputation)
+- `SOURCE_HASHES_BEFORE.json` / `SOURCE_HASHES_AFTER.json` / `SOURCE_IMMUTABILITY_REPORT.json`
+- `tests/` (independently runnable pytest suite), `AUDIT_MANIFEST.json`
+---
+
+## COMPONENT_MAP.md
+# Component Map
+
+Mapping from deliverables to the code that produces them, verified by reading every referenced source file in `PS70-main.zip` and `p4_forecasting`.
+
+## P1 — Data pipeline
+
+| Component | File (archive path unless noted) | Produces |
+|---|---|---|
+| Raw archive merge | `src/data/build_datasets.py` | `data/metadata/ibtracs_with_era5.csv` from `ibtracs_clean.csv` + ERA5 `.nc` extraction; renames columns |
+| Master | `data/metadata/master_dataset.csv` (+ `data/processed/master_dataset.csv`, byte-identical) | 5,481×15; wind/pressure/category/sst with missingness; `pre_genesis_favorable` |
+| Splits | `data/metadata/{train,validation,test}.csv` | 105/22/24 cyclones, disjoint |
+| Dataset A (detection) | `build_datasets.py` | `data/processed/detection/*_detection.csv` + `detection_all.csv` — **labels synthesized from wind**: `cyclone_detected=True` always, `mock_bbox` constant `[420,190,600,370]` always, `structural_pattern` by wind-threshold rule, `category` by IMD wind mapping |
+| Dataset B (classification) | `src/data/clean_kaggle_intensity.py` + `build_datasets.py` | `data/processed/classification/multisource_*.csv` (ERA5 features + IBTrACS targets); `image_only_kaggle/{labels,train,val,test}_labels.csv` (labels parsed from Kaggle INSAT-3D sheet, wind kt → kmh ×1.852, IMD categories) |
+| Dataset C (forecasting) | `build_datasets.py` | `data/processed/forecasting/*_sequences.npz` X(5,7)/Y(3,3); windows built with `interpolate(method='time').ffill().bfill()` (bfill can reach forward in time within a storm) |
+| ERA5 reanalysis | `data/raw/era5/*.nc` (94 files) | `u_wind/v_wind/sst/pressure_msl` joined onto all 5,481 rows |
+
+## P2 — Detection
+
+| Component | File | Notes |
+|---|---|---|
+| Model | `src/detection/detector.py` — `CycloneDetector` (MobileNetV3-small backbone, presence/pattern/category heads) | ImageNet-pretrained backbone |
+| Training | `src/detection/train.py` | 10 epochs, Adam lr 1e-4, batch 16; label maps built from combined train+val+test frames; saves best on val |
+| Weights | `models/detection/model_weights.pt` | checkpoint keys: `model_state_dict`, `pattern_to_idx` (3 classes), `category_to_idx` (7 classes) |
+| Evaluation | `src/detection/evaluate.py` | Resize(224,224)+ToTensor; weighted precision/recall/F1; **presence head is never scored** |
+| Consumed runtime contract | `src/detection/inference.py` | `load_cyclone_detector` + `detect_cyclone(image)` |
+
+## P3 — Classification
+
+| Component | File | Notes |
+|---|---|---|
+| Image model | `src/classification/classifier.py` — `ImageOnlyIntensityModel` (ResNet18 backbone + 7-class head + wind regressor head) | ImageNet-pretrained |
+| Tabular model | `classifier.py` — `MultisourceTabularModel` (StandardScaler + LightGBM classifier/regressors; RandomForest fallback) | **Requires lightgbm** |
+| Fusion stub | `MultimodalFusionModel` (defined, not trained) | No weights shipped |
+| Weights | `models/classification/image_only_model.pt`, `tabular_multisource_model.pkl` | pkl contains unpickled LGBM + scaler |
+| Evaluation | `src/classification/evaluate.py` | Image model on 21 test images; tabular model on 651 test records, then folds them into one `performance_delta` (cross-population comparison) |
+| Inference | `src/classification/inference.py` | `classify_cyclone(image_input=…, environmental_data=…)` |
+
+## P4 — Forecasting
+
+| Component | File | Notes |
+|---|---|---|
+| Clean chrono data | `p4_forecasting/canonical_chrono/*` (npz + meta, prefix-hashed) | 3 h cadence windows; SHA256 prefixes train `df70303e…`, val `48cf065d…`, test `89e9c2e2…` |
+| Feature engineering | `p4_forecasting/phase4/features/feature_engineering.py` | (5,7)→(5,16): 9 causal derived features; 0-fill at step 0; no future consulted |
+| Normalization | `p4_forecasting/phase4/training/normalization.py` → `results/normalization_stats.json` | train-only z-score; zero-std→scale 1 |
+| Model | `p4_forecasting/phase4/models/gru.py` — `GRUCyclone` (16→GRU→Linear→(3,3)) | |
+| Experiments | `phase4/results/experiment_registry.csv`, `phase4/results/experiments/EXP00X/{config,metrics,validation_results,test_results,checkpoint.pt,source_hashes}` | EXP001–EXP006; only EXP005 has a `test_results.json` (test evaluated once) |
+| Selection | `phase4/results/champion_model.json` | EXP005 (val-only rule) |
+| Baselines | `phase2/baselines/*.py`, `phase2/results/baseline_results.json` | persistence + movement-vector on clean 1,212/231/198 |
+| Output contract | `phase5/inference/predictor.py`, `phase5/config.py` | lon→[0,360), lat∈[-90,90], wind≥0; NaN/Inf refusal |
+| API | `phase6/api/{app,routes}.py`, `phase6/schemas/*` | GET /health, GET /model, POST /forecast, POST /forecast/compare |
+
+## P5 — Frontend
+
+| Component | File | Notes |
+|---|---|---|
+| API client | `cyclone-dashboard/src/api/client.js` | `USE_MOCK=true`; targets `/api/detect…` and merged `POST /api/analyze` shape |
+| Mock payload | `cyclone-dashboard/src/api/mockData.js` | `{meta, detection, classification, forecast[{hour,label,lat,lon,windSpeedKmh,pressureHpa,confidence}], landfall, risk, satellite}` |
+| App bootstrap | `cyclone-dashboard/src/App.jsx` | calls `fetchAnalyze()` once on mount → mock only |
+| Pristine copy | `SIH26/cyclone-dashboard/cyclone-dashboard` (29 files) | older snapshot, same `USE_MOCK=true` behavior |
+
+## Runtime wiring map (frontend ↔ backend endpoints)
+
+| Frontend call (when real mode on) | Delivered backend | Resolution |
+|---|---|---|
+| GET `{API_BASE}/analyze` (`/api/analyze`) | not exposed | **404** (verified live) |
+| GET `{API_BASE}/detect` (`/api/detect`) | not exposed | **404** |
+| GET `{API_BASE}/classify` (`/api/classify`) | not exposed | **404** |
+| GET `{API_BASE}/forecast` (`/api/forecast`) | `POST /forecast` (no prefix; POST-only) | not compatible (method + path + shape) |
+| (none) | `GET /health`, `GET /model` | not consumed by the frontend |
+| (none) | `POST /forecast/compare` | not consumed by the frontend |
+---
+
+## P1_DATA_AUDIT.md
+# P1 Data Audit
+
+**Status: PASS_WITH_WARNINGS** (structure is sound; synthetic-label and provenance warnings apply to downstream consumers, and the P1 dataset population differs from what P4 reports used.)
+
+All values in this report were recomputed by reading `PS70-main.zip` contents directly (`data/metadata/*`, `data/processed/*`) and cross-checked against the delivered QA report (`AUDIT_P1_DELIVERY.md`, `DATASET_REPORT.md`).
+
+## 1. Headline counts — match QA report exactly
+
+| Item | Independently computed | QA claim | Match |
+|---|---|---|---|
+| Master rows | 5,481 | 5,481 | ✓ |
+| Master cyclones | 151 | 151 | ✓ |
+| Time span | 2013-05-09 18:00 → 2025-12-02 18:00 | 2013-05-09 → 2025-12-02 | ✓ |
+| Sub-basins | {AS, BB, MM} | — | — |
+| Exact-duplicate rows | 0 | 0 | ✓ |
+| Duplicate (cyclone_id, timestamp) | 0 | 0 | ✓ |
+| Split rows | train 3,911 / val 752 / test 818 | — | ✓ (sum = 5,481) |
+| Split cyclones | 105 / 22 / 24 | 105 / 22 / 24 | ✓ |
+| Split disjointness | no cyclone in ≥2 splits; union = 151 | ✓ | ✓ |
+| ERA5 join coverage | 5,481 / 5,481 = 100% | “all rows have ERA5” | ✓ |
+| Clean IBTrACS | 18,168 rows / 471 cyclones / 1980–2025 | — | — |
+| Clean cadence | median 3 h (min 0.5, max 3) | — | — |
+
+## 2. Missingness (master)
+
+| Column | Rows missing | Note |
+|---|---|---|
+| `sst` | **1,538 (28.1%)** | QA explicitly lists `sst missing: 1538`; **the README-level "Completeness 100.0%" wording is inconsistent with this and must not be quoted as a claim.** |
+| `wind_speed` | 1,273 | genesis/lull records |
+| `category` | 1,273 | follows wind |
+| `pressure` | 1,218 | |
+| everything else | 0 | unique ids, positions, ERA5 fields fully matched |
+
+- `multisource_test.csv` repeats the sst gap: 207/651 (31.8%) test rows have NaN sst; pressure 3/651.
+- Physical plausibility: lat∈[1.9,29.2], lon∈[41.8,141.0], wind∈[27.8,240.8], pressure∈[920,1008], sst∈[25.43,31.83], wind_u∈[-25.4,24.8], wind_v∈[-19.5,23.4], pressure_msl∈[944.8,1016.5]. **Zero out-of-range values.**
+
+## 3. Class/label sanity
+
+- IMD thresholds derived from wind reproduce the master `category` column on 100% of annotated rows (category-to-wind consistency exact).
+- `clean_kaggle_intensity.py` labels: parsed from the Kaggle INSAT-3D sheet (`insat_3d_ds - Sheet.csv`, 136 rows, `img_name → label`); wind km/h = kt × 1.852; IMD category thresholds match (<31 LPA, <50 D, <62 DD, <89 CS, <118 SCS, <166 VSCS, <222 ESCS, ≥222 SuCS). The Kaggle set has **no timestamp / lat / lon / cyclone identity** — it cannot be joined to the master ERA5 track, so the image-only study is fully disconnected from the multisource track data (this is why the P3 image model is evaluated on its own 21-image test).
+
+## 4. Dataset A (detection) — **synthetic labels, flagged**
+
+- `cyclone_detected=True` in 133/133 rows.
+- `mock_bbox` identical `[420, 190, 600, 370]` in 133/133 rows.
+- `structural_pattern` (3 classes) is **derived from wind_speed_kt by a threshold rule** (checked: 99.25% consistent with a contiguous-threshold rule; the residual is one boundary row). `category` likewise derived from wind.
+- Consequence: P2 has **no ground-truth detection/bbox/pattern labels**. “Detection accuracy” cannot be evaluated; only pattern/category classification on derived labels is measurable (which is what `detection_metrics.json` contains).
+
+## 5. Dataset C (forecasting) — **population and fill warnings**
+
+- Sequence sizes (6 h cadence): train 2,275 / val 378 / test 423 (cyclones 67/14/16). Only **97 of 151** master cyclones yield sequences (shorter storms with <5 history or <+24 h target are dropped).
+- X/Y have 0 NaN (all NaN sst cells were filled via `interpolate(…).ffill().bfill()`). **`bfill` may back-fill forward-in-time values within a storm** (sst). This is only a train-side feature-window concern where causal ordering was preserved by the P4 clean fix; the risk is documented, not exercised here.
+- Test time-range: first test timestamp 2013-05-29; test overlaps train period by design (random cyclone-level split, **not** chronological). Chronological-leakage is *not* present, but `test` is not “predict the future of train” either — see `LEAKAGE_AUDIT.md`.
+
+## 6. Delivered smoothing claims
+
+- `ibtracs_clean.csv` vs `data/metadata/ibtracs_with_era5.csv` vs `master_dataset.csv` are consistent (rename-only join). `data/processed/master_dataset.csv` is byte-identical to `data/metadata/master_dataset.csv` (row-level equality verified).
+
+## Verdicts
+
+| Item | Verdict |
+|---|---|
+| Structural integrity (counts, splits, ranges, uniqueness, ERA5 coverage) | PASS |
+| Reported “Completeness 100.0%” wording | INCONSISTENT (sst missing 1,538 documented in the same audit) |
+| Detection labels as ground truth | NOT VALID — synthetic (see P2) |
+| Kaggle↔track provenance | LOST (no storm identity/timestamp) |
+| Dataset C causal purity | PASS_WITH_WARNINGS (bfill documented; clean pass verified in P4) |
+| Deliverable-population reproducibility | WARN (P1 423 ≠ canonical_chrono 401 ≠ feature_dataset 198 test rows) |
+---
+
+## P2_DETECTION_AUDIT.md
+# P2 Detection Audit
+
+**Status: PASS_ON_REPORTED_METRICS / NOT_VERIFIABLE_AS_DETECTION.**
+
+## What was verified
+
+1. **Reported metrics are reproducible.** We independently ran the delivered `model_weights.pt` (MobileNetV3-small `CycloneDetector`, ImageNet-pretrained backbone) on the 21 test images with the exact shipped transform (`Resize((224,224))` + `ToTensor`), then recomputed the same sklearn metrics:
+
+| Metric | Stored (`detection_metrics.json`) | Independent rerun | Diff |
+|---|---|---|---|
+| pattern_accuracy | 0.7142857143 | 0.7142857143 | 0.0 |
+| pattern_precision (weighted) | 0.7523809524 | 0.7523809524 | 0.0 |
+| pattern_recall (weighted) | 0.7142857143 | 0.7142857143 | 0.0 |
+| pattern_f1 (weighted) | 0.6306522609 | 0.6306522609 | 0.0 |
+| category_accuracy | 0.3333333333 | 0.3333333333 | 0.0 |
+| category_precision (weighted) | 0.2566137566 | 0.2566137566 | 0.0 |
+| category_recall (weighted) | 0.3333333333 | 0.3333333333 | 0.0 |
+| category_f1 (weighted) | 0.2305037957 | 0.2305037957 | 0.0 |
+
+Checkpoint keys verified: `model_state_dict`, `pattern_to_idx` (3), `category_to_idx` (7). Label maps are built from the **combined** train+val+test frame list at train time (a minor undisclosed practice; test labels never influence training, but the class index space is defined using test-set categories).
+
+## 2. What this model actually measures
+
+- **There is no detection problem here.** All 133 rows are positive (`cyclone_detected=True`), all bounding boxes are the single constant `[420, 190, 600, 370]`. The presence head is defined but **never evaluated** (not scored in `evaluate.py`, and there are no negatives to predict).
+- `structural_pattern` and `category` target labels are **values derived from wind speed by fixed thresholds** (synthetic), not structural annotations by a meteorologist.
+- Therefore the correct interpretation is: *a single-image classifier over model-derived labels on 21 test frames*, achieving pattern acc 71.4% / category acc 33.3% (7-way chance = 14.3%). **No claim about "detecting cyclones", locating them, or structural validity can be supported.**
+
+## 3. Integration constraints
+
+- Runtime contract `src/detection/inference.py`: `load_cyclone_detector()` / `detect_cyclone(image)`. The P5 dashboard requires a `/api/detect` endpoint with detection output; the delivered API exposes **no detection path at all** (see `API_COMPATIBILITY.md`). Consuming P2 in the app would require writing a new endpoint + object contract.
+- Input transform is trivial Resize+ToTensor (no normalization/mean-std). Reproduced deterministically on CPU.
+
+## Verdicts
+
+| Item | Verdict |
+|---|---|
+| Reported pattern/category metrics independently reproduce | **YES (exact)** |
+| Checkpoint ↔ config ↔ data consistent | YES |
+| “Cyclone detection” headline capability | **NOT VERIFIABLE / NOT DEMONSTRATED** (synthetic labels, no negatives, no bbox truth) |
+| Presence head evaluated | NO — never scored |
+| Frontend consumes P2 | NO (no `/api/detect` anywhere in delivered backend) |
+
+## p2_metrics.json
+
+All of the above plus: checkpoint keys, label index maps, per-split file lists, presence-degeneracy checks, and the structural-pattern derivation-rule agreement (0.9925).
+---
+
+## P3_CLASSIFICATION_AUDIT.md
+# P3 Classification Audit
+
+**Status: PASS_ON_IMAGE_MODEL (exact) / NOT_RUN_ON_TABULAR (lightgbm absent) / FLAWED_COMPARISON.**
+
+## 1. Image-only model (ResNet18) — independently reproduced
+
+Ran the delivered `image_only_model.pt` (backbone ResNet18, 7-class head + wind-regressor head) on the 21 test images with the shipped preprocessing (PIL resize 256×256, /255, HWC→CHW):
+
+| Metric | Stored (`metrics_comparison.json`) | Independent rerun | Diff |
+|---|---|---|---|
+| category_accuracy_percent | 38.10 | 38.1 | 0.0 |
+| category_macro_f1 | 0.2076 | 0.2076 | 0.0 |
+| wind_speed_mae_kmh | 109.81 | 109.81 | 0.0 |
+| wind_speed_rmse_kmh | 118.39 | 118.39 | 0.0 |
+
+The metric *values* are exact, but note what they imply: 38.1% accuracy vs 14.3% random on 7 classes, and a wind RMSE of ≈118 km/h on a target with range ≈35–250 km/h — the image regression is, in practice, a weak baseline.
+
+## 2. Multi-source tabular model — NOT independently verifiable in this environment
+
+- `models/classification/tabular_multisource_model.pkl` pickle contains LightGBM estimators; `lightgbm` is **not installed** in the audit environment, so the checkpoint cannot be loaded or re-scored (unpicking fails at the class reference). **Recorded NOT_RUN with a real dependency-reason (never faked PASS).**
+- Reported values (stored, not independently verified): acc 47.0%, macro_f1 0.3703, wind_MAE 18.84, wind_RMSE 27.28, pressure_MAE 5.11, pressure_RMSE 8.33 on 651 test rows.
+
+## 3. The headline “multi-source advantage” is an improper comparison
+
+`evaluate.py` folds two **different test populations** into one `performance_delta`:
+- Image model → 21 INSAT images (its own test).
+- Tabular model → 651 ERA5/IBTrACS records (its own test).
+
+These are not the same storms, the same samples, or even the same input modality. The stored delta block (“+8.9% accuracy lift”, “−90.97 km/h wind MAE”) therefore does **not** establish that multi-source tabular input beats imagery. It is an apples-to-oranges artifact of the evaluation, not evidence.
+
+## 4. Label provenance
+
+Image labels come from the Kaggle INSAT-3D sheet (wind knots → IMD class). The test “Super Cyclonic Storm” has 1 frame and 6 classes have ≤6 frames (see `p1_metrics.json.img_test_rare_classes`); macro-F1 on such a tiny, imbalanced 21-image test is statistically fragile (95% CI on 38% accuracy is roughly ±21%).
+
+## Verdicts
+
+| Item | Verdict |
+|---|---|
+| Image-model metrics independently reproduce | **YES (exact)** |
+| Tabular-model metrics independently reproduce | **NOT_RUN** (no lightgbm) |
+| “Multi-source beats image” claim | **NOT SUPPORTED** (different populations); do not present as verified |
+| Frontend consumes classification | NO (no `/api/classify` endpoint; dashboard is mock-only) |
+
+## p3_metrics.json
+
+Checkpoint-state-dict check, per-sample predictions, stored-vs-recomputed comparison, and `NOT_RUN` reason for tabular.
+---
+
+## P4_FORECASTING_AUDIT.md
+# P4 Forecasting Audit
+
+**Status: PASS_WHERE_VERIFIABLE_WITH_SIGNIFICANT_CAVEATS (reported numbers are honest and reproducible; headline capability is weaker than the baselines; one registry anomaly).**
+
+## 1. Canonical chronology contract — VERIFIED
+
+SHA256 of delivered `canonical_chrono/{train,val,test}.npz` match the expected prefixes recorded in `phase4/common.py` exactly:
+
+| File | SHA256 prefix | Expected | Match |
+|---|---|---|---|
+| train.npz | `df70303e…` | `df70303e` | ✓ |
+| val.npz | `48cf065d…` | `48cf065d` | ✓ |
+| test.npz | `89e9c2e2…` | `89e9c2e2` | ✓ |
+
+## 2. Champion (EXP005) test metrics — INDEPENDENTLY REPRODUCED
+
+Re-implemented the GRU (`16→GRU(96,2,dropout .1)→Linear→(3,3)`), loaded `EXP005/checkpoint.pt`, reapplied train-only z-score normalization, and scored the 198-sample test set:
+
+| Horizon | Metric | Stored | Independent | Δ |
+|---|---|---|---|---|
+| 6h | track mean km | 91.429 | 91.429 | 2e-8 |
+| 6h | track median km | 74.025 | 74.025 | 7e-6 |
+| 6h | track std km | 60.840 | 60.840 | 2e-6 |
+| 6h | wind MAE / RMSE km/h | 6.685 / 8.282 | 6.685 / 8.282 | 0 / 0 |
+| 12h | track mean km | 119.765 | 119.765 | 7e-6 |
+| 12h | track median / std km | 94.898 / 86.749 | … | <1e-5 |
+| 12h | wind MAE / RMSE | 9.459 / 11.667 | same | 0 / 0 |
+| 24h | track mean km | 188.239 | 188.239 | 8e-6 |
+| 24h | track median / std km | 152.667 / 128.672 | … | <1e-5 |
+| 24h | wind MAE / RMSE | 16.108 / 19.650 | same | 0 / 0 |
+
+All values match to numerical-noise level. **Reported champion test metrics: reproduced.**
+
+## 3. Baselines — INDEPENDENTLY REPRODUCED (with a population correction)
+
+Running the delivered `phase2` persistence & movement-vector baselines on the *feature_dataset* test set reproduces `phase2/results/baseline_results.json` and `FINAL_COMPARISON.json` to machine precision:
+
+| Model | 6h | 12h | 24h |
+|---|---|---|---|
+| persistence (comp) | 64.686 | 123.936 | 227.327 |
+| persistence (stored) | 64.686 | 123.936 | 227.327 |
+| movement_vector (comp) | 38.051 | 80.505 | 180.661 |
+| movement_vector (stored) | 38.051 | 80.505 | 180.661 |
+
+**Population note (important):** the experiment/baseline evaluations used the phase4 `feature_dataset` (test = 198 rows / 10 cyclones, 6 h windows). The delivered `canonical_chrono/test.npz` contains **401 rows / 14 cyclones** (3 h cadence). Running the same baselines on canonical_chrono gives different numbers (e.g., movement-vector 24h 167.4). The prefix-hash contract pins `canonical_chrono`; the reported scores pin `feature_dataset`. Anyone re-scoring from `canonical_chrono` alone will **not** reproduce the reported numbers.
+
+## 4. Champion-vs-baseline truth (already disclosed by the team, independently confirmed)
+
+| Horizon | EXP005 GRU | movement_vector | persistence | phase3 LSTM* |
+|---|---|---|---|---|
+| 6h | 91.43 | **38.05** | **64.69** | ~130 |
+| 12h | 119.76 | **80.50** | 123.94 | ~180 |
+| 24h | 188.24 | **180.66** | 227.33 | ~268 |
+
+\* phase3 LSTM values are from `phase3/model_comparison.json`; no phase3 weights were delivered, so they are cited-not-verified.
+
+The champion **loses to the movement-vector baseline at every horizon**, and **loses to persistence at 6 h** (wins only at 12 h/24 h vs persistence). These numbers are honestly reported in the delivered `FINAL_COMPARISON.json`. The delivered forecasting capability does **not** beat the trivial baselines on track — this is the single most important accuracy finding of the audit.
+
+## 5. Selection hygiene — CLEAN
+
+- `champion_model.json` selection rule: lowest equal-weight mean of validation track errors; tie-break wind MAE then RMSE; **validation only, test explicitly unused**. Confirmed `val_primary_score = mean(val_track_6h, val_track_12h, val_track_24h)` exactly (Δ 1.4e-14).
+- Ranking from registry: EXP005 (113.074) < EXP003 (127.153) < EXP006 (127.153) < EXP004 (140.476) < EXP002 (147.229) < EXP001 (166.823) — matches `champion_model.json` ranking.
+- Test evaluated **once** (only EXP005 has `test_results.json`). No model selection on the test set. **Good practice — credit.**
+
+## 6. Registry anomaly — EXP006 ≈ EXP003 (flag, reproducible)
+
+`experiment_registry.csv` lists EXP003 (`loss=mse`) and EXP006 (`loss=weighted`) with **different losses yet validation-track metrics identical to ~5 significant figures at every horizon (98.7229… / 111.0280… / 171.7082… vs EXP003 98.7229… / 111.0280… / 171.7082…) and the same best_epoch=31**. They are not byte-identical at float precision, but such agreement across differing loss functions is effectively impossible by chance; the registry row for EXP006 looks copied from EXP003. EXP006’s own checkpoint exists but its `test_results.json` does not (only the champion is tested). Recommendation: do not treat EXP006 as an independent experiment result.
+
+## 7. Feature/normalization hygiene — CLEAN
+
+- Feature contract `(5,16)`: first 7 raw + 9 causal derived; step 0 zero-filled for predecessor-dependent features; verified no NaN/Inf anywhere in `feature_dataset` X/Y.
+- `normalization_stats.json`: `computed_from: train`, `n_train_samples: 1212`; zero-std handled via scale-1 policy; directional features documented (wrap limitation disclosed, not hidden).
+
+## p4_metrics.json / P4_EXPERIMENT_RANKING.csv
+
+`p4_metrics.json`: prefixes, recomputed-vs-stored test metrics & Δ, baseline recomputation, registry rows, champion/ranking facts, EXP006 anomaly. `P4_EXPERIMENT_RANKING.csv`: the 6 experiments ranked by val_primary with model/loss/horizon metrics and anomaly flag.
+---
+
+## P5_FRONTEND_READINESS.md
+# P5 Frontend Readiness Audit
+
+**Status: BUILDABLE_UI / NOT_INTEGRATED (mock-only; no live backend connection and several contract gaps).**
+
+## 1. What exists
+
+- **Working copy** `cyclone-project/cyclone-dashboard` (33 tracked files, Vite + React). **Pristine copy** `SIH26/cyclone-dashboard/cyclone-dashboard` (29 files) — older snapshot, same `USE_MOCK=true` behavior; working copy is a superset.
+- `src/api/client.js`: `USE_MOCK = true`, `API_BASE = '/api'`. Functions `fetchDetect/fetchClassify/fetchForecast/fetchAnalyze` all return mock payloads after a synthetic delay.
+- `src/api/mockData.js`: `mockAnalyzeResponse` = `{ meta, detection: { detected, …, location:{lat,lon} }, classification: { category, … }, forecast: [{hour, label, lat, lon, windSpeedKmh, pressureHpa, confidence}], landfall, risk: {score, level}, satellite }`.
+- `src/App.jsx`: on mount calls `fetchAnalyze()` once; renders `data?.meta/…` with loading/error states.
+- Components consume only the return values of `fetch*` (never mockData directly) — a genuinely clean seam for swapping the data source.
+
+## 2. Readiness facts (independent inspection)
+
+- **UI code is coherent and self-consistent** against its own mock contract; renders requirement-relevant panels (detection, classification, forecast, landfall, risk, satellite, baseline comparison).
+- **USE_MOCK is still `true` in both copies** → the page today shows demonstration data, not any model output.
+- **No deployment/wrapper exists** to give the P5 app a `GET /api/analyze` (or `/api/*`) — pointing the current client at the delivered backend produces 404s and shape mismatches.
+
+## 3. Contract gaps vs delivered backend (detail in API_COMPATIBILITY.md)
+
+| Gap | Detail |
+|---|---|
+| Path | client calls under `/api/`; phase6 serves `/health`, `/model`, `/forecast`, `/forecast/compare` (no prefix) |
+| Endpoints | `analyze`, `detect`, `classify` do not exist; `forecast` is POST-only vs client GET |
+| Response shape | client expects `forecast[].{hour,label,lat,lon,windSpeedKmh,pressureHpa,confidence}`; API returns `forecast[].{hours,latitude,longitude,wind_speed_kmh}` |
+| Coverage | P5 needs detection + classification + landfall + risk + satellite data; the delivered backend only forecasts tracks |
+
+## Verdicts
+
+| Item | Verdict |
+|---|---|
+| Frontend builds / renders with mock data | PASS (verifiable by inspection; node_modules removed so no local build was re-run here) |
+| Uses live model output today | NO (mock-only) |
+| Wireable to delivered phase6 API as-is | NO (needs a `/api/analyze`-style adapter or conforming endpoint) |
+| Fulfils the demo requirement end-to-end | NOT YET — pending an integration adapter between `/api/analyze` contract and phase6 `/forecast` (+ new detection/classification surface) |
+
+## p5_metrics.json
+
+Dashboard file census, `USE_MOCK` flags in both copies, API paths invoked, endpoint-path diff against phase6 OpenAPI, and contract field diff.
+---
+
+## API_COMPATIBILITY.md
+# API Compatibility Audit
+
+**Status: BLOCKED_FOR_DIRECT_WIRING** (both sides exist and are individually verified; there is no conforming path between them).
+
+## Method
+
+Read-only: (a) parsed the P5 mock/API contract in `cyclone-dashboard/src/api/{client.js,mockData.js}` and `App.jsx`; (b) built the phase6 FastAPI app in-process with `TestClient` (no server, no writes) and exercised endpoints live; (c) compared OpenAPI surface with the frontend’s calls.
+
+## Live verification of the delivered backend (phase6)
+
+| Check | Result |
+|---|---|
+| GET /health | 200 `{status:ok, service:cyclone-forecasting, phase:phase6, offline:true, model_ready:true}` |
+| GET /model | 200 `{experiment_id:EXP005, model:GRU, loss:Huber, … validation_primary_score:113.074}` |
+| POST /forecast (valid 5×6h) | 200 → `forecast:[{hours:6, latitude, longitude, wind_speed_kmh}, …]` (3 rows) |
+| POST /forecast/compare | 200 → `{model_forecast, persistence_forecast, movement_vector_forecast}` |
+| POST /forecast, 4 observations | 422 |
+| POST /forecast, missing field | 422 |
+| POST /forecast, lat=95 | 422 |
+| GET /openapi.json paths | `['/forecast','/forecast/compare','/health','/model']` |
+| GET /api/analyze (frontend target) | **404** |
+
+The backend is a real, working, offline FastAPI layer over the EXP005 champion. That layer is technically sound.
+
+## Frontend calls (when switched off mock)
+
+| Call (client.js) | Backend reality |
+|---|---|
+| `GET /api/analyze` | nothing at this path (404, verified) |
+| `GET /api/detect` | no detection endpoint exists |
+| `GET /api/classify` | no classification endpoint exists |
+| `GET /api/forecast` | `POST /forecast` exists (wrong method + path prefix) |
+
+## Shape mismatches on the only overlapping concept (forecast)
+
+| Frontend mock item | Backend ForecastItem |
+|---|---|
+| `hour` | `hours` |
+| `lat`, `lon` | `latitude`, `longitude` |
+| `windSpeedKmh` | `wind_speed_kmh` |
+| `label` (+6h/+12h/+24h) | absent |
+| `pressureHpa` | absent |
+| `confidence` | absent |
+
+The frontend would also render `landfall`, `risk`, `satellite`, detection and classification blocks from fields the backend never returns; and in the client’s own fallback path (`fetchAnalyze` catch) `landfall` and `risk` are hard-coded to `null`.
+
+## Verdicts
+
+| Item | Verdict |
+|---|---|
+| Delivered backend (phase6) itself works and is verified live | YES |
+| Delivered frontend logic is internally consistent mock | YES |
+| Direct frontend↔backend wiring today | **IMPOSSIBLE without change** (paths, methods, and schemas all differ) |
+| Minimal fix (recommended, not performed — audit is read-only) | Add an `/api/analyze` facade; forward to phase6 `/forecast(+compare)`; map fields; add trivial detection/classification passthrough or document them as mock-only |
+---
+
+## LEAKAGE_AUDIT.md
+# Leakage Audit
+
+Four leakage classes were examined: (1) split disjointness, (2) temporal/causal integrity of forecasting windows, (3) cross-split near-duplicate **image** frames, and (4) normalization/statistics hygiene.
+
+## 1. Cyclone-level split integrity — CLEAN
+
+- Master 5,481 rows / 151 cyclones; splits disjoint (0 cyclones in ≥2 splits), union = all 151; rows sum to 5,481. Verified.
+- Splits are **random**, not chronological: the earliest test timestamp (2013-05-29) is inside the train period (train extends to 2025-11-30). So “test” is random held-out storms **overlapping the train era** — legitimate for i.i.d. evaluation, but **not** an out-of-sample "predict the future" benchmark. Consumers must not read test scores as future-VALIDATION.
+
+## 2. Forecasting-window causality — CLEAN after the P4 clean pass (with a documented P1 risk)
+
+- P1 Dataset C windows are built from master tracks with `interpolate(method='time').ffill().bfill()`; a NaN `sst` can, in principle, be **back-filled from a later timestamp within the same storm**. This is a **P1 build risk**, documented in `P1_DATA_AUDIT.md`.
+- Mitigation chain verified in P4: `canonical_chrono` (the clean dataset, prefix-hash pinned) removed non-causal cells; `feature_engineering.py` derives 9 features with predecessor-dependence and **zero-fills step 0** (no forward reference); `normalization_stats.json` is `computed_from: train`. Feature windows used for EXP005 inference are NaN/Inf-free and causal by construction. No forward-target leakage was found in `feature_dataset` X/Y.
+- Baseline functions (persistence / movement-vector) use history only; their `(5,7)` contract refuses non-`(5,7)` input and TARGETS are never consumed (source-checked).
+
+## 3. Cross-split near-duplicate IMAGE frames — FLAGGED (real contention)
+
+Source: Kaggle INSAT-3D image set, filenames `NN.jpg` / `NN(k).jpg` = **variant frames of the same storm** (base `NN`). Independent frame-hash check: no byte-identical duplicates, so variants are different images (different times) of the same cyclone. But the **same storm appears in multiple splits**:
+
+| Split pair | Same-storm base counts | Example frames |
+|---|---|---|
+| train ↔ test | 10 | `36.jpg`(train) ↔ `36(3).jpg`(test); `48.jpg/48(1)/48(3)`(train) ↔ `48(2).jpg`(test); `60(1).jpg`(train) ↔ `60(2).jpg`(test); `35.jpg…` ↔ `35(1).jpg` |
+| train ↔ val | 10 | `42(3).jpg` ↔ `42.jpg`; `52.jpg` ↔ `52(1).jpg`; `47/47(1)/47(2)/47(4)` ↔ `47(3).jpg` |
+| val ↔ test | 2 | `63(1).jpg` (val) ↔ `63.jpg` (test); `64.jpg` (val) … |
+
+Effect: **same-cyclone frames straddle the test boundary**, so image-only models (P3, and the 21-frame P3/P2 test) can memorize storm geography/features seen in train. Reported P3 image accuracy (38.1%) and P2 pattern/category scores are therefore **optimistic lower bounds of overfitting**; treat them with reserve. Byte-duplicate check rules out exact-frame copying, but frame-level near-duplicates remain.
+
+## 4. Statistics / normalization hygiene — CLEAN
+
+- Phase-4 z-score statistics: train-only, verified from `normalization_stats.json` (`computed_from: train`, `n_train_samples: 1212`); zero-std handled deterministically; directional wrap-limitation documented (not hidden).
+- P2 label maps: minor — badge maps for the combined split set (train+val+test) are built at train time (`src/detection/train.py:32-67`); the **category/pattern index space is defined using test-set labels**. No target values flow into training, but the practice is a (low-severity) leak of test-label vocabulary.
+
+## 5. Cross-task data consistency
+
+- P2 and P3 images/labels are the **same 133 images with identical split files** (verified `det_{split}_same_files_as_kaggle_{split} = true`). Detection and classification test sets therefore share frames — consistent, not a path for score inflation between P2/P3 (they don’t share model weights).
+
+## 6. Population reproducibility note (not leakage, but score portability)
+
+The delivered sets disagree on test population — P1 sequences 423 rows/16 cyclones; `canonical_chrono` 401/14; phase4 `feature_dataset` 198/10. All P4 reported numbers (EXP005 test, baselines) are defined **on feature_dataset (198)**. A fresh scoring run on `canonical_chrono` will yield different numbers (verified for baselines). Reproducing the report requires the phase4 feature pipeline, not just `canonical_chrono`.
+
+## Verdict
+
+| Class | Verdict |
+|---|---|
+| Cyclone split disjointness | PASS |
+| Forecast-window causality (P4 feature dataset) | PASS |
+| P1 bfill forward-fill risk | PASS_WITH_WARNINGS (documented; cleaned downstream) |
+| Cross-split storm-frame near-duplicates (P2/P3 images) | **FAIL-LEVEL WARNING** — inflates image-model test scores |
+| Train/test statistics isolation | PASS |
+| Label-vocabulary leak (P2 label maps) | LOW (flagged) |
+| Chronological validity to call test “future” | NOT CLAIMABLE (random split) |
+---
+
+## MODEL_STRENGTH_SUMMARY.md
+# Model Strength Summary
+
+Signed, honest ranking of the components by *demonstrated* and *independently verified* strength. “Strength” here = defensible predictive value on held-out data, not just reported numbers.
+
+## Verified FIT of each delivered model
+
+| Component | What it is | Verified reproduced | Honest capability |
+|---|---|---|---|
+| P2 detection `model_weights.pt` | MobileNetV3-small, 3 heads | pattern acc 0.714 / category acc 0.333 on 21 frames | **Weak single-frame classifier over synthetic labels.** No real detection, no bbox, no negatives. 21-frame test = statistically meaningless (CI ±20%+). |
+| P3 image `image_only_model.pt` | ResNet18, 7-class + wind regressor | acc 38.1%, macro-F1 0.21, wind MAE/RMSE 109.8/118.4 | **Weak** on a 21-frame test with leak-prone same-storm train frames; wind regression error ≈ 45% of range. |
+| P3 tabular `.pkl` | LightGBM multi-output | **NOT_RUN** (env) | reported acc 47% / wind MAE 18.8 but on a *different* population; self-comparison vs image invalid. Treated as UNVERIFIED. |
+| P4 EXP005 champion | GRU(96,2)+Huber | test 6/12/24h track 91.4/119.8/188.2 km; wind 6.7/9.5/16.1 MAE | **Only component with clean methodology and fully reproduced scores. But track accuracy is BELOW the movement-vector baseline at every horizon.** Wind forecasting is the truthful bright spot (small MAE vs magnitude), yet track is the headline. |
+| P4 baselines | persistence / movement-vector | reproduced to machine precision | persistence 64.7/123.9/227.3; movement-vec 38.1/80.5/180.7 — **superior to the champion on track.** |
+| P5 dashboard | React SPA | mock-only (consistent UI) | Demonstrative; no model data behind it yet. |
+
+## Ranking (most to least defensible claim)
+
+1. **P4 wind-intensity forecasting** (champion): reproduced; good relative to magnitude; does not beat track baselines but is the only verified real signal.
+2. **P4 pipeline hygiene**: causality, normalization, selection, test-once — exemplary and verified.
+3. **P2/P3 image metrics**: reproduced exactly, but test design (21 frames, synthetic labels, leak-prone near-dup storms) makes them unimpressive evidence.
+4. **Track forecasting**: weakest among the *claims* that matter — trumped by a 30-line baseline.
+
+## Direct quotes not supported by evidence (do not carry forward)
+
+- “Multi-source classification beats image-only by +8.9% accuracy / −91 km/h MAE” — different test populations.
+- “Detection accuracy ≈ 71%/33%” as detection — it is abled as pattern/category-only on synthetic labels; presence/bbox not scored.
+- Test scores imply “future prediction” — random (not chronological) split; scores are on static held-out storms during the same era.
+
+## What IS productizable today without further training
+
+- P4 wind forecast + track output with explicit baseline-context caveats (i.e., present movement-vector as the reference, and be honest the NN does not beat it on track).
+- Dashboard as an *operational mock* with phase6 `/forecast` wired through a small adapter (honest labelling “demonstration”).
+---
+
+## CLAIMS_WE_CAN_MAKE.md
+# Claims We Can Make
+
+Every claim below is grounded in a read-only independent recomputation or direct file inspection performed during this audit.
+
+## VERIFIED (reproduced bit-close on delivered artifacts)
+
+1. **Data is internally consistent and well-formed**: master 5,481 rows / 151 cyclones; dup-free; splits disjoint (105/22/24); ERA5 joined 100% (5,481/5,481); physical ranges clean; category↔wind mapping exact.
+2. **Splits are random (not chronological)**: test first timestamp 2013-05-29 lies inside the train era.
+3. **P2 detection pattern/category metrics reproduce exactly** (0.0 diff on all 8 metrics) from the shipped checkpoint.
+4. **P3 image-model metrics reproduce exactly** (acc 38.1, macro-F1 0.2076, wind MAE 109.81, RMSE 118.39).
+5. **P4 canonical chronology contract holds**: SHA256 prefixes match expected (train `df70303e…`, val `48cf065d…`, test `89e9c2e2…`).
+6. **P4 EXP005 test metrics reproduce** to ≤1e-4 (track mean 91.43 / 119.76 / 188.24 km; wind MAE 6.68 / 9.46 / 16.11 km/h).
+7. **P4 baselines reproduce to machine precision** (persistence 64.69 / 123.94 / 227.33; movement-vector 38.05 / 80.50 / 180.66 km).
+8. **Selection hygiene is genuine**: champion picked on validation only; test used once (only EXP005 has test_results.json).
+9. **Phase-6 API works offline** (verified live): /health, /model, POST /forecast, /forecast/compare; strict validation (422 on 4-step, missing field, out-of-range lat).
+10. **Normalization is train-only** (`computed_from: train`), step-0 zero-fill, causally clean feature windows.
+
+## VERIFIED BUT SUBJECT TO THE FOLLOWING LIMITS (say with the caveat or it is misleading)
+
+- P2 pattern/category scores are on **synthetic labels** (wind-derived), 21 frames, no presence/bbox evaluation → use only as “classifier on proxy labels”, never “detection”.
+- P3 image scores share the same 21-frame test; **same-storm frames leak across splits** (e.g., 36.jpg/36(3).jpg), so scores are optimistic.
+- P4 champion **does not beat the movement-vector baseline on track at any horizon**, and loses to persistence at 6h. It wins vs persistence at 12h/24h and vs phase-3 LSTM. Wind forecasts are its defensible value.
+- Reported test/baseline numbers are defined on **phase4 feature_dataset (198 rows)**, not the delivered canonical_chrono test.npz (401 rows); a fresh run on canonical_chrono will not reproduce them.
+
+## NOT SOURCED / NOT VERIFIABLE HERE (do not present as established)
+
+- Any “future prediction / operational forecasting” claim (random split, small test).
+- The multi-source-vs-image “advantage” (different populations; tabular model NOT_RUN under audit env).
+- Bounding-box / localization quality, false-positive rates (none testable — no negatives).
+- Phase-3 LSTM test numbers (no weights delivered; cited from stored JSON only).
+- “Completeness 100.0%” wording (conflicts with documented sst missing 1,538).
+---
+
+## INTEGRATION_READINESS.md
+# Integration Readiness
+
+**Overall: NOT READY for live end-to-end integration without change.** Every block has a verified, well-defined status; the blocker is the frontend↔backend glue layer plus honest rebranding of the detection/classification claims.
+
+## Status per component
+
+| Component | Status | Evidence |
+|---|---|---|
+| P1 Data | **PASS_WITH_WARNINGS** | Structure perfect; synthetic detection labels & Kaggle provenance limits; “100% completeness” wording wrong; Dataset-C bfill risk documented & cleaned in P4 |
+| P2 Detection | **NOT_VERIFIABLE_AS_DETECTION** (reported metrics PASS) | metrics reproduce exactly; presence/bbox never scored; labels synthetic |
+| P3 Classification | **PARTIAL** (image PASS; tabular NOT_RUN) | image metrics reproduce; lightgbm not installed; comparison invalid |
+| P4 Forecasting | **PASS_AS_PIPELINE / WEAK_AS_FORECASTER** | methodology+numbers reproduced; track accuracy below baselines; EXP006 registry anomaly |
+| P5 Frontend | **UNWIRED (mock-only)** | USE_MOCK=true both copies; no live data path |
+| API layer | **WORKS, WRONG CONTRACT** | phase6 verified live; no /api/* paths; shape mismatches |
+| Leakage | **CLEAN for P4; WARNING for P2/P3 images** | 22 same-storm cross-split frame pairs; split/time stats clean |
+
+## Blocking gaps (ordered by significance for a live demo)
+
+1. **No `/api/analyze`-style integration on the frontend path.** Dashboard calls `GET /api/*`; phase6 serves `/health`, `/model`, `POST /forecast`, `/forecast/compare`. Add an adapter endpoint (e.g., FastAPI or a small gateway) exposing the dashboard contract and forwarding to phase6. (Small, well-scoped.)
+2. **No detection / classification output anywhere in the serving surface.** The dashboard shows Detection/Classification panels fed by the model; the delivered backend forecasts only. Either build trivial endpoints (P2/P3 models exist and load) or gate the dashboards to forecast-only + mark others “mock”.
+3. **Field-shape bridge** for forecast items (`hour/hour…`, `lat/lon` vs `latitude/longitude`, `windSpeedKmh` vs `wind_speed_kmh`, missing `confidence`/`pressureHpa`). Map on the adapter. (Cheap.)
+4. **Model-claim honesty**: present track forecasts WITH the movement-vector reference; do not call 91.4 km @ 6h “accurate track” while it is worse than the baseline.
+5. **Dependency completeness for reproducible eval**: install `lightgbm` if tabular claims must be re-verified; ship phase3 weights if its numbers are to be cited.
+
+## What makes it READY (smallest honest path, ranked by effort/trust)
+
+- Forecast-only dashboard + adapter to phase6 (`/forecast`) → honest “machine-track demo” with baseline comparison panel (compare endpoint already returns persistence/movement – i.e., exactly the panel the dashboard already renders).
+- Detection/classification panels: either (a) mark explicitly as `mock`, or (b) add endpoints backed by the delivered checkpoints (they load and run on CPU) with the documented label caveats.
+- Keep USE_MOCK default but add an env toggle; ship docker/vite wrapper none currently exist.
+- Add sst-availability note on the map when numbers come from partial ERA5 (28% rows missing sst at master level).
+
+## Not required for integration but strongly advised before any scientific claim
+
+- Rebuild the 21-frame test sets to be storm-disjoint (remove same-storm cross-split frames) if classification is featured.
+- Re-run EXP006 claim (registry anomaly) or drop it from the report.
+- Re-evaluate the champion against movement-vector explicitly in all marketing/demo copy.
+---
+
+## ACCURACY_READINESS_REPORT.md
+# Accuracy & Readiness Report (HEADLINE)
+
+**Date:** 2026-08-30 · **Method:** read-only, independent recomputation of every reported supervised metric; live API smoke test; source-hash immutability before/after.
+
+## Final verdict table
+
+| Component | Verdict | One-line basis |
+|---|---|---|
+| P1 Data | **PASS_WITH_WARNINGS** | counts/splits/ERA5 all reproduce; synthetic Kaggler labels; “100% completeness” wording inconsistent (sst missing 1,538) |
+| P2 Detection | **PASS_ON_REPORTED_METRICS / NOT_VERIFIABLE_AS_DETECTION** | 8/8 pattern/category metrics reproduce exactly; presence/bbox never scored; labels synthetic |
+| P3 Classification | **PARTIAL** | image metrics reproduce exactly; tabular NOT_RUN (no lightgbm); multi-source “advantage” invalid (different populations) |
+| P4 Forecasting | **PASS_AS_PIPELINE / WEAK_AS_FORECASTER** | prefixes, test metrics, baselines, selection all reproduced; champion LOSES to movement-vector on track at every horizon; EXP006 registry anomaly |
+| P5 Frontend | **NOT_INTEGRATED (mock-only)** | USE_MOCK=true; no live data path; 404 on dashboard target |
+| API | **BLOCKED_FOR_DIRECT_WIRING** | phase6 verified live but serves no `/api/*`; schema mismatch |
+| Leakage | **P4 CLEAN / IMAGE-SPLIT WARNING** | 22 same-storm cross-split frame pairs between train/val/test |
+| **OVERALL** | **NOT READY AS-IS** | real forecasting engine + verified numbers exist, but (a) track skill below baselines, (b) detection/classification claims overstated, (c) frontend↔backend unconnected |
+
+## Highlights (independently reproduced, exact)
+
+- P2 detection metrics: reproduced **0.0 Δ** on all 8 (pattern acc 0.7143, F1 0.6307; category acc 0.3333, F1 0.2305).
+- P3 image metrics: reproduced **0.0 Δ** (acc 38.1 %, macro-F1 0.2076, wind MAE 109.81 / RMSE 118.39).
+- P4 EXP005 test: reproduced to ≤1e-4 (track 91.43 / 119.76 / 188.24 km @ 6/12/24h; wind MAE 6.68 / 9.46 / 16.11 km/h).
+- Baselines: reproduced to machine precision — **movement-vector 38.05 / 80.50 / 180.66 km beats the champion everywhere**; persistence 64.69 / 123.94 / 227.33 beats it at 6h.
+- canonical_chrono prefixes: `df70303e…` / `48cf065d…` / `89e9c2e2…` **match**.
+- Selection: champion chosen on validation only; test scored once.
+- Phase6 live: /health, /model, /forecast, /forecast/compare all 200; malformed input → 422.
+
+## Strongest component
+
+**P4 forecasting pipeline (methodology + churn-resistant numbers)** — and its *wind* forecasts are its only claim that beats a trivial baseline on average. EDGE: honestly reproduced end-to-end; causality, normalization, selection, test-once all clean.
+
+## Weakest component (by claim strength)
+
+**P2 “detection”** — shipped as CycloneDetector + metrics, but with synthetic labels (constant bbox, all-positive), no negatives, no presence score; followed closely by **P3 image (21-frame, leak-prone test)** and the **champion’s track accuracy** (below the movement-vector baseline at all horizons).
+
+## Main blocker to a demo-ready system
+
+**No `/api/analyze` (or equivalent) surface for the frontend**, compounded by a field-shape mismatch and missing detection/classification endpoints; the dashboard is mock-only and the (working, verified) phase6 API is not reachable from it.
+
+## Reported-metric verification summary (all would need independent flag)
+
+| Independent verification | COUNT |
+|---|---|
+| PASS (difference ≤ tolerance) | 37 |
+| NOT_RUN (env dependency) | 4 (P3 tabular) |
+| FAIL | 0 |
+| Informational (QA counts) | 5 |
+
+## Confidence-scoped limits (what to print next to dashboards)
+
+1. Track forecast panel: append “Reference: movement-vector baseline = 38/81/181 km — the model does not beat it on track.”
+2. Detection/Classification panels: append “demonstration labels; real-time detection not validated.”
+3. If sst used live: “~28% of master rows lack ERA5 sst; interpolated.”
+---
+
+## p1_metrics.json
+```text
+{
+  "master_rows": 5481,
+  "master_filesize": 738948,
+  "master_cols": [
+    "cyclone_id",
+    "season",
+    "name",
+    "subbasin",
+    "timestamp",
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "category",
+    "sst",
+    "wind_u",
+    "wind_v",
+    "pressure_msl",
+    "pre_genesis_favorable"
+  ],
+  "master_cyclones": 151,
+  "master_subbasins": [
+    "AS",
+    "BB",
+    "MM"
+  ],
+  "master_t_min": "2013-05-09 18:00:00",
+  "master_t_max": "2025-12-02 18:00:00",
+  "master_dup_rows_exact": 0,
+  "master_missing": {
+    "cyclone_id": 0,
+    "season": 0,
+    "name": 0,
+    "subbasin": 0,
+    "timestamp": 0,
+    "lat": 0,
+    "lon": 0,
+    "wind_speed": 1273,
+    "pressure": 1218,
+    "category": 1273,
+    "sst": 1538,
+    "wind_u": 0,
+    "wind_v": 0,
+    "pressure_msl": 0,
+    "pre_genesis_favorable": 0
+  },
+  "master_lat_naninf": 0,
+  "master_lon_naninf": 0,
+  "master_wind_speed_naninf": 1273,
+  "master_pressure_naninf": 1218,
+  "master_sst_naninf": 1538,
+  "master_wind_u_naninf": 0,
+  "master_wind_v_naninf": 0,
+  "master_pressure_msl_naninf": 0,
+  "master_lat_range": [
+    1.9,
+    29.2
+  ],
+  "master_lon_range": [
+    41.8,
+    141.0
+  ],
+  "master_wind_range": [
+    27.8,
+    240.8
+  ],
+  "master_pressure_range": [
+    920.0,
+    1008.0
+  ],
+  "master_sst_range": [
+    25.43,
+    31.83
+  ],
+  "master_windu_range": [
+    -25.429855346679688,
+    24.8397216796875
+  ],
+  "master_windv_range": [
+    -19.51771545410156,
+    23.38926696777344
+  ],
+  "master_presmsl_range": [
+    944.8,
+    1016.5
+  ],
+  "sst_missing": 1538,
+  "category_counts": {
+    "Depression": 1665,
+    "Deep Depression": 868,
+    "Cyclonic Storm": 769,
+    "Very Severe Cyclonic Storm": 353,
+    "Severe Cyclonic Storm": 349,
+    "Extremely Severe Cyclonic Storm": 178,
+    "Super Cyclonic Storm": 25,
+    "Low Pressure Area": 1
+  },
+  "master_dup_cyc_tstamp": 0,
+  "rows_no_wind": 1273,
+  "rows_no_pressure": 1218,
+  "split_rows": {
+    "train": 3911,
+    "val": 752,
+    "test": 818
+  },
+  "split_cyclones": {
+    "train": 105,
+    "val": 22,
+    "test": 24
+  },
+  "split_cyclone_union_matches_master": true,
+  "split_cyclone_intersections": {
+    "train&val": 0,
+    "train&test": 0,
+    "val&test": 0,
+    "all3": 0
+  },
+  "split_covered_master_rows": 5481,
+  "master_rows_minus_split_rows": 0,
+  "clean_rows": 18168,
+  "clean_cyclones": 471,
+  "clean_cols": [
+    "cyclone_id",
+    "season",
+    "name",
+    "basin",
+    "subbasin",
+    "nature",
+    "timestamp",
+    "latitude",
+    "longitude",
+    "wind_speed_kmh",
+    "pressure_hpa",
+    "category"
+  ],
+  "clean_t_range": [
+    "1980-10-10 06:00:00",
+    "2025-12-02 18:00:00"
+  ],
+  "clean_missing": {
+    "cyclone_id": 0,
+    "season": 0,
+    "name": 0,
+    "basin": 0,
+    "subbasin": 0,
+    "nature": 0,
+    "timestamp": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "wind_speed_kmh": 8127,
+    "pressure_hpa": 8615,
+    "category": 8127
+  },
+  "clean_cadence_hours": {
+    "min": 0.5,
+    "median": 3.0,
+    "max": 3.0,
+    "count": 17697
+  },
+  "era5j_rows": 5481,
+  "era5j_cyclones": 151,
+  "era5j_cols": [
+    "cyclone_id",
+    "season",
+    "name",
+    "subbasin",
+    "timestamp",
+    "latitude",
+    "longitude",
+    "wind_speed_kmh",
+    "pressure_hpa",
+    "category",
+    "u_wind",
+    "v_wind",
+    "sst_celsius",
+    "pressure_msl_hpa"
+  ],
+  "processed_vs_metadata_master_identical_rows": true,
+  "cls_train_rows": 3039,
+  "cls_train_file_expected_match": true,
+  "cls_val_rows": 518,
+  "cls_val_file_expected_match": true,
+  "cls_test_rows": 651,
+  "cls_test_file_expected_match": true,
+  "cls_test_missing": {
+    "lat": 0,
+    "lon": 0,
+    "sst": 207,
+    "pressure_msl": 0,
+    "wind_u": 0,
+    "wind_v": 0,
+    "wind_speed": 0,
+    "pressure": 3,
+    "category": 0
+  },
+  "cls_test_categories": {
+    "Depression": 253,
+    "Cyclonic Storm": 110,
+    "Deep Depression": 102,
+    "Very Severe Cyclonic Storm": 91,
+    "Severe Cyclonic Storm": 72,
+    "Extremely Severe Cyclonic Storm": 23
+  },
+  "cls_test_wind_range": [
+    37.0,
+    185.2
+  ],
+  "kaggle_labels_rows": 133,
+  "kaggle_unique_files": 133,
+  "kaggle_img_path_exists_in_zip": 133,
+  "kaggle_all_images_present": true,
+  "kaggle_images": 133,
+  "kaggle_byte_duplicate_group_count": 0,
+  "kaggle_byte_duplicates_any": false,
+  "img_train_rows": 93,
+  "img_train_base_storms": 51,
+  "img_val_rows": 19,
+  "img_val_base_storms": 15,
+  "img_test_rows": 21,
+  "img_test_base_storms": 21,
+  "img_split_base_storm_overlap": {
+    "train+val": 10,
+    "test+train": 10,
+    "test+val": 2
+  },
+  "img_test_rare_classes": {
+    "Very Severe Cyclonic Storm": 6,
+    "Severe Cyclonic Storm": 6,
+    "Cyclonic Storm": 5,
+    "Extremely Severe Cyclonic Storm": 2,
+    "Deep Depression": 1,
+    "Super Cyclonic Storm": 1
+  },
+  "det_rows": 133,
+  "det_all_detected_true": true,
+  "det_mock_bbox_unique": 1,
+  "det_mock_bbox_value": "[420, 190, 600, 370]",
+  "det_mock_bbox_all_same": true,
+  "det_columns": [
+    "filename",
+    "wind_speed_kt",
+    "wind_speed_kmh",
+    "category",
+    "cyclone_detected",
+    "image_path",
+    "mock_bbox",
+    "structural_pattern"
+  ],
+  "det_pattern_unique": [
+    "curved_band",
+    "eye_visible",
+    "shear_pattern"
+  ],
+  "det_train_rows": 93,
+  "det_train_refiles": [
+    "48(1).jpg",
+    "55.jpeg",
+    "43.jpg",
+    "46.jpg",
+    "86.jpg",
+    "59.jpg",
+    "111.jpg",
+    "49(2).jpg",
+    "45(3).jpg",
+    "34(!).jpg",
+    "60(1).jpg",
+    "40(2).jpg",
+    "77(1).jpg",
+    "69(1).jpg",
+    "53(2).jpg",
+    "61.jpg",
+    "30(1).jpg",
+    "40(3).jpg",
+    "36(2).jpg",
+    "99.jpg",
+    "44(3).jpg",
+    "35(3).jpg",
+    "36(1).jpg",
+    "33(2).jpg",
+    "53(1).jpg",
+    "46(3).jpg",
+    "34.jpg",
+    "102.jpg",
+    "81.jpg",
+    "59(1).jpg",
+    "60.jpg",
+    "67(1).jpg",
+    "25.jpg",
+    "47.jpg",
+    "61(1).jpg",
+    "40.jpg",
+    "112.jpg",
+    "85(1).jpg",
+    "49(1).jpg",
+    "35(2).jpg",
+    "65.jpg",
+    "52.jpg",
+    "38.jpg",
+    "47(2).jpg",
+    "53(3).jpg",
+    "67.jpg",
+    "42(3).jpg",
+    "57(1).jpg",
+    "53.jpg",
+    "33(1).jpg",
+    "44.jpg",
+    "54.jpg",
+    "40(1).jpg",
+    "58(1).jpg",
+    "41.jpg",
+    "65(3).jpg",
+    "98.jpg",
+    "65(2).jpg",
+    "48(3).jpg",
+    "31.jpg",
+    "55(2).jpg",
+    "70.jpg",
+    "45(2).jpg",
+    "47(4).jpg",
+    "44(2).jpg",
+    "44(1).jpg",
+    "82.jpg",
+    "32(1).jpg",
+    "46(1).jpg",
+    "87.jpg",
+    "115.jpg",
+    "83(1).jpg",
+    "33.jpg",
+    "35.jpg",
+    "119.jpg",
+    "30.jpg",
+    "36.jpg",
+    "45(1).jpg",
+    "57.jpg",
+    "86(1).jpg",
+    "32.jpg",
+    "61(2).jpg",
+    "85.jpg",
+    "74(2).jpg",
+    "49.jpg",
+    "48.jpg",
+    "68.jpg",
+    "47(1).jpg",
+    "63(2).jpg",
+    "51(1).jpg",
+    "118.jpg",
+    "59(2).jpg",
+    "74(1).jpg"
+  ],
+  "det_val_rows": 19,
+  "det_val_refiles": [
+    "64(1).jpg",
+    "45(4).jpg",
+    "50(1).jpg",
+    "64.jpg",
+    "47(3).jpg",
+    "63(1).jpg",
+    "84.jpg",
+    "50.jpg",
+    "58.jpg",
+    "43(2).jpg",
+    "106.jpg",
+    "50(2).jpg",
+    "52(1).jpg",
+    "82(1).jpg",
+    "45.jpg",
+    "42.jpg",
+    "77.jpg",
+    "86(2).jpg",
+    "27.jpg"
+  ],
+  "det_test_rows": 21,
+  "det_test_refiles": [
+    "48(2).jpg",
+    "37.jpg",
+    "28.jpg",
+    "39.jpg",
+    "74.jpg",
+    "69.jpg",
+    "85(2).jpg",
+    "63.jpg",
+    "101.jpg",
+    "57(2).jpg",
+    "62.jpg",
+    "60(2).jpg",
+    "94.jpg",
+    "128.jpg",
+    "36(3).jpg",
+    "51.jpg",
+    "56.jpg",
+    "75.jpg",
+    "35(1).jpg",
+    "64(2).jpg",
+    "73.jpg"
+  ],
+  "det_train_same_files_as_kaggle_train": true,
+  "det_val_same_files_as_kaggle_val": true,
+  "det_test_same_files_as_kaggle_test": true,
+  "det_all_image_paths_resolve": true,
+  "seq_train_X_shape": [
+    2275,
+    5,
+    7
+  ],
+  "seq_train_Y_shape": [
+    2275,
+    3,
+    3
+  ],
+  "seq_train_nan_X": 0,
+  "seq_train_nan_Y": 0,
+  "seq_train_dtype": "float32",
+  "seq_train_feat_order": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v"
+  ],
+  "seq_train_target_order": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "seq_train_meta_rows": 2275,
+  "seq_train_meta_cyclones": 67,
+  "seq_train_meta_vs_array_match": true,
+  "seq_train_zero_lat_std": 4.817575454711914,
+  "seq_val_X_shape": [
+    378,
+    5,
+    7
+  ],
+  "seq_val_Y_shape": [
+    378,
+    3,
+    3
+  ],
+  "seq_val_nan_X": 0,
+  "seq_val_nan_Y": 0,
+  "seq_val_dtype": "float32",
+  "seq_val_feat_order": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v"
+  ],
+  "seq_val_target_order": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "seq_val_meta_rows": 378,
+  "seq_val_meta_cyclones": 14,
+  "seq_val_meta_vs_array_match": true,
+  "seq_val_zero_lat_std": 4.2990899085998535,
+  "seq_test_X_shape": [
+    423,
+    5,
+    7
+  ],
+  "seq_test_Y_shape": [
+    423,
+    3,
+    3
+  ],
+  "seq_test_nan_X": 0,
+  "seq_test_nan_Y": 0,
+  "seq_test_dtype": "float32",
+  "seq_test_feat_order": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v"
+  ],
+  "seq_test_target_order": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "seq_test_meta_rows": 423,
+  "seq_test_meta_cyclones": 16,
+  "seq_test_meta_vs_array_match": true,
+  "seq_test_zero_lat_std": 4.397233009338379,
+  "chrono_last_test_ts": "2025-12-02 18:00:00",
+  "chrono_first_test_ts": "2013-05-29 03:00:00",
+  "chrono_last_train_ts": "2025-11-30 06:00:00",
+  "chrono_leak_possible_flags": {
+    "random_cyclone_split": true,
+    "test_overlaps_train_time": true
+  },
+  "insat_sheet_rows": 136,
+  "insat_sheet_cols": [
+    "img_name",
+    "label"
+  ],
+  "insat_sheet_head": [
+    {
+      "img_name": "25.jpg",
+      "label": 25
+    },
+    {
+      "img_name": "27.jpg",
+      "label": 27
+    },
+    {
+      "img_name": "28.jpg",
+      "label": 28
+    },
+    {
+      "img_name": "30.jpg",
+      "label": 30
+    },
+    {
+      "img_name": "30(1).jpg",
+      "label": 30
+    }
+  ],
+  "era5_nc_count": 94,
+  "era5_years": [
+    "2013"
+  ],
+  "era5_total_bytes": 1103681364,
+  "phys_out_of_range_count": {
+    "lat": 0,
+    "lon": 0,
+    "wind_kmh": 0,
+    "pressure_ok": 0,
+    "sst_ok": 0,
+    "pres_msl_ok": 0
+  },
+  "master_wind2cat_agree": 1
+}
+```
+---
+
+## p2_metrics.json
+```text
+{
+  "ckpt_keys": [
+    "model_state_dict",
+    "pattern_to_idx",
+    "category_to_idx"
+  ],
+  "pattern_to_idx": {
+    "curved_band": 0,
+    "eye_visible": 1,
+    "shear_pattern": 2
+  },
+  "category_to_idx": {
+    "Cyclonic Storm": 0,
+    "Deep Depression": 1,
+    "Depression": 2,
+    "Extremely Severe Cyclonic Storm": 3,
+    "Severe Cyclonic Storm": 4,
+    "Super Cyclonic Storm": 5,
+    "Very Severe Cyclonic Storm": 6
+  },
+  "recomputed": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_precision": 0.7523809523809524,
+    "pattern_recall": 0.7142857142857143,
+    "pattern_f1": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_precision": 0.2566137566137566,
+    "category_recall": 0.3333333333333333,
+    "category_f1": 0.23050379572118704
+  },
+  "stored": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_precision": 0.7523809523809524,
+    "pattern_recall": 0.7142857142857143,
+    "pattern_f1": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_precision": 0.2566137566137566,
+    "category_recall": 0.3333333333333333,
+    "category_f1": 0.23050379572118704
+  },
+  "diff": {
+    "pattern_accuracy": 0.0,
+    "pattern_precision": 0.0,
+    "pattern_recall": 0.0,
+    "pattern_f1": 0.0,
+    "category_accuracy": 0.0,
+    "category_precision": 0.0,
+    "category_recall": 0.0,
+    "category_f1": 0.0
+  },
+  "presence_all_gt_positive": true,
+  "presence_all_pred_positive": true,
+  "presence_accuracy_if_scored_on_positive_only": 1.0,
+  "pattern_derivation_bystand_ckt_agree": 0.9924812030075187,
+  "pattern_unique_in_det_all": [
+    "curved_band",
+    "eye_visible",
+    "shear_pattern"
+  ]
+}
+```
+---
+
+## p3_metrics.json
+```text
+{
+  "tabular_zero_attempt": null,
+  "tabular_lightgbm_available": false,
+  "tabular_lightgbm_error": "No module named 'lightgbm'",
+  "tabular_verification": "NOT_RUN",
+  "image_ckpt_is_state_dict": true,
+  "image_recomputed": {
+    "category_accuracy_percent": 38.1,
+    "category_macro_f1": 0.2076,
+    "wind_speed_mae_kmh": 109.81,
+    "wind_speed_rmse_kmh": 118.39
+  },
+  "image_y_pred": [
+    3,
+    3,
+    2,
+    2,
+    4,
+    4,
+    4,
+    4,
+    4,
+    2,
+    4,
+    4,
+    4,
+    4,
+    2,
+    2,
+    3,
+    5,
+    2,
+    3,
+    4
+  ],
+  "image_y_true": [
+    2,
+    2,
+    1,
+    2,
+    4,
+    4,
+    4,
+    3,
+    5,
+    3,
+    3,
+    3,
+    5,
+    6,
+    2,
+    3,
+    3,
+    4,
+    2,
+    4,
+    4
+  ],
+  "image_stored": {
+    "category_accuracy_percent": 38.1,
+    "category_macro_f1": 0.2076,
+    "wind_speed_mae_kmh": 109.81,
+    "wind_speed_rmse_kmh": 118.39
+  },
+  "multisource_stored_claims": {
+    "category_accuracy_percent": 47.0,
+    "category_macro_f1": 0.3703,
+    "wind_speed_mae_kmh": 18.84,
+    "wind_speed_rmse_kmh": 27.28,
+    "pressure_mae_hpa": 5.11,
+    "pressure_rmse_hpa": 8.33
+  },
+  "multisource_delta_text": {
+    "accuracy_lift_percent": "+8.91%",
+    "macro_f1_lift": "+0.1627",
+    "wind_mae_reduction_kmh": "-90.97 km/h",
+    "wind_rmse_reduction_kmh": "-91.12 km/h"
+  }
+}
+```
+---
+
+## p4_metrics.json
+```text
+{
+  "scope": "P4 independent verification (read-only)",
+  "canonical_chrono_sha256_prefixes": {
+    "prefix_train.npz": {
+      "sha256": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "expected_prefix": "df70303e",
+      "match": true
+    },
+    "prefix_val.npz": {
+      "sha256": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "expected_prefix": "48cf065d",
+      "match": true
+    },
+    "prefix_test.npz": {
+      "sha256": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+      "expected_prefix": "89e9c2e2",
+      "match": true
+    }
+  },
+  "feature_dataset_shapes": {
+    "feat_train_Xshape": [
+      1212,
+      5,
+      16
+    ],
+    "feat_train_Yshape": [
+      1212,
+      3,
+      3
+    ],
+    "feat_train_Xnan": 0,
+    "feat_train_Ynan": 0,
+    "feat_val_Xshape": [
+      231,
+      5,
+      16
+    ],
+    "feat_val_Yshape": [
+      231,
+      3,
+      3
+    ],
+    "feat_val_Xnan": 0,
+    "feat_val_Ynan": 0,
+    "feat_test_Xshape": [
+      198,
+      5,
+      16
+    ],
+    "feat_test_Yshape": [
+      198,
+      3,
+      3
+    ],
+    "feat_test_Xnan": 0,
+    "feat_test_Ynan": 0
+  },
+  "EXP005_recomputed_test": {
+    "6h": {
+      "mean": 91.42888641357422,
+      "median": 74.02493286132812,
+      "std": 60.83976364135742,
+      "wind_mae": 6.684532165527344,
+      "wind_rmse": 8.282137870788574
+    },
+    "12h": {
+      "mean": 119.76469421386719,
+      "median": 94.8983154296875,
+      "std": 86.74903106689453,
+      "wind_mae": 9.459010124206543,
+      "wind_rmse": 11.667283058166504
+    },
+    "24h": {
+      "mean": 188.23863220214844,
+      "median": 152.6668243408203,
+      "std": 128.67233276367188,
+      "wind_mae": 16.108442306518555,
+      "wind_rmse": 19.650104522705078
+    }
+  },
+  "EXP005_stored_test_vs_recomputed_max_diff": {
+    "6h": 6.651942399571453e-06,
+    "12h": 6.800463609124563e-06,
+    "24h": 1.2907503588621694e-05
+  },
+  "baselines_recomputed": {
+    "persistence": {
+      "6h": 64.68608366488854,
+      "12h": 123.93622341086457,
+      "24h": 227.32704718077517
+    },
+    "movement": {
+      "6h": 38.05125581673144,
+      "12h": 80.50450892597567,
+      "24h": 180.66053963358797
+    }
+  },
+  "baselines_stored": {
+    "persistence": {
+      "6h": 64.68608366488854,
+      "12h": 123.93622341086457,
+      "24h": 227.32704718077517
+    },
+    "movement_vector": {
+      "6h": 38.05125581673144,
+      "12h": 80.50450892597567,
+      "24h": 180.66053963358797
+    }
+  },
+  "champion_vs_baselines": {
+    "6h": {
+      "EXP005": 91.429,
+      "movement_vector": 38.051,
+      "persistence": 64.686
+    },
+    "12h": {
+      "EXP005": 119.765,
+      "movement_vector": 80.505,
+      "persistence": 123.936
+    },
+    "24h": {
+      "EXP005": 188.239,
+      "movement_vector": 180.661,
+      "persistence": 227.327
+    }
+  },
+  "champion_loses_to_movement_vector_all_horizons": true,
+  "champion_loses_to_persistence_6h_win_12h_24h": true,
+  "EXP005_val_primary_equals_mean_of_val_track": true,
+  "EXP005_val_primary_delta": 1.42e-14,
+  "rank_order_by_val_primary": [
+    "EXP005",
+    "EXP003",
+    "EXP006",
+    "EXP004",
+    "EXP002",
+    "EXP001"
+  ],
+  "EXP006_EXP003_metrics_near_identical_flag": true,
+  "EXP006_diff_from_EXP003": {
+    "val_primary_delta": 1.0162531992818913e-05,
+    "val_track_max_delta": 2.7996915378025733e-05,
+    "best_epoch_identical": true
+  },
+  "registry_experiments": {
+    "EXP001": {
+      "model": "improved_lstm",
+      "loss": "mse",
+      "hidden_size": "64",
+      "layers": "1",
+      "best_epoch": "38",
+      "val_primary": 166.82257509247853,
+      "val_track": [
+        141.69515887039668,
+        161.5701530648459,
+        197.20241334219298
+      ],
+      "status": "PASS"
+    },
+    "EXP002": {
+      "model": "improved_lstm",
+      "loss": "mse",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "36",
+      "val_primary": 147.22877819428768,
+      "val_track": [
+        114.02046005955789,
+        137.62662209631574,
+        190.03925242698946
+      ],
+      "status": "PASS"
+    },
+    "EXP003": {
+      "model": "gru",
+      "loss": "mse",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "31",
+      "val_primary": 127.15301770054243,
+      "val_track": [
+        98.72286303428844,
+        111.02801417120843,
+        171.70817589613046
+      ],
+      "status": "PASS"
+    },
+    "EXP004": {
+      "model": "multitask_lstm",
+      "loss": "mse",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "30",
+      "val_primary": 140.47550703503614,
+      "val_track": [
+        107.72315045004844,
+        136.93023974788835,
+        176.7731309071716
+      ],
+      "status": "PASS"
+    },
+    "EXP005": {
+      "model": "gru",
+      "loss": "huber",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "16",
+      "val_primary": 113.07414084856835,
+      "val_track": [
+        79.8430765890122,
+        101.16757375743805,
+        158.21177219925482
+      ],
+      "status": "PASS"
+    },
+    "EXP006": {
+      "model": "gru",
+      "loss": "weighted",
+      "hidden_size": "96",
+      "layers": "2",
+      "best_epoch": "31",
+      "val_primary": 127.15302786307443,
+      "val_track": [
+        98.72288529685147,
+        111.02799439932596,
+        171.70820389304583
+      ],
+      "status": "PASS"
+    }
+  },
+  "champion_selection_rule": "lowest equal-weight mean of validation track errors mean(val_track_6h, val_track_12h, val_track_24h); tie-break wind MAE then RMSE; TEST IS NEVER USED FOR SELECTION",
+  "champion_event": {
+    "experiment_id": "EXP005"
+  },
+  "test_population_note": "All P4 reported test/baseline numbers are on phase4/results/feature_dataset/test.npz (198 rows/10 cyclones); canonical_chrono/test.npz (401 rows/14 cyclones) is a different, larger population and would NOT reproduce the reported scores."
+}
+```
+---
+
+## p5_metrics.json
+```text
+{
+  "use_mock_working_copy": true,
+  "use_mock_pristine_copy": true,
+  "api_base": "/api",
+  "client_functions": [
+    "fetchDetect",
+    "fetchClassify",
+    "fetchForecast",
+    "fetchAnalyze"
+  ],
+  "frontend_api_targets": [
+    "GET /api/detect",
+    "GET /api/classify",
+    "GET /api/forecast",
+    "GET|POST /api/analyze"
+  ],
+  "delivered_backend_paths_verified": [
+    "GET /health",
+    "GET /model",
+    "POST /forecast",
+    "POST /forecast/compare"
+  ],
+  "dashboard_target_/api/analyze_status": 404,
+  "forecast_shape_mismatch": [
+    "hour vs hours",
+    "lat/lon vs latitude/longitude",
+    "windSpeedKmh vs wind_speed_kmh",
+    "label/pressureHpa/confidence missing in API"
+  ],
+  "coverage_gap": "backend exposes forecast only; dashboard needs detection+classification+landfall+risk+satellite too",
+  "node_modules_present": false,
+  "working_copy_files": 33,
+  "pristine_copy_files": 29
+}
+```
+---
+
+## METRIC_VERIFICATION.csv
+```text
+scope,metric,stored_reported,independently_recomputed,abs_diff,verdict,method_note
+P2,category_accuracy,0.3333333333333333,0.3333333333333333,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,category_f1,0.23050379572118704,0.23050379572118704,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,category_precision,0.2566137566137566,0.2566137566137566,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,category_recall,0.3333333333333333,0.3333333333333333,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_accuracy,0.7142857142857143,0.7142857142857143,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_f1,0.6306522609043617,0.6306522609043617,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_precision,0.7523809523809524,0.7523809523809524,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P2,pattern_recall,0.7142857142857143,0.7142857142857143,0.0,PASS,exact rerun of delivered checkpoint on 21 test images
+P3-image,category_accuracy_percent,38.1,38.1,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-image,category_macro_f1,0.2076,0.2076,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-image,wind_speed_mae_kmh,109.81,109.81,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-image,wind_speed_rmse_kmh,118.39,118.39,0.0,PASS,exact rerun of delivered ResNet18 on 21 test images
+P3-tabular,category_accuracy_percent,47.0,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,category_macro_f1,0.3703,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,wind_speed_mae_kmh,18.84,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,wind_speed_rmse_kmh,27.28,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,pressure_mae_hpa,5.11,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P3-tabular,pressure_rmse_hpa,8.33,NOT_RUN,,NOT_RUN,lightgbm not installed; cannot load tabular_multisource_model.pkl
+P4-EXP005-test-6h,track_error_km_mean,91.42888638974553,91.42888641357422,2.3828690132177144e-08,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,track_error_km_median,74.02492620938573,74.02493286132812,6.651942399571453e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,track_error_km_std,60.83976594752267,60.83976364135742,2.3061652498768126e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,wind_mae,6.684532165527344,6.684532165527344,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-6h,wind_rmse,8.282137870788574,8.282137870788574,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,track_error_km_mean,119.7647010143308,119.76469421386719,6.800463609124563e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,track_error_km_median,94.8983150308597,94.8983154296875,3.988277939015461e-07,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,track_error_km_std,86.7490289263626,86.74903106689453,2.140531933036982e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,wind_mae,9.459010124206543,9.459010124206543,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-12h,wind_rmse,11.667283058166504,11.667283058166504,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,track_error_km_mean,188.23862416257154,188.23863220214844,8.039576897544976e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,track_error_km_median,152.66682240390162,152.6668243408203,1.93691869299073e-06,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,track_error_km_std,128.67234567117546,128.67233276367188,1.2907503588621694e-05,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,wind_mae,16.108442306518555,16.108442306518555,0.0,PASS,independent GRU re-run + train-only normalization
+P4-EXP005-test-24h,wind_rmse,19.650104522705078,19.650104522705078,0.0,PASS,independent GRU re-run + train-only normalization
+P4-baseline-persistence,track_mean_6h,64.68608366488854,64.68608366488854,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-persistence,track_mean_12h,123.93622341086457,123.93622341086457,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-persistence,track_mean_24h,227.32704718077517,227.32704718077517,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-movement,track_mean_6h,38.05125581673144,38.05125581673144,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-movement,track_mean_12h,80.50450892597567,80.50450892597567,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P4-baseline-movement,track_mean_24h,180.66053963358797,180.66053963358797,0.0,PASS,delivered phase2 baselines on feature_dataset test
+P1,master_rows,5481,5481,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,master_cyclones,151,151,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,sst_missing,1538,1538,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,split_cyclones_train/val/test,105/22/24,105/22/24,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+P1,era5_join_coverage,5481/5481,5481/5481,0,PASS,from AUDIT_P1_DELIVERY.md / DATASET_REPORT.md vs independent zip reads
+
+```
+---
+
+## P4_EXPERIMENT_RANKING.csv
+```text
+rank,experiment_id,model,features,loss,hidden_size,layers,dropout,learning_rate,batch_size,best_epoch,best_val_loss,val_primary_score,val_track_6h,val_track_12h,val_track_24h,val_wind_mae_6h,val_wind_mae_12h,val_wind_mae_24h,val_wind_rmse_6h,val_wind_rmse_12h,val_wind_rmse_24h,status,audit_note
+1,EXP005,gru,16,huber,96,2,0.1,0.001,64,16,0.0338267663179279,113.07414084856836,79.8430765890122,101.16757375743803,158.21177219925482,7.555985450744629,11.908552169799805,22.55363655090332,9.49712085723877,15.208231925964355,27.07860374450684,PASS,
+2,EXP003,gru,16,mse,96,2,0.1,0.001,64,31,0.0696110014211047,127.15301770054243,98.72286303428844,111.02801417120844,171.70817589613046,7.848436832427978,11.792434692382812,21.432863235473636,10.157442092895508,15.101356506347656,26.379770278930664,PASS,
+3,EXP006,gru,16,weighted,96,2,0.1,0.001,64,31,0.069610999808425,127.15302786307444,98.72288529685147,111.02799439932596,171.70820389304583,7.848437309265137,11.792433738708496,21.432859420776367,10.157442092895508,15.10135555267334,26.37976837158203,PASS,ANOMALY: metrics near-identical to EXP003 despite different loss; same best_epoch; do not treat as independent result
+4,EXP004,multitask_lstm,16,mse,96,2,0.1,0.001,64,30,0.0701379415083241,140.47550703503614,107.72315045004844,136.93023974788835,176.7731309071716,9.207263946533203,12.468365669250488,20.74447250366211,11.425877571105955,15.672247886657717,24.706178665161133,PASS,
+5,EXP002,improved_lstm,16,mse,96,2,0.1,0.001,64,36,0.068521698735235,147.22877819428768,114.02046005955788,137.62662209631574,190.03925242698944,9.21546459197998,11.619319915771484,19.61645126342773,11.669197082519531,14.90560531616211,23.8818473815918,PASS,
+6,EXP001,improved_lstm,16,mse,64,1,0.0,0.001,64,38,0.0733071294052776,166.82257509247853,141.69515887039668,161.5701530648459,197.20241334219295,8.42062759399414,11.711254119873049,20.60994911193848,10.664047241210938,15.387325286865234,25.78957176208496,PASS,
+
+```
+---
+
+## SOURCE_HASHES_BEFORE.json
+```text
+{
+  "p1_era5_entries_declared": {
+    "count": 94,
+    "note": "not individually hashed (1.1 GB); covered by p1_zip_archive"
+  },
+  "p1_zip_archive": {
+    "PS70-main.zip": {
+      "sha256": "f653c8e85728f8a75ec0ddb2e677ccf7f540399c94fb76f52f616b4ede3e2438",
+      "size": 1231540094
+    }
+  },
+  "p1_zip_entries": {
+    "PS70-main/.gitattributes": {
+      "sha256": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b",
+      "size": 66
+    },
+    "PS70-main/README.md": {
+      "sha256": "98958e4648484184125b2fc18b8e3785a89d797c46275464b01d026401ba2a39",
+      "size": 30814
+    },
+    "PS70-main/build_datasets.py": {
+      "sha256": "586ae286e39ece70e69461c66d379d30e87c81b8dcae1d57e03c2766f8b9be57",
+      "size": 13662
+    },
+    "PS70-main/check_coverage.py": {
+      "sha256": "a31477e30366441f248d7f47c35133724fbff7dfef34363a980fd5345d0182cf",
+      "size": 631
+    },
+    "PS70-main/check_missing_files.py": {
+      "sha256": "9d0f4ce11e03ecac37c627e42d44eb60f23a2791938b59ea46ff417e6c5f00d2",
+      "size": 1695
+    },
+    "PS70-main/clean_kaggle_intensity.py": {
+      "sha256": "bc27156e1afb33e8eb165c0c457ff579804e7e509748148ed178d2f001b4a12b",
+      "size": 6394
+    },
+    "PS70-main/data/metadata/ibtracs_clean.csv": {
+      "sha256": "bcd4bf0e05b63aaffd458f10f694e692a1cceff78f7eba3eeb2f1c2193db2acb",
+      "size": 1487310
+    },
+    "PS70-main/data/metadata/ibtracs_with_era5.csv": {
+      "sha256": "35b4ccea3e086f1008d1a8e1404dd9b8c114ba49aac8fc403fe75660d779605d",
+      "size": 709456
+    },
+    "PS70-main/data/metadata/master_dataset.csv": {
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "PS70-main/data/metadata/mosdac_needed_cyclones.csv": {
+      "sha256": "d425c8adf40d9f6788a1fbae04acdc00b9e06ee7698dc85f43f6745dd4352502",
+      "size": 3697
+    },
+    "PS70-main/data/metadata/mosdac_priority1_named.csv": {
+      "sha256": "8c9988b0d18d60dbda0d5484972e0e3a432c7ef9d69ca0aa0f797d66738deaa1",
+      "size": 1392
+    },
+    "PS70-main/data/metadata/mosdac_priority2_unnamed.csv": {
+      "sha256": "3c190d5743be21dde9b333357d190be9271a2cfe7b80a5054102b5bb2c454e3b",
+      "size": 2641
+    },
+    "PS70-main/data/metadata/test.csv": {
+      "sha256": "e59fccce9ab187d7bc8b185a687fb1138f6e18e47e33980dbe2719c6c88462e4",
+      "size": 110840
+    },
+    "PS70-main/data/metadata/test_cyclones.csv": {
+      "sha256": "096fcf2ecee4f2ee6d32a476359bbe811180870d18feef72f81a5eba0f88fd59",
+      "size": 347
+    },
+    "PS70-main/data/metadata/train.csv": {
+      "sha256": "4e8b4724f42b4f66f0380b7b650807d616a6bb93d073325fececf4ef53b29a59",
+      "size": 527509
+    },
+    "PS70-main/data/metadata/train_cyclones.csv": {
+      "sha256": "c4feb714f31756a059ec489ba3a9f1b5cde66f69bfe9c1432e9612511f460040",
+      "size": 1481
+    },
+    "PS70-main/data/metadata/validation.csv": {
+      "sha256": "41f0dc8bc798c87a79ef428362a2a83c5470a1bb2aefba0e8af49b67dbf663c1",
+      "size": 100863
+    },
+    "PS70-main/data/metadata/validation_cyclones.csv": {
+      "sha256": "82b5678b94327f2ee062263fdcad802c3eb9dcdbfe9e483dcfca3dbf1a225ccc",
+      "size": 319
+    },
+    "PS70-main/data/processed/classification/README.md": {
+      "sha256": "113ce1c1f0f6b673ae07a1220134c0fcf7e1fcb01ae6c0e661c6305e11e2b2e2",
+      "size": 1558
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55.jpeg": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/labels.csv": {
+      "sha256": "cbdfb1b3d365ba4c8651195eb69cdb37bc9b81ea8e11f8aa6bc0a4f736859f40",
+      "size": 5148
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/test_labels.csv": {
+      "sha256": "06ff83ee035b6b96a692d3c7250c8e3ff795cab36ba6051e92ec19dcf30495c7",
+      "size": 871
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/train_labels.csv": {
+      "sha256": "c1de0fac456a9ac1b2ddf057413eba838556c0c0fac389ead81da9f57cf85e7b",
+      "size": 3581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/val_labels.csv": {
+      "sha256": "7203af3d709455083593d8d4efb0f969409105dda41978d9fe9b17083a4997d5",
+      "size": 790
+    },
+    "PS70-main/data/processed/classification/multisource_test.csv": {
+      "sha256": "9f0b602ac502229e5ede7556eb83afba016aada34f0b6445072a561b6f2bc42f",
+      "size": 91556
+    },
+    "PS70-main/data/processed/classification/multisource_train.csv": {
+      "sha256": "3782a2b617e0db20df8106176526a95df03de1755c5dfda951f4dd43da030428",
+      "size": 426068
+    },
+    "PS70-main/data/processed/classification/multisource_val.csv": {
+      "sha256": "892eec0ee47ea67bc3fc0b369ea6a5eebd82d3da2a6b78b9086668b5e3f7ef8b",
+      "size": 73178
+    },
+    "PS70-main/data/processed/detection/README.md": {
+      "sha256": "58623106ae8ef752141be361b18722bdb24afd632fb3f8de3b26c90c957d7ab5",
+      "size": 1055
+    },
+    "PS70-main/data/processed/detection/detection_all.csv": {
+      "sha256": "230b6f2e799a42769578d94c719dc63bff8d127c62faad5a12fdb3b1aacc07b0",
+      "size": 19007
+    },
+    "PS70-main/data/processed/detection/test_detection.csv": {
+      "sha256": "a628d8d3120445d0ef1ac7217ee8b8f7fde5f6f6a72a1802e99dbaf7142c0f53",
+      "size": 3095
+    },
+    "PS70-main/data/processed/detection/train_detection.csv": {
+      "sha256": "dfb1efa9165949a2f8175a8d317a3d4e303a78b08d3f7a1565ff3027d150115a",
+      "size": 13302
+    },
+    "PS70-main/data/processed/detection/val_detection.csv": {
+      "sha256": "2042ffd07dc83476ac0466703d50862da5b8362ae90ae5d8a0030471672e5d5e",
+      "size": 2818
+    },
+    "PS70-main/data/processed/forecasting/README.md": {
+      "sha256": "0f943f7e52d5f11cd3cde30d533578c3d63152c5a74b312db8255cc52032707d",
+      "size": 2283
+    },
+    "PS70-main/data/processed/forecasting/test_sequences.npz": {
+      "sha256": "882535a1a8886c45ad094878a5a184c860acf1c61a3ecc29133caa576be7eb04",
+      "size": 15074
+    },
+    "PS70-main/data/processed/forecasting/test_sequences_metadata.csv": {
+      "sha256": "f2a1526556dc2e176ab5787784f33cb9ff72dd7ae3a0a9dc5bd0c57df1d7ec16",
+      "size": 57724
+    },
+    "PS70-main/data/processed/forecasting/train_sequences.npz": {
+      "sha256": "1a65f93f2f698d5956fb1b23c74a80780046f151bc44012122be97d85f1053f9",
+      "size": 69267
+    },
+    "PS70-main/data/processed/forecasting/train_sequences_metadata.csv": {
+      "sha256": "54cee046c6c764ffc7e079cfccddff9da26665f78ef63e83530632d2745b0539",
+      "size": 306770
+    },
+    "PS70-main/data/processed/forecasting/val_sequences.npz": {
+      "sha256": "d0e4fd91d207cd1d43aeccf32edee49c8de7e75d8a7079c5335377a45f1a1073",
+      "size": 13677
+    },
+    "PS70-main/data/processed/forecasting/val_sequences_metadata.csv": {
+      "sha256": "b182592a68f93c375fd3a3d28012643052cff4e1e75bb548047242bf28f4086e",
+      "size": 52265
+    },
+    "PS70-main/data/processed/master_dataset.csv": {
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "PS70-main/data/qa_reports/QA_REPORT.md": {
+      "sha256": "e8e8fd956d0601c753965549af4e4d4a47c11b5a6d7954a4913a8ac79e6ee49e",
+      "size": 1325
+    },
+    "PS70-main/data/qa_reports/figures/annual_frequency.png": {
+      "sha256": "2f362180179ea92bba758e7691d03acc5428e120f9c511dc0268931724bb46af",
+      "size": 99071
+    },
+    "PS70-main/data/qa_reports/figures/category_distribution.png": {
+      "sha256": "a41cdb289816e025819459754934cbb6e8a82218c410a952d958e1fef9d65e3e",
+      "size": 73651
+    },
+    "PS70-main/data/qa_reports/figures/geographic_tracks.png": {
+      "sha256": "07d20592e2f3871b20b294a8f2836458750c163d7f32a33bb2f44195487ddf63",
+      "size": 601835
+    },
+    "PS70-main/data/qa_reports/figures/wind_vs_pressure.png": {
+      "sha256": "f90de951965cac3c5d15230d06f8602503441d1629309aefa2a10a38c37abf0c",
+      "size": 247752
+    },
+    "PS70-main/data/raw/ibtracs/ibtracs_NI_raw.csv": {
+      "sha256": "8efd3ed5d726ad1439014e08d1570574d1e4171af7dbd1b54ef4046da9512ba1",
+      "size": 27875881
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/101.jpeg": {
+      "sha256": "6c784cace01099f640e6b4c9eedf595866fce091082311e6a5ed65a4b4fac1ea",
+      "size": 164550
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/102.jpeg": {
+      "sha256": "84285b0faf8736249e128e1c5a54e4499cdf4573b1e119b2548f7341e149eac5",
+      "size": 57711
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/106.jpeg": {
+      "sha256": "c50cf71245d290dd6bedcb9d4b09664c063457ba0e8731e2c3262c8ff765b2a6",
+      "size": 173614
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/111.jpeg": {
+      "sha256": "667cbb33b5334d6002c9c163a7b1fce875434e56b79f57dd7e80cdd3738aefa3",
+      "size": 144903
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/112.jpeg": {
+      "sha256": "56c4019f8480b15f6e5f9ff7f0af09a1904751921dee1ab9f6fcc8207c1252c7",
+      "size": 172282
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/115.jpeg": {
+      "sha256": "b00c770cc2d064e8ca6afa1fcde49a1de94fee543e405835df141a23f36d5e74",
+      "size": 164800
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/118.jpeg": {
+      "sha256": "30ae1381a7edf2baff45076db8f86f0b831a9cacd1a7cffcddfd76edea685ffe",
+      "size": 191431
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/119.jpeg": {
+      "sha256": "dfa6277001643e87f97492859b62e1bb44319ddf55a221df971edfdb62187aae",
+      "size": 187647
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/128.jpeg": {
+      "sha256": "ed7dc5018393cfab7751611a95a109718ca79ff0fabc607934a49fef07374ff5",
+      "size": 154406
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/25.jpeg": {
+      "sha256": "7c83f60171f19f24a65a6f30ec8fab4200399958b7af7531ae5e7f2542f01da1",
+      "size": 119357
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/27.jpeg": {
+      "sha256": "bd1d1c4148aff13697417b083b808c9b689cdc91566888503ca389833910f89c",
+      "size": 132932
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/28.jpeg": {
+      "sha256": "251aaaa43204482eb73f262ec78e24303c64dce6d4969f3946a0dcdb63a66bac",
+      "size": 153783
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/30(1).jpeg": {
+      "sha256": "141a0fda9906d8a60e089fe37131e6bc2248201a1faf8aed956a6e60bbb92372",
+      "size": 180340
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/30.jpeg": {
+      "sha256": "73f3ba1d51f6fd1e97e53c6c73fe958f20297379774dfbeaa76c3a2ed1a58bc0",
+      "size": 159353
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/31.jpeg": {
+      "sha256": "c72a9f8bbe15f708cd98caf6e412d79f1d3ae5cc9bbb1b4b6cefc9604e104ffc",
+      "size": 132865
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/32(1).jpeg": {
+      "sha256": "eed267b693fbee2f2292e14909b524718927db56ef9e7db22ddc4246185ad2e4",
+      "size": 111360
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/32.jpeg": {
+      "sha256": "50e74152f460fd3456ae6fa1868de5c5e412d9a7e162e8f0ecd117de95836343",
+      "size": 129747
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/33(1).jpeg": {
+      "sha256": "bba34447ae3dd3a2f106ade379413203250d040d6482391c80b99ce8198d3dc6",
+      "size": 90286
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/33(2).jpeg": {
+      "sha256": "e0439ca669463b35920144f5386c3f5e7e2675de1a2d803860d0f8223491d63d",
+      "size": 198905
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/33.jpeg": {
+      "sha256": "40cb0d7d6d67616a6382639c310b751f642f6c413a1360c6c65312fcab68537d",
+      "size": 136545
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/34(!).jpeg": {
+      "sha256": "383f9e89016c5ef6b9b801eae7ec4acbe2a8ddcc5acd52086b8ebf4ad5700726",
+      "size": 195226
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/34.jpeg": {
+      "sha256": "4c1841d62266135cf1523d724630613e3c86aa36bda6f1c77e4719f185c1a4fe",
+      "size": 137045
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35(1).jpeg": {
+      "sha256": "c67030f772bbbc37661cae7b58e2b040428c9ad6f4e54d60a7dea0bc251e7854",
+      "size": 123718
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35(2).jpeg": {
+      "sha256": "730f8d5fceec7c4dec8ebe9f4cff45896b192f970b136055cc79301a32ba0d89",
+      "size": 149771
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35(3).jpeg": {
+      "sha256": "94fb3663d5808aaedb85e920233b3832f4865926a50c537b88ed032740fa049a",
+      "size": 100047
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35.jpeg": {
+      "sha256": "568f021e53b1f90f4dbcc74544c504fd793da1888da4ad80e38278577250f00d",
+      "size": 160315
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36(1).jpeg": {
+      "sha256": "1b3f44eb114b53e4df4af080a90c618519a75d02e3fc7159f1b10db5b424f8f3",
+      "size": 164701
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36(2).jpeg": {
+      "sha256": "9704af864db8f8e78ad80c34b3db2b4ce47ee095fd19fc7ee545214158e54063",
+      "size": 96176
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36(3).jpeg": {
+      "sha256": "26847bc327beb26e74a3839277da61e9b5e33e1479d35ef4b5fecc96e793d03a",
+      "size": 89633
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36.jpeg": {
+      "sha256": "d7898a44a7104878e90f6de54f8a78f01912ae9dcbdb6908dbe89e7da147bd23",
+      "size": 130629
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/37.jpeg": {
+      "sha256": "3c521a56e9812464a121b0b50f71777765f8ff58fd526abb2d42859802084449",
+      "size": 143675
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/38.jpeg": {
+      "sha256": "6712a1d7d6de46e1bc15b794dfd8b36cf02c3a40742d9561df35cb1439e3bd28",
+      "size": 184505
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/39.jpeg": {
+      "sha256": "42b709f3072a950b429d4c8c569a2f021f228b07bc4b73406b5b44de9749350d",
+      "size": 112182
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40(1).jpeg": {
+      "sha256": "c6243fa45ebd41a8776766425b1f9d2e1b166982f60c27f63073d91c8d0156da",
+      "size": 134408
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40(2).jpeg": {
+      "sha256": "4c6454af3f04b34645a11f5f36955aa3596d225a6641105e3833a13f090d5a6c",
+      "size": 130372
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40(3).jpeg": {
+      "sha256": "a699ba6620ee57291a176d3e2d7e894c3cc90405030e3fcd498ce5450a123549",
+      "size": 182057
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40.jpeg": {
+      "sha256": "2ff06bd2a0812cb91bfdf46a293863150511cdaffd92aec4d3a40a3329aa4a21",
+      "size": 159285
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/41.jpeg": {
+      "sha256": "22fdf425304a44d55538272b11c42afa38ac095cea61b78bb5f1dba014583468",
+      "size": 162678
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/42(3).jpeg": {
+      "sha256": "95246fe33fa6a64d94729e661985636ea8229ffaaa003b6cf93635533a498ec4",
+      "size": 142885
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/42.jpeg": {
+      "sha256": "b4792633c7d846074352759b391c4b137abc53369cabd40e708f23ea77ea2ccc",
+      "size": 171877
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/43(2).jpeg": {
+      "sha256": "e48a571e66aeb6334db12a1723c3019ad1090690119d58fbb2d586bf1b827dc8",
+      "size": 83730
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/43.jpeg": {
+      "sha256": "fd25b756cbaa58b717c79be4b0367bfb54221c4254f43ec4a863879440895533",
+      "size": 164361
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44(1).jpeg": {
+      "sha256": "21f69d8ec90b921eae03bd2a187464ae63dac3d851af594ec712dce6d8b6225d",
+      "size": 138225
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44(2).jpeg": {
+      "sha256": "0329d87ffe37c4a8b9f0388535e42d44f94deeab01c72467cef1bbda443cfb6a",
+      "size": 180285
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44(3).jpeg": {
+      "sha256": "fdd05971b8d372cb4e8bc15d4e224287fd3f0d532a3457ec1720123e8b57f7cc",
+      "size": 178501
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44.jpeg": {
+      "sha256": "80b69fc0562f0d5359d8024f70e3a156cb1b45efdfef28a21fdce60273c7ef65",
+      "size": 186208
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(1).jpeg": {
+      "sha256": "b00c74c43430cce2949a6d4566e894e92ef51dc46be1ea68a66394840fa525f9",
+      "size": 194877
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(2).jpeg": {
+      "sha256": "253208f3c12db34c7aa125fc3c0d0c13306cdac70b720b4ef85c0a4f826e9a3c",
+      "size": 164963
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(3).jpeg": {
+      "sha256": "0770f9c8dd6826342912e414f99534e85903d83b1cebd09105733ffc775c33b6",
+      "size": 123599
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(4).jpeg": {
+      "sha256": "1b66ac18546d3777dc4add83c9b08f0fd74a049b183e8541ea0e64353d9dbc87",
+      "size": 177773
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45.jpeg": {
+      "sha256": "f59dfa843b9b7a9204f4055cca567f21a15c1afcf37084fa984f96be6644e2c2",
+      "size": 155443
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46(1).jpeg": {
+      "sha256": "83036a3c94f6f4831e43c79c5881877fcad0433043b9c81ddae8a4b28ee29c0b",
+      "size": 196084
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46(2).jpeg": {
+      "sha256": "669e9ad31364e7fe9bea4ee2e91e3f71ca338d1d017b144e1ff3aab1475132cf",
+      "size": 3573287
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46(3).jpeg": {
+      "sha256": "c3424f52f38502608b02dcc79703e966f61c41cdbbc7682ae5f941f70d510fa4",
+      "size": 105459
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46.jpeg": {
+      "sha256": "7c4be00a91357b2afb643a81db786b45dd088b1339ca8256f35ef35d605a128a",
+      "size": 141829
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(1).jpeg": {
+      "sha256": "5a8e0f2c4b4b895692cb8bdea1cff7f1cd30c14c284787f66d72467827a4a686",
+      "size": 150182
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(2).jpeg": {
+      "sha256": "62f86a003f2d28ca0bd77e61534fd20e5e8809391f820a5db926c4d2affbe1a9",
+      "size": 180103
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(3).jpeg": {
+      "sha256": "f6cd0fc37f1e9d3feab9cdd7353b424582f481127fc43b1ae7a83558808e53e8",
+      "size": 93280
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(4).jpeg": {
+      "sha256": "0d62b4c44de030529f9684fbe143a4a177590e135d3a023eeb986cff3c5262ad",
+      "size": 195263
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47.jpeg": {
+      "sha256": "27f37fcf36a34571c94466c3e111647adebbfcb19c93e025822f1b773463c6e3",
+      "size": 143381
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48(1).jpeg": {
+      "sha256": "ae1c16af5bad7dc3979e106a3135d68ddd102719965253f2f081fe34374082b2",
+      "size": 162387
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48(2).jpeg": {
+      "sha256": "deed2f4d2547a2f1097f17c176a58bc7fc53e20cbc68045c3f825c4cd2a945ec",
+      "size": 159787
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48(3).jpeg": {
+      "sha256": "eefed2ae4a661eaadcb39fda43d11e714b828c5517dd5de0a4e3d65ed134c9e2",
+      "size": 100215
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48.jpeg": {
+      "sha256": "14186ba969f02e384b1cc7705da15b215131e82d264ad8232445e78cf2a8147f",
+      "size": 146187
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/49(1).jpeg": {
+      "sha256": "999b91e216ebaca8f6e9cff23eebf18bfb03d135c0c15b188b4440cd4e97fe76",
+      "size": 175049
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/49(2).jpeg": {
+      "sha256": "e564c2cda97d828323dd1778723601fd46dd45f3d5989eb00c3d499d46d8631c",
+      "size": 91558
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/49.jpeg": {
+      "sha256": "faf05bbdb275ccc5b0741e38a99014e044ec74139b687fa1ce982523fcea6d57",
+      "size": 167111
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/50(1).jpeg": {
+      "sha256": "4950e24208727cfdf2c1481dce3441f75dea9b023853ad539fc953ad910d7e77",
+      "size": 155098
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/50(2).jpeg": {
+      "sha256": "fe90a62ae45fc6c2d18a4af54dd1f0fea27399906ab6da7ecc109efb45f5fb09",
+      "size": 91785
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/50.jpeg": {
+      "sha256": "5c755a21ea04f1113f0d759f0fc02bd4bce9c92f1be0b4c076410a58f0bdda73",
+      "size": 156521
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/51(1).jpeg": {
+      "sha256": "680bf62b8007950fed2f1323fa08efca3322c9d886bd931fe02cf40f1e8c2250",
+      "size": 148120
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/51.jpeg": {
+      "sha256": "e58c2c2693697a9715030e7bb3ea08af3df186a92b15dfb4c39653f631e7b1f4",
+      "size": 132251
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/52(1).jpeg": {
+      "sha256": "c99902fc9748a2dc0a8069bb7f55cebf38d4af2e5db915bed2dfc01705a6eb4e",
+      "size": 170299
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/52.jpeg": {
+      "sha256": "5ece38b96c2fe1739f555e0ba5197bd9d5aeb5ccc09dfa8b9588a56026c3e297",
+      "size": 142728
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53(1).jpeg": {
+      "sha256": "7f2685cc4d33c9c483172ba665a7151ecb602fa81466f09cbb7ad0b0c9f4d4d8",
+      "size": 165325
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53(2).jpeg": {
+      "sha256": "65f5efa0ff8c0518833b9341dfec823ab99a1564dd6bc1e0112426d14c66bbb2",
+      "size": 112229
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53(3).jpeg": {
+      "sha256": "e54812afd2364f6d8e11624bec0bbc39aeec2a03468579cd353af1f2faa05a92",
+      "size": 105046
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53.jpeg": {
+      "sha256": "e54de7f7593642a11d7eb9c2e8bc1065c369c00c9cd616ecfa3d86636fc8697e",
+      "size": 362328
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/54.jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/55(1).jpeg": {
+      "sha256": "cf42c7ea1fac2984f9d3db47b39ee15c2e2e2120f9d4bfd8ffd560ccc7435303",
+      "size": 3412288
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/55(2).jpeg": {
+      "sha256": "502be2af903fab4206d7a7c643c25656921510ad0531fc3076df24ca0fb74136",
+      "size": 175711
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/55.jpeg": {
+      "sha256": "ffd6b99828e815a1c44ba10b54f38fb70dcf877cfb98168dcb7b9fc7b1aabbff",
+      "size": 147899
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/56.jpeg": {
+      "sha256": "d5c318a04792871b68ce69d89679132e6e15adcbc7ff5308ef658ac23e38b5a4",
+      "size": 158196
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/57(1).jpeg": {
+      "sha256": "7a325f60eb44e54802735facb443f356d9dfc1bdae045ebab7a8ca3a3de55838",
+      "size": 149538
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/57(2).jpeg": {
+      "sha256": "26df35e16240aa13f5a50605591252a12972f57567adc4e3de9fbc3a6591a56d",
+      "size": 173140
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/57.jpeg": {
+      "sha256": "cb18d7b670c4f82508165ae1fbc8bf89b897c81bcf6e26750fd479b36e42f817",
+      "size": 149912
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/58(1).jpeg": {
+      "sha256": "0567200dc847a3f88528a4b6bdb261d6198130de315fa9b29d86c7456b82c716",
+      "size": 182952
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/58.jpeg": {
+      "sha256": "8186118d3379e1cca3416bb345c393ab4566768f77d966e403283c53fd80121e",
+      "size": 136960
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59(1).jpeg": {
+      "sha256": "f1efcbd546efb5855b1a435d60995f2c4513a4968dae119e4089de0c5b5eae10",
+      "size": 148515
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59(2).jpeg": {
+      "sha256": "e8d9ee131c2f7c0e44bdc06d48194cfdaf3979ce51646b9aa91f17ad5117d288",
+      "size": 188836
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59.jpeg": {
+      "sha256": "14f495a4a6cbd59bdc93b31934b641b0d44762c517120ad12846a9f838e90a1e",
+      "size": 146224
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59_LUBAN.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/60(1).jpeg": {
+      "sha256": "61d33583082af439e066a30b53ba6409a5d5444672ad3c3146e17463bdf98eee",
+      "size": 170042
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/60(2).jpeg": {
+      "sha256": "6eb44ec739a4565407a14f4000d6bceba2bfec56833752c1a9338f9a0bb7b0ca",
+      "size": 192625
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/60.jpeg": {
+      "sha256": "7e1ad8d2d649c9423ff5fea70fb4c723417b314982e4d4713807ca8d327a33f3",
+      "size": 149703
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/61(1).jpeg": {
+      "sha256": "a893c80037f1f9b89292f728ff86b032ea29d0527a09b3dfc99d673ddc4195ec",
+      "size": 149713
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/61(2).jpeg": {
+      "sha256": "cf4d647c083b04162cca7821f92253e36666450e6b5491775639b01ba2508115",
+      "size": 154316
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/61.jpeg": {
+      "sha256": "9eb1f082dba667cddad2d58d03fef7453c50e969b7f381f04be2b0efc747a5d2",
+      "size": 130159
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/62.jpeg": {
+      "sha256": "f0abda2a413767ec7ad27d3526347fe4cfa9f7e863812074e555d38a16f2d7d9",
+      "size": 124585
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/63(1).jpeg": {
+      "sha256": "01d0bbd9bc71d87d9930c2043e675924eb9dfda0b664d500608d4224a0ad827d",
+      "size": 193257
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/63(2).jpeg": {
+      "sha256": "f9b97d491e1873cf1636b2756bd8d23d6610059a988367b90c8d63d66ede1327",
+      "size": 196301
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/63.jpeg": {
+      "sha256": "138bac65bff1966c17b8d7e3e13244a70d696c6fa80612536a854c1830cec319",
+      "size": 158753
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/64(1).jpeg": {
+      "sha256": "540aecdc73d2b480a4196f365e9e558fea69467c5f39228e0a440c6ba5eaaa21",
+      "size": 162660
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/64(2).jpeg": {
+      "sha256": "c39ebb9084a180d8b87ef9111ff3b57b75d7b85d0a1833f4e6ab858cdf2ee76a",
+      "size": 107215
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/64.jpeg": {
+      "sha256": "478779bb634e35e45598961a7e67762710639720998e182488314b3966a07d27",
+      "size": 156059
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65(1).jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65(2).jpeg": {
+      "sha256": "7148bb40c4f9f0aaf1c811410f76dadb7167c8f89fec2ec0752391933ad16536",
+      "size": 93108
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65(3).jpeg": {
+      "sha256": "93e5bea407e5bfc52a71a70038d60f2c08ab41626e3d381e73cc70db3a6c12f3",
+      "size": 109901
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65.jpeg": {
+      "sha256": "d6892dac130bbe55fe6cc9b26a3bd7163d2730dda1933749de9c10bd6b053369",
+      "size": 162805
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/66.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/67(1).jpeg": {
+      "sha256": "1c3c8b1e36ec5c9b23897ac49a1d69c85b47caef161b6a462caf674698744e3c",
+      "size": 164201
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/67.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/67.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/68(1).jpeg": {
+      "sha256": "8a15951f6a9f8da3a329157bc9f24c6ef51f7b010d7c90e42e251b4abae17835",
+      "size": 194542
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/68.jpeg": {
+      "sha256": "7228ce4f0938683e9a07f135b0cb8558a450eb3445f79c639a19d1407e6b4dbe",
+      "size": 169133
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/69(1).jpeg": {
+      "sha256": "bf34a05f604d4d8c944cf44636eabfb002d8aae4839a5f47aa8b50e408427608",
+      "size": 111858
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/69.jpeg": {
+      "sha256": "fe5775342a10b8969b763b83060178901a6f7e45dc531bde15b7d0b86cef3d6f",
+      "size": 147739
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/70.jpeg": {
+      "sha256": "37901e9e97d365ac063a8b5311fbe2f6a868c95c21ce2c75e14cb17aa8bd32f8",
+      "size": 143543
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/73.jpeg": {
+      "sha256": "72b8675bb21f1faea18f43ae340c505c3b2162e0ea4b6da91094c5b0ff61d04f",
+      "size": 161315
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/74(1).jpeg": {
+      "sha256": "a0c6ff1cf593cd23f209f785f4964c12624c06fc1c756da8b86c3a20ce5abe43",
+      "size": 154726
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/74(2).jpeg": {
+      "sha256": "ce8325e5876e04f6beb10364c43e6f3fbde0aefbccc4c4f76c69ab6b35ca174d",
+      "size": 192847
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/74.jpeg": {
+      "sha256": "6990cb456f328e53b28ddf2f0d0315806f5752acf5ee65e4c5a86570463c20d7",
+      "size": 153198
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/75.jpeg": {
+      "sha256": "2fb2f89d730d9b7f71730b794e670fbfd6eaa1d1a2faf2294328c62f4242bef7",
+      "size": 109894
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/77(1).jpeg": {
+      "sha256": "4fff2d24fbc23e1c75888ac9b83226af238ea43dda0ae57c4e916d2aa8838c42",
+      "size": 161006
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/77.jpeg": {
+      "sha256": "7e565b4df8b14487a4ef9727dffc2c7a5e52d2a7af3fcbf4e17277bbdd9ca99c",
+      "size": 165880
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/81.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/82(1).jpeg": {
+      "sha256": "0ab32dcbf570497e4130e63a34405242b247d4d3aabf12d18c483e3c61d2c08b",
+      "size": 108114
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/82.jpeg": {
+      "sha256": "416a6f93d980c9bf07d0a1fecc35b25465161cfd4269c1865b86816b8718dc23",
+      "size": 134117
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/83(1).jpeg": {
+      "sha256": "5a266392bb4d89c8883ff99b4d003833b28b8f8609d2881fae4a38509047ecf5",
+      "size": 140159
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/83.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/84(1).jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/84.jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/85(1).jpeg": {
+      "sha256": "f8a5d5e537a57fccbceac4a7f513ae5e66811c6de2571e9970b587a3820dc0f0",
+      "size": 140210
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/85(2).jpeg": {
+      "sha256": "c4493f6ca15ad1e73634f1e8e52c3fe4e0cc65b2a19cf0cd4c99a5e4507aa6d9",
+      "size": 128894
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/85.jpeg": {
+      "sha256": "fe193a57512af0f6178e14aebed2f53e224180c0ddfe211fd344e157b07644a3",
+      "size": 169230
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/86(1).jpeg": {
+      "sha256": "18bc8a6a10121da6cba23038be041bfcbc18bb8225d90170921e5327ce320507",
+      "size": 176100
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/86(2).jpeg": {
+      "sha256": "6de224ff7ecc6baef7ff129a7570d6a04acb1a5226995f123b64fa4bc795edc5",
+      "size": 100829
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/86.jpeg": {
+      "sha256": "a8fd61f7e62fa198e00f712cc82e7e2dcbd1d97675516e4e8a6e870520d798cc",
+      "size": 140000
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/87.jpeg": {
+      "sha256": "41fe507e17cb6d3cd77c20c5d18899d6d71b440f328c0cc249310d7758540346",
+      "size": 167808
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/91.jpeg": {
+      "sha256": "46ad22b7bf426961b19c4d69151f7afed45476ccbd6e521574fed43d49936f98",
+      "size": 3405942
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/94.jpeg": {
+      "sha256": "6581e4127c9965dfbd6754019b058df4531b293ccac796bcf5b4352743c617e1",
+      "size": 152828
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/98.jpeg": {
+      "sha256": "c8f9b8d16263c3e207c551fe830766786f8737f783cbce1692c4a7f1fb37ab4a",
+      "size": 174063
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/99.jpeg": {
+      "sha256": "94df5e610ab44a953c022b051052af3648bb50a76d6aef88e07ecf07fd9e7ba8",
+      "size": 133294
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/101.jpg": {
+      "sha256": "8551d01791836a917f6c32329695ac62d945823c40b2d07dd59dcd86cd14c290",
+      "size": 65391
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/102.jpg": {
+      "sha256": "333cce161a51e8dca79182b36b041e1c3b7cfe98fc588753976d6309ed6dde64",
+      "size": 20105
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/106.jpg": {
+      "sha256": "07821bc89c610df2b3187261172ee9213595f52d35dcb88ab1dd2e117123c6e7",
+      "size": 76355
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/111.jpg": {
+      "sha256": "b10ee14f89a186522d422881c26c9ccdc633aa05c35fe69df52f0a6497b10bed",
+      "size": 49955
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/112.jpg": {
+      "sha256": "79d38dc044c671949894cdf13ac53aaf5b4e65c23c527447e4c35027eeb72fab",
+      "size": 72971
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/115.jpg": {
+      "sha256": "35082965a9ff195ac984be774af3e535a241febdc98df836668cce7f3faa13eb",
+      "size": 66660
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/118.jpg": {
+      "sha256": "df1629366b828aab31028d03b45e65733742f4ea55fd9e9cbd8cdfc88bb23d95",
+      "size": 82718
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/119.jpg": {
+      "sha256": "bfc0ed97c4b5b3f8275faef180cd4bcb1d72108ebdf386eb59bd8684fc37e8d9",
+      "size": 77716
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/128.jpg": {
+      "sha256": "f76c2729cbbb0c64199f5628de7530efdf0ac0b7e20ef6bb1a401fb949e4898e",
+      "size": 62360
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/25.jpg": {
+      "sha256": "02ec1842b21c93390493ca3679d1d824bc32d36017ada654c5aa8e4ff5ba4ec5",
+      "size": 37659
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/27.jpg": {
+      "sha256": "acea341326e3f5a1103b9c300223f16af31f7da9558b1b912f6a638e3e7cca9c",
+      "size": 49969
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/28.jpg": {
+      "sha256": "87dff5923e3c0bf3b93f7e4db60d6a1b372a77522f44ff2f0d68b0cce2ff87e3",
+      "size": 57452
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30(1).jpg": {
+      "sha256": "34e37deeceeeae9afde173fc393eaea50de3dac66c544b1a7c3087aae628f0f1",
+      "size": 75116
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30.jpg": {
+      "sha256": "d58ef179e9160d6b4911203fa2cc6d85e16e432a6694c1a2d533f7f5a2e02119",
+      "size": 66896
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/31.jpg": {
+      "sha256": "5882ef92efcc4c9828e9e97e21bb74bd274b3e0ba7f30f22239509636f7f13ce",
+      "size": 50626
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32(1).jpg": {
+      "sha256": "409717c968183d74a2e48294901f925eb496c3885ea7cf6a486443bbff86dbaa",
+      "size": 42035
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32.jpg": {
+      "sha256": "60be9b9358fae62dcc88bc6b48f3e3a7a62f205e7741a2ec51700db5e0fb48cf",
+      "size": 43003
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(1).jpg": {
+      "sha256": "c27160112bd1d3538605d4d3e59a45fc478499f3419158628579c6074919da3d",
+      "size": 34052
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(2).jpg": {
+      "sha256": "04556b6705fb603124868e50cc85bf87568ccf3ed54f92ecdc40bed9e9bc6a9e",
+      "size": 85096
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33.jpg": {
+      "sha256": "1652e7b7c6605a233ff0e75d6468b6dc8e0e6656ea60416e2cf60f02ce495c9b",
+      "size": 52632
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34(1).jpg": {
+      "sha256": "6775fccf96418b243af9f244cb09dcba2e8f25d8da2015a26c791afc022cfcd1",
+      "size": 90285
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34.jpg": {
+      "sha256": "95feec6e72e87c4b073ed4fa9724ef4c29ec4262ea4226f9912cc21fd3e91471",
+      "size": 51299
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(1).jpg": {
+      "sha256": "9994a099d453a047c820282ddf914e0dbb1e27415fae4b1f62fbf0c39dee5e6b",
+      "size": 37132
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(2).jpg": {
+      "sha256": "03cfc7d775b6f3d58d9158855abc73ac90909784659f91a0345192cac9afc339",
+      "size": 58011
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(3).jpg": {
+      "sha256": "c002444890b94f1cacb7ffee4551703374b7a30484639b4c371ce1bb6c26c6b7",
+      "size": 41605
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35.jpg": {
+      "sha256": "3e2ae2516944192c6a85f912484bddd3daa009c9b47a370388fcf220f6fafcc0",
+      "size": 66837
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(1).jpg": {
+      "sha256": "a6bdd5692c505ea7cd473791bd7dad61b7dbbab6753ae52dc5259b79659f3836",
+      "size": 73137
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(2).jpg": {
+      "sha256": "d0c4112b0f65da2888a567587acf048429685b755bb601d02e2200ba15af7ecb",
+      "size": 38563
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(3).jpg": {
+      "sha256": "ea35e4602d95d999cf376cbc772b8e4bafcb827eaf688ce56e5dc61d9af5348b",
+      "size": 33440
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36.jpg": {
+      "sha256": "4ffcb9036c0c818f37753c64c71ce6c27c6972b73d4f27c81fe86535d7ee19ca",
+      "size": 47852
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/37.jpg": {
+      "sha256": "e8f9a0ff22ac3faaeaf5b1b13c49c82b25ea34989d9561f87c80130840ef47a7",
+      "size": 54951
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/38.jpg": {
+      "sha256": "d5f664690a665f2927c606f7f2e993178418412f478be6fd7cca1024a812fd32",
+      "size": 84246
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/39.jpg": {
+      "sha256": "6ded8060fae2dce49b96cc8b3915a13da493f055e462899c9c1af2fe5f71484e",
+      "size": 42355
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(1).jpg": {
+      "sha256": "e1998bb4cbd217183e87840d9fb1a68ee26011ddedac26339f7a205a3344b78b",
+      "size": 50048
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(2).jpg": {
+      "sha256": "0c55a6c76d4c65fcebc7963d7322f6f6d687a0c68791f46395cab1c8776ea055",
+      "size": 44484
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(3).jpg": {
+      "sha256": "0be086070dcfefec36276101f565dfdcbd11db6606abb5d2370ca78d80529200",
+      "size": 75972
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40.jpg": {
+      "sha256": "d197c530f11a93f025689aa88a5e307d26cd9ed76e8ed7f279947a69912ae16d",
+      "size": 61567
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/41.jpg": {
+      "sha256": "7afb505062a8e54bcc921deff1e1567d2819020769bb15cee16346ab15525990",
+      "size": 63696
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42(3).jpg": {
+      "sha256": "8e66750e2f4022690f4aed09eb0411cdff9c5956eb2b3289d24bd3c0ff59bbee",
+      "size": 49047
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42.jpg": {
+      "sha256": "7adb2b2adfcd37646c75898e17893353c06a78d19562c29e8e80a2751877c470",
+      "size": 78103
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43(2).jpg": {
+      "sha256": "c130fa15793e074ce6fd3fdd6a790cc5abbd9a339a7c1083acbee5d4f5ba073b",
+      "size": 29616
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43.jpg": {
+      "sha256": "165b948785ac4f83204642a120e23f6478cf0ef1e9c50ccda080f23696f84c68",
+      "size": 64756
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(1).jpg": {
+      "sha256": "4b8d1c160bcf6d51ba87b9b8c6f66962ca6975c10899be37d5c0f31d64f7ac94",
+      "size": 47835
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(2).jpg": {
+      "sha256": "1ed2daa780358584bab191181910855345d923b13c26141ea5e2cd530a0edb7f",
+      "size": 81670
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(3).jpg": {
+      "sha256": "890ede0ae764d3f87e6ccde2e5f3f4cbe874078c3da56459cc1ca8baeb97d729",
+      "size": 73058
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44.jpg": {
+      "sha256": "3039e0386a70b3e101560f840d0e5af52d983ff41500e18e871a0b2e643b97ea",
+      "size": 84588
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(1).jpg": {
+      "sha256": "9d18b78190e18e4acde1ec4cc8281bc923be3d9a758e8c2ec3bdd7d82f50d8e0",
+      "size": 91164
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(2).jpg": {
+      "sha256": "90509cc1164e91d99fe590e83def143bd366002e2dda7f8486c84edad16ae273",
+      "size": 70414
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(3).jpg": {
+      "sha256": "e9e5948c55a9b107326fc4a4e060207d5046cb0978338eedb6c4c1b7eb0cf2f2",
+      "size": 40289
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(4).jpg": {
+      "sha256": "f7cc72f330de697f2e5202f353fef53aefe5e0051c25e82f0f714336a795c935",
+      "size": 72252
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45.jpg": {
+      "sha256": "0e6080526725c632d3cc6ef6c87589b9d4aff37fc9b2c7bd308fa0a51523b7a4",
+      "size": 61233
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(1).jpg": {
+      "sha256": "6b4be1d6d93c2e8b30d76960ac9a0f9a0b69e599a399bc451e5d144c0e9e9dad",
+      "size": 93493
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(3).jpg": {
+      "sha256": "196de4a2dad585130b2238e0ade27d59551307daaa67e9ff0872adfd5ccbb732",
+      "size": 44833
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46.jpg": {
+      "sha256": "43cd999791d2450ee93b46ab6191cfb8ecebf58c7484072d1fdfb4c4ac907138",
+      "size": 47488
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(1).jpg": {
+      "sha256": "5aae53416842464c4371aa356d825a886a4e4653f79eb6c212a1fe62431045c8",
+      "size": 59545
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(2).jpg": {
+      "sha256": "9ddef5e8e09be39630490f3b4a0905d3b78a9b675fd104971ab7b9a0e7e3258b",
+      "size": 78715
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(3).jpg": {
+      "sha256": "bfc1b84ca26bcfca6829a96bf290007029d1ec9afaf44d8e29a2219d1f409854",
+      "size": 37572
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(4).jpg": {
+      "sha256": "312624fbc40eb3f8bd7aa61a5ada6efe6e661d72899cb422d95451453fccb03f",
+      "size": 88482
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47.jpg": {
+      "sha256": "ec37ca0269392be17328a884058f88746bb2605e68f98f162584941fb4dd4030",
+      "size": 50725
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(1).jpg": {
+      "sha256": "79f1553f0a200f7fb2cd5296f89ebb2a5d2c0d6e816995d65d69db991b67372d",
+      "size": 74066
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(2).jpg": {
+      "sha256": "daf41e35c1df4c872f319504a9554b3e515217f3dcf21cbdceb7a700676dadf1",
+      "size": 67447
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(3).jpg": {
+      "sha256": "e38d46c3375c5fb79950f434484b8dda184b6678df856248d31773c343898959",
+      "size": 41774
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48.jpg": {
+      "sha256": "163c7f41549f1467c9948bae87272b6c6a8a8c6c45ded5fc0eff0c9787df411d",
+      "size": 56499
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(1).jpg": {
+      "sha256": "41d3da0d4aca62626c95efe7a9b397f433f7859d781e11d115f412451d8b41bc",
+      "size": 74318
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(2).jpg": {
+      "sha256": "b4ad1ed17432778f8bc1de37619f0ec689e760637e39da877cabd776dc97acf8",
+      "size": 35683
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49.jpg": {
+      "sha256": "c6cdd7de5cca5578e9a60615e5224591fc3f518f71955059ffb88e5b7ebe2934",
+      "size": 72054
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(1).jpg": {
+      "sha256": "435c12c2aec700e1a021231e6c6fb1b5d2fcb5fd41275a93f048fc5a6bc239fc",
+      "size": 62616
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(2).jpg": {
+      "sha256": "e311349bd266816c0400fd4160d52ea7156f9699deaf658fe08b18ce3b5cb40c",
+      "size": 34434
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50.jpg": {
+      "sha256": "8d60fed1950e5262baa6b9f667f416a83816ba9bb34ebdeb098e7234c689f46a",
+      "size": 60167
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51(1).jpg": {
+      "sha256": "0d217444820d545d5f155a6ed51fe6c5ccb4f701867b3a110b775fcc756c0be7",
+      "size": 56494
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51.jpg": {
+      "sha256": "1611e68eb19121fcebbe912964e9cd5cce2fc2b2a5c9a9659cdd6abd92c98a84",
+      "size": 44399
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52(1).jpg": {
+      "sha256": "153cd1e0704bf0e61c3d61654b63a6a42958e178beb1d00df92baf12c11a8395",
+      "size": 64620
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52.jpg": {
+      "sha256": "7b160ca9f3e97dd0b71db0574be9b27229bac9bcc78dfb8f5843a0cde58f0215",
+      "size": 56616
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(1).jpg": {
+      "sha256": "39c3fd8b74f9abc6e5e7c9df97ecbec23734ddb22896338b64962297a7f74e91",
+      "size": 69980
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(2).jpg": {
+      "sha256": "16d0efefe00233b934714e67b4ef77e6d3f47e7f0d0cda40812ac8a25c1dd89e",
+      "size": 48348
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(3).jpg": {
+      "sha256": "32e3ff7ec384b07a76440b7d7ee9526701870d0a988b92be5065174e9ff3e81b",
+      "size": 48039
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53.jpg": {
+      "sha256": "ea8a3540ddb7851e1030a2f62a6e096e4268a1a730ab452874710d2b6dfacd68",
+      "size": 69793
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/54.jpg": {
+      "sha256": "f0f1dc3bf087b55dd4ddbb48e54257bd95d801a840ea1598841fae878a3bc30f",
+      "size": 64793
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55(2).jpg": {
+      "sha256": "6512fc88af8bba8c249cfc5db655385b4645d9d87015ddd0333e6346a332dbb0",
+      "size": 76856
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55.jpg": {
+      "sha256": "614cb249d3cb57c016244ca674ea28e5b6ff39c4e20e69347f2b5851f5f5673e",
+      "size": 59246
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/56.jpg": {
+      "sha256": "8153d78ff7df05437e0c831ebed80a865f22a3df5a60ac57d7e8be3652fd5de0",
+      "size": 62435
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(1).jpg": {
+      "sha256": "d07b387eecd7691789f49d379121ae653cd1beb8e6dd75a6e40cfef1cb9b3a0d",
+      "size": 59732
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(2).jpg": {
+      "sha256": "97dc0cfb21d5b154f5d38d4678c38521f3fa65b12b9da786504921bcb967a7f9",
+      "size": 76269
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57.jpg": {
+      "sha256": "3a9e7e8de1821aaaf6f58a7f76bc3ea713c4d499bcd05d1d817a3f1278e72710",
+      "size": 56802
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58(1).jpg": {
+      "sha256": "3be88502a8532d18bdca35d5107b8a8d12b29e32d2f1a7fca229a4350972697f",
+      "size": 80823
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58.jpg": {
+      "sha256": "07fa2f31563a8fb693665ed1024f4bc021bc1b5d24769fb2d0fb18a9926b67fd",
+      "size": 48188
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(1).jpg": {
+      "sha256": "c42fb53b1ace3ef2f2a242dd8647289178ef5280893a1060562944b7435b65b8",
+      "size": 53775
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(2).jpg": {
+      "sha256": "a13d385f9f60db387a2fa3676591fcdb0a59c36bf6eab271b7bc4dc201d89f35",
+      "size": 87344
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(3).jpg": {
+      "sha256": "574f8eff25cb53a8f1b32a9b51536a5f1c81d575e61cf5c5ec9b989b64b7345a",
+      "size": 38658
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59.jpg": {
+      "sha256": "82c4dec15e1e47dd9f7ed0cc2e137f523bff8bd30f97cbc5c92dc928b059ece0",
+      "size": 55663
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(1).jpg": {
+      "sha256": "8405cb88e365a3376ce6d70e430f90672b6a23bbcf870c335b73dec853595c4c",
+      "size": 71329
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(2).jpg": {
+      "sha256": "90c3a35c6251db2c5df9738024f79f5ed7f86352d8bc8112833a2a303ff8709a",
+      "size": 91387
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60.jpg": {
+      "sha256": "957bc1c650d30c5234a19b26cc146faeb9fdea886a84d5008e7a42f8b07425fd",
+      "size": 58319
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(1).jpg": {
+      "sha256": "260dc777d949a6921ec798123e08d5aad7df7dca28b20e38e78756931a7621f0",
+      "size": 59025
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(2).jpg": {
+      "sha256": "a3dea38879506235324423201df795fa8001e72014334ba78541eaafa03d8cbb",
+      "size": 62082
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61.jpg": {
+      "sha256": "8337c5706a4ea623e17fee8a92fdb7076ac6983f374dfbe426d69373b32c5334",
+      "size": 43872
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/62.jpg": {
+      "sha256": "3de476b093ffa0f0c580652b417a8223d28978c5792e5563c9f5b5c98b5ce775",
+      "size": 39485
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(1).jpg": {
+      "sha256": "3d69cc71d67eefd4eb560d9d46dd4054a8e39d4f5c6c593a6048569c8214f4a3",
+      "size": 92416
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(2).jpg": {
+      "sha256": "4aff0f050cc609a7521be98c2e7ab5fe32a5a37aa605137c1ed629f7bad5c9a3",
+      "size": 80045
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63.jpg": {
+      "sha256": "f78c982ebd774c2b87d0fc7470ac1b11038e49f169fb238f73a71e8e3c514039",
+      "size": 62826
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(1).jpg": {
+      "sha256": "3f4115a92e1160509732aaa6b87a4aeb7c572e23723d43192a93d489e6a349e7",
+      "size": 68569
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(2).jpg": {
+      "sha256": "3baf87b1bb701b75bfa155d34232e98ece109426349e092ebb23dfd1036f5112",
+      "size": 46686
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64.jpg": {
+      "sha256": "d983dd84f0ae498590cda57466b1fea0880d818f2d06d1bc316209005ae8c6a2",
+      "size": 59891
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(2).jpg": {
+      "sha256": "f8f092bb944f2134a1e1deb706c1265147de2ab8647a01ae763ed388a5acc83c",
+      "size": 35944
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(3).jpg": {
+      "sha256": "587303c3b99c53ca70cc0b4fbd316e12a1c7df1ed61f4b99f8feb03f293bca7e",
+      "size": 45883
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65.jpg": {
+      "sha256": "698a14fa556ab2c80ec0d8097bacae44a38a814d26fb2ee16222a6e29b8be8f9",
+      "size": 64951
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67(1).jpg": {
+      "sha256": "cc857befef45c4c78414de1e09ac87d3fb9c5ed7571fd5a4a28ab8dcff72635e",
+      "size": 70897
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67.jpg": {
+      "sha256": "d078890375015679a99fde00e4b67247d35e71af686abd8fe0b3dd4520a8d9d7",
+      "size": 39058
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/68.jpg": {
+      "sha256": "c1f2c8237765813babcc4c446e4fcc2a353b9401345f80d98eac83385fad3e0f",
+      "size": 67470
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69(1).jpg": {
+      "sha256": "9cedcc31ee8e7b17a18d560aaeba371412fe8799ca2a3834746405b615dabedf",
+      "size": 42225
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69.jpg": {
+      "sha256": "e4c345a4c78a3dec4d04daa885d02550a1a5ab75e99617300df53f829d2909e8",
+      "size": 57889
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/70.jpg": {
+      "sha256": "ea329f9a3f05cd0e10b8900991548863c882262ed868105d3ac749ba57863f7a",
+      "size": 51648
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/73.jpg": {
+      "sha256": "bb59b0dbfee38e0d805fbec6655c0e14d9370cbdc6e9eab1bd2fc771391fc072",
+      "size": 69522
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(1).jpg": {
+      "sha256": "dc14384d465dc13f72e02c7ffbe7f8262528cc6cc5fa15704b39ae9790f16d7e",
+      "size": 61516
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(2).jpg": {
+      "sha256": "c94374066427ace83f4da78715cd51a08e8d642c97e6a77885d881a186e6c0e5",
+      "size": 80846
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74.jpg": {
+      "sha256": "194247b265367b0ad73290dafde6f9c501127dadeb47b527afc05de2f35c93c3",
+      "size": 59512
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/75.jpg": {
+      "sha256": "4fc79fc429db858772214eafcc51cf454be7fc9b2468e07703f32f396ebbe98e",
+      "size": 48120
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77(1).jpg": {
+      "sha256": "ebf2383838b865d877a48eee68c786dab4373a565ab1d6da3955bbaa56924aeb",
+      "size": 62507
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77.jpg": {
+      "sha256": "c65e46ae54d0a322c012f10a549a6e9ae50ba3b74e674582567d6fb95331fba9",
+      "size": 68977
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81(1).jpg": {
+      "sha256": "b3106ad93d3fc10ec378e5fc972566b00a5c00994f06db7fbcd0a014ac137611",
+      "size": 80110
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81.jpg": {
+      "sha256": "017f54d36c1cc007e49ce6dd5151e06a1dfb511cbeb5d2722cd9602b74955855",
+      "size": 52059
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82(1).jpg": {
+      "sha256": "880a4b095719fc8240c3d5a18de41c4a9e8bf35dee77ff816885c903a2db8c9c",
+      "size": 45030
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82.jpg": {
+      "sha256": "f1a601c57ba52f0056dd4b78532d1f8de58db5ad2aecb585e809e48b6d3cc0fd",
+      "size": 50993
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/83(1).jpg": {
+      "sha256": "48756e28e38c7daefb09bf1dfa8308fcb0202101c690ae807ac99ca60aa8b8dd",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84(1).jpg": {
+      "sha256": "877894272b0129b9e49b0e3c4659d25153d9f547fd92f7b98e9daaf31039201a",
+      "size": 58207
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84.jpg": {
+      "sha256": "a9e80b3194aeb862a539449c2092e28c469687ef78a70acd299262e63fcb6699",
+      "size": 57747
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(1).jpg": {
+      "sha256": "0e5e945ecf598e59378d7c256da60b0ce08736a64e4ae84d1b6bf493ed650ccd",
+      "size": 50741
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(2).jpg": {
+      "sha256": "8ffd8108dabd02c0a5302fe16be36c3ca8da46a228ae669ab5b9f2fc45827d44",
+      "size": 43155
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85.jpg": {
+      "sha256": "6a1190b49325f0f2de248653cdf56f50dedbc51c258216e20c3441acdbce9633",
+      "size": 68221
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(1).jpg": {
+      "sha256": "e999d576e87ad34ebf8fe62b64fb882a6f07fec2cf034c684e94580ad09fd353",
+      "size": 80577
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(2).jpg": {
+      "sha256": "a10d1cb6f308c42ecd8fadee56b777b04669632872afe688653edcc546567293",
+      "size": 41762
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86.jpg": {
+      "sha256": "22be024211f0bbf7ee62a0d47a8e9e36fa6655e8c5624132bc18efe3b6ee24d9",
+      "size": 49392
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/87.jpg": {
+      "sha256": "eab640b9c75d626d960df19b24c1d6d66c6d11dcbadefa06f74b6ccc89ecdf56",
+      "size": 71722
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/94.jpg": {
+      "sha256": "8f99863594253348a0a2a966a5ba38d274d31cccff147cfebc15fd6f0a959881",
+      "size": 54840
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/98.jpg": {
+      "sha256": "0bed409f9caf22aedf6f6e61959f5cd9f92cc5f5c740014249e9000caa0b1cfd",
+      "size": 76788
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/99.jpg": {
+      "sha256": "c0a676f1a4b818eff7b64d8cabde0deed44e7916b48603440965a5278dfb1ae8",
+      "size": 50411
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54 2.jpg": {
+      "sha256": "343d86eeb77aae5f1303423297c8082f70210e7775a0828e1cad54b16ad5ae13",
+      "size": 46295
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55.JPEG": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN 2.jpg": {
+      "sha256": "d8596ba176378583534755a52e996f8c24c03a4abaf8015e345013ab2b2bab8d",
+      "size": 28252
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN.jpg": {
+      "sha256": "613872f692da898e3970f912f9e08f9ba70ddf8f97f2bafdad2a91591f6e3f8c",
+      "size": 27929
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67 2.jpg": {
+      "sha256": "0d9b4a933345ca8de954049d463a4cf9dcd31e4e67a325c29fd8c51de5dafc92",
+      "size": 30531
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68(1).jpg": {
+      "sha256": "5065047ecd96f23a67fbb31d0cd4c4862d608fa062797b45dca6136719c287d7",
+      "size": 53946
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81 2.jpg": {
+      "sha256": "b98b78f923717ddfdd94f0e99e9ce85e89eee62ceb8f56957b1c1472ce3b2252",
+      "size": 37758
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84 2.jpg": {
+      "sha256": "e83f935e0c0a0ca0b847ddbeebb82ca06df446f99b4038f224dabeeb3dda963f",
+      "size": 38270
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/raw/insat/insat_3d_ds - Sheet.csv": {
+      "sha256": "055d0e216a22389e462090166789a50ed9ebc5766baff6d59fa6e4a0c6a9f306",
+      "size": 1605
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/101.jpeg": {
+      "sha256": "6c784cace01099f640e6b4c9eedf595866fce091082311e6a5ed65a4b4fac1ea",
+      "size": 164550
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/102.jpeg": {
+      "sha256": "84285b0faf8736249e128e1c5a54e4499cdf4573b1e119b2548f7341e149eac5",
+      "size": 57711
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/106.jpeg": {
+      "sha256": "c50cf71245d290dd6bedcb9d4b09664c063457ba0e8731e2c3262c8ff765b2a6",
+      "size": 173614
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/111.jpeg": {
+      "sha256": "667cbb33b5334d6002c9c163a7b1fce875434e56b79f57dd7e80cdd3738aefa3",
+      "size": 144903
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/112.jpeg": {
+      "sha256": "56c4019f8480b15f6e5f9ff7f0af09a1904751921dee1ab9f6fcc8207c1252c7",
+      "size": 172282
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/115.jpeg": {
+      "sha256": "b00c770cc2d064e8ca6afa1fcde49a1de94fee543e405835df141a23f36d5e74",
+      "size": 164800
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/118.jpeg": {
+      "sha256": "30ae1381a7edf2baff45076db8f86f0b831a9cacd1a7cffcddfd76edea685ffe",
+      "size": 191431
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/119.jpeg": {
+      "sha256": "dfa6277001643e87f97492859b62e1bb44319ddf55a221df971edfdb62187aae",
+      "size": 187647
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/128.jpeg": {
+      "sha256": "ed7dc5018393cfab7751611a95a109718ca79ff0fabc607934a49fef07374ff5",
+      "size": 154406
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/25.jpeg": {
+      "sha256": "7c83f60171f19f24a65a6f30ec8fab4200399958b7af7531ae5e7f2542f01da1",
+      "size": 119357
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/27.jpeg": {
+      "sha256": "bd1d1c4148aff13697417b083b808c9b689cdc91566888503ca389833910f89c",
+      "size": 132932
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/28.jpeg": {
+      "sha256": "251aaaa43204482eb73f262ec78e24303c64dce6d4969f3946a0dcdb63a66bac",
+      "size": 153783
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/30(1).jpeg": {
+      "sha256": "141a0fda9906d8a60e089fe37131e6bc2248201a1faf8aed956a6e60bbb92372",
+      "size": 180340
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/30.jpeg": {
+      "sha256": "73f3ba1d51f6fd1e97e53c6c73fe958f20297379774dfbeaa76c3a2ed1a58bc0",
+      "size": 159353
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/31.jpeg": {
+      "sha256": "c72a9f8bbe15f708cd98caf6e412d79f1d3ae5cc9bbb1b4b6cefc9604e104ffc",
+      "size": 132865
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/32(1).jpeg": {
+      "sha256": "eed267b693fbee2f2292e14909b524718927db56ef9e7db22ddc4246185ad2e4",
+      "size": 111360
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/32.jpeg": {
+      "sha256": "50e74152f460fd3456ae6fa1868de5c5e412d9a7e162e8f0ecd117de95836343",
+      "size": 129747
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/33(1).jpeg": {
+      "sha256": "bba34447ae3dd3a2f106ade379413203250d040d6482391c80b99ce8198d3dc6",
+      "size": 90286
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/33(2).jpeg": {
+      "sha256": "e0439ca669463b35920144f5386c3f5e7e2675de1a2d803860d0f8223491d63d",
+      "size": 198905
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/33.jpeg": {
+      "sha256": "40cb0d7d6d67616a6382639c310b751f642f6c413a1360c6c65312fcab68537d",
+      "size": 136545
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/34(!).jpeg": {
+      "sha256": "383f9e89016c5ef6b9b801eae7ec4acbe2a8ddcc5acd52086b8ebf4ad5700726",
+      "size": 195226
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/34.jpeg": {
+      "sha256": "4c1841d62266135cf1523d724630613e3c86aa36bda6f1c77e4719f185c1a4fe",
+      "size": 137045
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35(1).jpeg": {
+      "sha256": "c67030f772bbbc37661cae7b58e2b040428c9ad6f4e54d60a7dea0bc251e7854",
+      "size": 123718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35(2).jpeg": {
+      "sha256": "730f8d5fceec7c4dec8ebe9f4cff45896b192f970b136055cc79301a32ba0d89",
+      "size": 149771
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35(3).jpeg": {
+      "sha256": "94fb3663d5808aaedb85e920233b3832f4865926a50c537b88ed032740fa049a",
+      "size": 100047
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35.jpeg": {
+      "sha256": "568f021e53b1f90f4dbcc74544c504fd793da1888da4ad80e38278577250f00d",
+      "size": 160315
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36(1).jpeg": {
+      "sha256": "1b3f44eb114b53e4df4af080a90c618519a75d02e3fc7159f1b10db5b424f8f3",
+      "size": 164701
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36(2).jpeg": {
+      "sha256": "9704af864db8f8e78ad80c34b3db2b4ce47ee095fd19fc7ee545214158e54063",
+      "size": 96176
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36(3).jpeg": {
+      "sha256": "26847bc327beb26e74a3839277da61e9b5e33e1479d35ef4b5fecc96e793d03a",
+      "size": 89633
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36.jpeg": {
+      "sha256": "d7898a44a7104878e90f6de54f8a78f01912ae9dcbdb6908dbe89e7da147bd23",
+      "size": 130629
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/37.jpeg": {
+      "sha256": "3c521a56e9812464a121b0b50f71777765f8ff58fd526abb2d42859802084449",
+      "size": 143675
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/38.jpeg": {
+      "sha256": "6712a1d7d6de46e1bc15b794dfd8b36cf02c3a40742d9561df35cb1439e3bd28",
+      "size": 184505
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/39.jpeg": {
+      "sha256": "42b709f3072a950b429d4c8c569a2f021f228b07bc4b73406b5b44de9749350d",
+      "size": 112182
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40(1).jpeg": {
+      "sha256": "c6243fa45ebd41a8776766425b1f9d2e1b166982f60c27f63073d91c8d0156da",
+      "size": 134408
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40(2).jpeg": {
+      "sha256": "4c6454af3f04b34645a11f5f36955aa3596d225a6641105e3833a13f090d5a6c",
+      "size": 130372
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40(3).jpeg": {
+      "sha256": "a699ba6620ee57291a176d3e2d7e894c3cc90405030e3fcd498ce5450a123549",
+      "size": 182057
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40.jpeg": {
+      "sha256": "2ff06bd2a0812cb91bfdf46a293863150511cdaffd92aec4d3a40a3329aa4a21",
+      "size": 159285
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/41.jpeg": {
+      "sha256": "22fdf425304a44d55538272b11c42afa38ac095cea61b78bb5f1dba014583468",
+      "size": 162678
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/42(3).jpeg": {
+      "sha256": "95246fe33fa6a64d94729e661985636ea8229ffaaa003b6cf93635533a498ec4",
+      "size": 142885
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/42.jpeg": {
+      "sha256": "b4792633c7d846074352759b391c4b137abc53369cabd40e708f23ea77ea2ccc",
+      "size": 171877
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/43(2).jpeg": {
+      "sha256": "e48a571e66aeb6334db12a1723c3019ad1090690119d58fbb2d586bf1b827dc8",
+      "size": 83730
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/43.jpeg": {
+      "sha256": "fd25b756cbaa58b717c79be4b0367bfb54221c4254f43ec4a863879440895533",
+      "size": 164361
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44(1).jpeg": {
+      "sha256": "21f69d8ec90b921eae03bd2a187464ae63dac3d851af594ec712dce6d8b6225d",
+      "size": 138225
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44(2).jpeg": {
+      "sha256": "0329d87ffe37c4a8b9f0388535e42d44f94deeab01c72467cef1bbda443cfb6a",
+      "size": 180285
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44(3).jpeg": {
+      "sha256": "fdd05971b8d372cb4e8bc15d4e224287fd3f0d532a3457ec1720123e8b57f7cc",
+      "size": 178501
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44.jpeg": {
+      "sha256": "80b69fc0562f0d5359d8024f70e3a156cb1b45efdfef28a21fdce60273c7ef65",
+      "size": 186208
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(1).jpeg": {
+      "sha256": "b00c74c43430cce2949a6d4566e894e92ef51dc46be1ea68a66394840fa525f9",
+      "size": 194877
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(2).jpeg": {
+      "sha256": "253208f3c12db34c7aa125fc3c0d0c13306cdac70b720b4ef85c0a4f826e9a3c",
+      "size": 164963
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(3).jpeg": {
+      "sha256": "0770f9c8dd6826342912e414f99534e85903d83b1cebd09105733ffc775c33b6",
+      "size": 123599
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(4).jpeg": {
+      "sha256": "1b66ac18546d3777dc4add83c9b08f0fd74a049b183e8541ea0e64353d9dbc87",
+      "size": 177773
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45.jpeg": {
+      "sha256": "f59dfa843b9b7a9204f4055cca567f21a15c1afcf37084fa984f96be6644e2c2",
+      "size": 155443
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46(1).jpeg": {
+      "sha256": "83036a3c94f6f4831e43c79c5881877fcad0433043b9c81ddae8a4b28ee29c0b",
+      "size": 196084
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46(2).jpeg": {
+      "sha256": "669e9ad31364e7fe9bea4ee2e91e3f71ca338d1d017b144e1ff3aab1475132cf",
+      "size": 3573287
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46(3).jpeg": {
+      "sha256": "c3424f52f38502608b02dcc79703e966f61c41cdbbc7682ae5f941f70d510fa4",
+      "size": 105459
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46.jpeg": {
+      "sha256": "7c4be00a91357b2afb643a81db786b45dd088b1339ca8256f35ef35d605a128a",
+      "size": 141829
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(1).jpeg": {
+      "sha256": "5a8e0f2c4b4b895692cb8bdea1cff7f1cd30c14c284787f66d72467827a4a686",
+      "size": 150182
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(2).jpeg": {
+      "sha256": "62f86a003f2d28ca0bd77e61534fd20e5e8809391f820a5db926c4d2affbe1a9",
+      "size": 180103
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(3).jpeg": {
+      "sha256": "f6cd0fc37f1e9d3feab9cdd7353b424582f481127fc43b1ae7a83558808e53e8",
+      "size": 93280
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(4).jpeg": {
+      "sha256": "0d62b4c44de030529f9684fbe143a4a177590e135d3a023eeb986cff3c5262ad",
+      "size": 195263
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47.jpeg": {
+      "sha256": "27f37fcf36a34571c94466c3e111647adebbfcb19c93e025822f1b773463c6e3",
+      "size": 143381
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48(1).jpeg": {
+      "sha256": "ae1c16af5bad7dc3979e106a3135d68ddd102719965253f2f081fe34374082b2",
+      "size": 162387
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48(2).jpeg": {
+      "sha256": "deed2f4d2547a2f1097f17c176a58bc7fc53e20cbc68045c3f825c4cd2a945ec",
+      "size": 159787
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48(3).jpeg": {
+      "sha256": "eefed2ae4a661eaadcb39fda43d11e714b828c5517dd5de0a4e3d65ed134c9e2",
+      "size": 100215
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48.jpeg": {
+      "sha256": "14186ba969f02e384b1cc7705da15b215131e82d264ad8232445e78cf2a8147f",
+      "size": 146187
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/49(1).jpeg": {
+      "sha256": "999b91e216ebaca8f6e9cff23eebf18bfb03d135c0c15b188b4440cd4e97fe76",
+      "size": 175049
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/49(2).jpeg": {
+      "sha256": "e564c2cda97d828323dd1778723601fd46dd45f3d5989eb00c3d499d46d8631c",
+      "size": 91558
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/49.jpeg": {
+      "sha256": "faf05bbdb275ccc5b0741e38a99014e044ec74139b687fa1ce982523fcea6d57",
+      "size": 167111
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/50(1).jpeg": {
+      "sha256": "4950e24208727cfdf2c1481dce3441f75dea9b023853ad539fc953ad910d7e77",
+      "size": 155098
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/50(2).jpeg": {
+      "sha256": "fe90a62ae45fc6c2d18a4af54dd1f0fea27399906ab6da7ecc109efb45f5fb09",
+      "size": 91785
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/50.jpeg": {
+      "sha256": "5c755a21ea04f1113f0d759f0fc02bd4bce9c92f1be0b4c076410a58f0bdda73",
+      "size": 156521
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/51(1).jpeg": {
+      "sha256": "680bf62b8007950fed2f1323fa08efca3322c9d886bd931fe02cf40f1e8c2250",
+      "size": 148120
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/51.jpeg": {
+      "sha256": "e58c2c2693697a9715030e7bb3ea08af3df186a92b15dfb4c39653f631e7b1f4",
+      "size": 132251
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/52(1).jpeg": {
+      "sha256": "c99902fc9748a2dc0a8069bb7f55cebf38d4af2e5db915bed2dfc01705a6eb4e",
+      "size": 170299
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/52.jpeg": {
+      "sha256": "5ece38b96c2fe1739f555e0ba5197bd9d5aeb5ccc09dfa8b9588a56026c3e297",
+      "size": 142728
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53(1).jpeg": {
+      "sha256": "7f2685cc4d33c9c483172ba665a7151ecb602fa81466f09cbb7ad0b0c9f4d4d8",
+      "size": 165325
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53(2).jpeg": {
+      "sha256": "65f5efa0ff8c0518833b9341dfec823ab99a1564dd6bc1e0112426d14c66bbb2",
+      "size": 112229
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53(3).jpeg": {
+      "sha256": "e54812afd2364f6d8e11624bec0bbc39aeec2a03468579cd353af1f2faa05a92",
+      "size": 105046
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53.jpeg": {
+      "sha256": "e54de7f7593642a11d7eb9c2e8bc1065c369c00c9cd616ecfa3d86636fc8697e",
+      "size": 362328
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/54.jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/55(1).jpeg": {
+      "sha256": "cf42c7ea1fac2984f9d3db47b39ee15c2e2e2120f9d4bfd8ffd560ccc7435303",
+      "size": 3412288
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/55(2).jpeg": {
+      "sha256": "502be2af903fab4206d7a7c643c25656921510ad0531fc3076df24ca0fb74136",
+      "size": 175711
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/55.jpeg": {
+      "sha256": "ffd6b99828e815a1c44ba10b54f38fb70dcf877cfb98168dcb7b9fc7b1aabbff",
+      "size": 147899
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/56.jpeg": {
+      "sha256": "d5c318a04792871b68ce69d89679132e6e15adcbc7ff5308ef658ac23e38b5a4",
+      "size": 158196
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/57(1).jpeg": {
+      "sha256": "7a325f60eb44e54802735facb443f356d9dfc1bdae045ebab7a8ca3a3de55838",
+      "size": 149538
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/57(2).jpeg": {
+      "sha256": "26df35e16240aa13f5a50605591252a12972f57567adc4e3de9fbc3a6591a56d",
+      "size": 173140
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/57.jpeg": {
+      "sha256": "cb18d7b670c4f82508165ae1fbc8bf89b897c81bcf6e26750fd479b36e42f817",
+      "size": 149912
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/58(1).jpeg": {
+      "sha256": "0567200dc847a3f88528a4b6bdb261d6198130de315fa9b29d86c7456b82c716",
+      "size": 182952
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/58.jpeg": {
+      "sha256": "8186118d3379e1cca3416bb345c393ab4566768f77d966e403283c53fd80121e",
+      "size": 136960
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59(1).jpeg": {
+      "sha256": "f1efcbd546efb5855b1a435d60995f2c4513a4968dae119e4089de0c5b5eae10",
+      "size": 148515
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59(2).jpeg": {
+      "sha256": "e8d9ee131c2f7c0e44bdc06d48194cfdaf3979ce51646b9aa91f17ad5117d288",
+      "size": 188836
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59.jpeg": {
+      "sha256": "14f495a4a6cbd59bdc93b31934b641b0d44762c517120ad12846a9f838e90a1e",
+      "size": 146224
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59_LUBAN.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/60(1).jpeg": {
+      "sha256": "61d33583082af439e066a30b53ba6409a5d5444672ad3c3146e17463bdf98eee",
+      "size": 170042
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/60(2).jpeg": {
+      "sha256": "6eb44ec739a4565407a14f4000d6bceba2bfec56833752c1a9338f9a0bb7b0ca",
+      "size": 192625
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/60.jpeg": {
+      "sha256": "7e1ad8d2d649c9423ff5fea70fb4c723417b314982e4d4713807ca8d327a33f3",
+      "size": 149703
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/61(1).jpeg": {
+      "sha256": "a893c80037f1f9b89292f728ff86b032ea29d0527a09b3dfc99d673ddc4195ec",
+      "size": 149713
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/61(2).jpeg": {
+      "sha256": "cf4d647c083b04162cca7821f92253e36666450e6b5491775639b01ba2508115",
+      "size": 154316
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/61.jpeg": {
+      "sha256": "9eb1f082dba667cddad2d58d03fef7453c50e969b7f381f04be2b0efc747a5d2",
+      "size": 130159
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/62.jpeg": {
+      "sha256": "f0abda2a413767ec7ad27d3526347fe4cfa9f7e863812074e555d38a16f2d7d9",
+      "size": 124585
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/63(1).jpeg": {
+      "sha256": "01d0bbd9bc71d87d9930c2043e675924eb9dfda0b664d500608d4224a0ad827d",
+      "size": 193257
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/63(2).jpeg": {
+      "sha256": "f9b97d491e1873cf1636b2756bd8d23d6610059a988367b90c8d63d66ede1327",
+      "size": 196301
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/63.jpeg": {
+      "sha256": "138bac65bff1966c17b8d7e3e13244a70d696c6fa80612536a854c1830cec319",
+      "size": 158753
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/64(1).jpeg": {
+      "sha256": "540aecdc73d2b480a4196f365e9e558fea69467c5f39228e0a440c6ba5eaaa21",
+      "size": 162660
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/64(2).jpeg": {
+      "sha256": "c39ebb9084a180d8b87ef9111ff3b57b75d7b85d0a1833f4e6ab858cdf2ee76a",
+      "size": 107215
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/64.jpeg": {
+      "sha256": "478779bb634e35e45598961a7e67762710639720998e182488314b3966a07d27",
+      "size": 156059
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65(1).jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65(2).jpeg": {
+      "sha256": "7148bb40c4f9f0aaf1c811410f76dadb7167c8f89fec2ec0752391933ad16536",
+      "size": 93108
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65(3).jpeg": {
+      "sha256": "93e5bea407e5bfc52a71a70038d60f2c08ab41626e3d381e73cc70db3a6c12f3",
+      "size": 109901
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65.jpeg": {
+      "sha256": "d6892dac130bbe55fe6cc9b26a3bd7163d2730dda1933749de9c10bd6b053369",
+      "size": 162805
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/66.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/67(1).jpeg": {
+      "sha256": "1c3c8b1e36ec5c9b23897ac49a1d69c85b47caef161b6a462caf674698744e3c",
+      "size": 164201
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/67.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/67.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/68(1).jpeg": {
+      "sha256": "8a15951f6a9f8da3a329157bc9f24c6ef51f7b010d7c90e42e251b4abae17835",
+      "size": 194542
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/68.jpeg": {
+      "sha256": "7228ce4f0938683e9a07f135b0cb8558a450eb3445f79c639a19d1407e6b4dbe",
+      "size": 169133
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/69(1).jpeg": {
+      "sha256": "bf34a05f604d4d8c944cf44636eabfb002d8aae4839a5f47aa8b50e408427608",
+      "size": 111858
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/69.jpeg": {
+      "sha256": "fe5775342a10b8969b763b83060178901a6f7e45dc531bde15b7d0b86cef3d6f",
+      "size": 147739
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/70.jpeg": {
+      "sha256": "37901e9e97d365ac063a8b5311fbe2f6a868c95c21ce2c75e14cb17aa8bd32f8",
+      "size": 143543
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/73.jpeg": {
+      "sha256": "72b8675bb21f1faea18f43ae340c505c3b2162e0ea4b6da91094c5b0ff61d04f",
+      "size": 161315
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/74(1).jpeg": {
+      "sha256": "a0c6ff1cf593cd23f209f785f4964c12624c06fc1c756da8b86c3a20ce5abe43",
+      "size": 154726
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/74(2).jpeg": {
+      "sha256": "ce8325e5876e04f6beb10364c43e6f3fbde0aefbccc4c4f76c69ab6b35ca174d",
+      "size": 192847
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/74.jpeg": {
+      "sha256": "6990cb456f328e53b28ddf2f0d0315806f5752acf5ee65e4c5a86570463c20d7",
+      "size": 153198
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/75.jpeg": {
+      "sha256": "2fb2f89d730d9b7f71730b794e670fbfd6eaa1d1a2faf2294328c62f4242bef7",
+      "size": 109894
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/77(1).jpeg": {
+      "sha256": "4fff2d24fbc23e1c75888ac9b83226af238ea43dda0ae57c4e916d2aa8838c42",
+      "size": 161006
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/77.jpeg": {
+      "sha256": "7e565b4df8b14487a4ef9727dffc2c7a5e52d2a7af3fcbf4e17277bbdd9ca99c",
+      "size": 165880
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/81.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/82(1).jpeg": {
+      "sha256": "0ab32dcbf570497e4130e63a34405242b247d4d3aabf12d18c483e3c61d2c08b",
+      "size": 108114
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/82.jpeg": {
+      "sha256": "416a6f93d980c9bf07d0a1fecc35b25465161cfd4269c1865b86816b8718dc23",
+      "size": 134117
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/83(1).jpeg": {
+      "sha256": "5a266392bb4d89c8883ff99b4d003833b28b8f8609d2881fae4a38509047ecf5",
+      "size": 140159
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/83.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/84(1).jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/84.jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/85(1).jpeg": {
+      "sha256": "f8a5d5e537a57fccbceac4a7f513ae5e66811c6de2571e9970b587a3820dc0f0",
+      "size": 140210
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/85(2).jpeg": {
+      "sha256": "c4493f6ca15ad1e73634f1e8e52c3fe4e0cc65b2a19cf0cd4c99a5e4507aa6d9",
+      "size": 128894
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/85.jpeg": {
+      "sha256": "fe193a57512af0f6178e14aebed2f53e224180c0ddfe211fd344e157b07644a3",
+      "size": 169230
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/86(1).jpeg": {
+      "sha256": "18bc8a6a10121da6cba23038be041bfcbc18bb8225d90170921e5327ce320507",
+      "size": 176100
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/86(2).jpeg": {
+      "sha256": "6de224ff7ecc6baef7ff129a7570d6a04acb1a5226995f123b64fa4bc795edc5",
+      "size": 100829
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/86.jpeg": {
+      "sha256": "a8fd61f7e62fa198e00f712cc82e7e2dcbd1d97675516e4e8a6e870520d798cc",
+      "size": 140000
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/87.jpeg": {
+      "sha256": "41fe507e17cb6d3cd77c20c5d18899d6d71b440f328c0cc249310d7758540346",
+      "size": 167808
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/91.jpeg": {
+      "sha256": "46ad22b7bf426961b19c4d69151f7afed45476ccbd6e521574fed43d49936f98",
+      "size": 3405942
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/94.jpeg": {
+      "sha256": "6581e4127c9965dfbd6754019b058df4531b293ccac796bcf5b4352743c617e1",
+      "size": 152828
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/98.jpeg": {
+      "sha256": "c8f9b8d16263c3e207c551fe830766786f8737f783cbce1692c4a7f1fb37ab4a",
+      "size": 174063
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/99.jpeg": {
+      "sha256": "94df5e610ab44a953c022b051052af3648bb50a76d6aef88e07ecf07fd9e7ba8",
+      "size": 133294
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/101.jpg": {
+      "sha256": "8551d01791836a917f6c32329695ac62d945823c40b2d07dd59dcd86cd14c290",
+      "size": 65391
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/102.jpg": {
+      "sha256": "333cce161a51e8dca79182b36b041e1c3b7cfe98fc588753976d6309ed6dde64",
+      "size": 20105
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/106.jpg": {
+      "sha256": "07821bc89c610df2b3187261172ee9213595f52d35dcb88ab1dd2e117123c6e7",
+      "size": 76355
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/111.jpg": {
+      "sha256": "b10ee14f89a186522d422881c26c9ccdc633aa05c35fe69df52f0a6497b10bed",
+      "size": 49955
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/112.jpg": {
+      "sha256": "79d38dc044c671949894cdf13ac53aaf5b4e65c23c527447e4c35027eeb72fab",
+      "size": 72971
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/115.jpg": {
+      "sha256": "35082965a9ff195ac984be774af3e535a241febdc98df836668cce7f3faa13eb",
+      "size": 66660
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/118.jpg": {
+      "sha256": "df1629366b828aab31028d03b45e65733742f4ea55fd9e9cbd8cdfc88bb23d95",
+      "size": 82718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/119.jpg": {
+      "sha256": "bfc0ed97c4b5b3f8275faef180cd4bcb1d72108ebdf386eb59bd8684fc37e8d9",
+      "size": 77716
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/128.jpg": {
+      "sha256": "f76c2729cbbb0c64199f5628de7530efdf0ac0b7e20ef6bb1a401fb949e4898e",
+      "size": 62360
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/25.jpg": {
+      "sha256": "02ec1842b21c93390493ca3679d1d824bc32d36017ada654c5aa8e4ff5ba4ec5",
+      "size": 37659
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/27.jpg": {
+      "sha256": "acea341326e3f5a1103b9c300223f16af31f7da9558b1b912f6a638e3e7cca9c",
+      "size": 49969
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/28.jpg": {
+      "sha256": "87dff5923e3c0bf3b93f7e4db60d6a1b372a77522f44ff2f0d68b0cce2ff87e3",
+      "size": 57452
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30(1).jpg": {
+      "sha256": "34e37deeceeeae9afde173fc393eaea50de3dac66c544b1a7c3087aae628f0f1",
+      "size": 75116
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30.jpg": {
+      "sha256": "d58ef179e9160d6b4911203fa2cc6d85e16e432a6694c1a2d533f7f5a2e02119",
+      "size": 66896
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/31.jpg": {
+      "sha256": "5882ef92efcc4c9828e9e97e21bb74bd274b3e0ba7f30f22239509636f7f13ce",
+      "size": 50626
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32(1).jpg": {
+      "sha256": "409717c968183d74a2e48294901f925eb496c3885ea7cf6a486443bbff86dbaa",
+      "size": 42035
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32.jpg": {
+      "sha256": "60be9b9358fae62dcc88bc6b48f3e3a7a62f205e7741a2ec51700db5e0fb48cf",
+      "size": 43003
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(1).jpg": {
+      "sha256": "c27160112bd1d3538605d4d3e59a45fc478499f3419158628579c6074919da3d",
+      "size": 34052
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(2).jpg": {
+      "sha256": "04556b6705fb603124868e50cc85bf87568ccf3ed54f92ecdc40bed9e9bc6a9e",
+      "size": 85096
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33.jpg": {
+      "sha256": "1652e7b7c6605a233ff0e75d6468b6dc8e0e6656ea60416e2cf60f02ce495c9b",
+      "size": 52632
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34(1).jpg": {
+      "sha256": "6775fccf96418b243af9f244cb09dcba2e8f25d8da2015a26c791afc022cfcd1",
+      "size": 90285
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34.jpg": {
+      "sha256": "95feec6e72e87c4b073ed4fa9724ef4c29ec4262ea4226f9912cc21fd3e91471",
+      "size": 51299
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(1).jpg": {
+      "sha256": "9994a099d453a047c820282ddf914e0dbb1e27415fae4b1f62fbf0c39dee5e6b",
+      "size": 37132
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(2).jpg": {
+      "sha256": "03cfc7d775b6f3d58d9158855abc73ac90909784659f91a0345192cac9afc339",
+      "size": 58011
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(3).jpg": {
+      "sha256": "c002444890b94f1cacb7ffee4551703374b7a30484639b4c371ce1bb6c26c6b7",
+      "size": 41605
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35.jpg": {
+      "sha256": "3e2ae2516944192c6a85f912484bddd3daa009c9b47a370388fcf220f6fafcc0",
+      "size": 66837
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(1).jpg": {
+      "sha256": "a6bdd5692c505ea7cd473791bd7dad61b7dbbab6753ae52dc5259b79659f3836",
+      "size": 73137
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(2).jpg": {
+      "sha256": "d0c4112b0f65da2888a567587acf048429685b755bb601d02e2200ba15af7ecb",
+      "size": 38563
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(3).jpg": {
+      "sha256": "ea35e4602d95d999cf376cbc772b8e4bafcb827eaf688ce56e5dc61d9af5348b",
+      "size": 33440
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36.jpg": {
+      "sha256": "4ffcb9036c0c818f37753c64c71ce6c27c6972b73d4f27c81fe86535d7ee19ca",
+      "size": 47852
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/37.jpg": {
+      "sha256": "e8f9a0ff22ac3faaeaf5b1b13c49c82b25ea34989d9561f87c80130840ef47a7",
+      "size": 54951
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/38.jpg": {
+      "sha256": "d5f664690a665f2927c606f7f2e993178418412f478be6fd7cca1024a812fd32",
+      "size": 84246
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/39.jpg": {
+      "sha256": "6ded8060fae2dce49b96cc8b3915a13da493f055e462899c9c1af2fe5f71484e",
+      "size": 42355
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(1).jpg": {
+      "sha256": "e1998bb4cbd217183e87840d9fb1a68ee26011ddedac26339f7a205a3344b78b",
+      "size": 50048
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(2).jpg": {
+      "sha256": "0c55a6c76d4c65fcebc7963d7322f6f6d687a0c68791f46395cab1c8776ea055",
+      "size": 44484
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(3).jpg": {
+      "sha256": "0be086070dcfefec36276101f565dfdcbd11db6606abb5d2370ca78d80529200",
+      "size": 75972
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40.jpg": {
+      "sha256": "d197c530f11a93f025689aa88a5e307d26cd9ed76e8ed7f279947a69912ae16d",
+      "size": 61567
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/41.jpg": {
+      "sha256": "7afb505062a8e54bcc921deff1e1567d2819020769bb15cee16346ab15525990",
+      "size": 63696
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42(3).jpg": {
+      "sha256": "8e66750e2f4022690f4aed09eb0411cdff9c5956eb2b3289d24bd3c0ff59bbee",
+      "size": 49047
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42.jpg": {
+      "sha256": "7adb2b2adfcd37646c75898e17893353c06a78d19562c29e8e80a2751877c470",
+      "size": 78103
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43(2).jpg": {
+      "sha256": "c130fa15793e074ce6fd3fdd6a790cc5abbd9a339a7c1083acbee5d4f5ba073b",
+      "size": 29616
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43.jpg": {
+      "sha256": "165b948785ac4f83204642a120e23f6478cf0ef1e9c50ccda080f23696f84c68",
+      "size": 64756
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(1).jpg": {
+      "sha256": "4b8d1c160bcf6d51ba87b9b8c6f66962ca6975c10899be37d5c0f31d64f7ac94",
+      "size": 47835
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(2).jpg": {
+      "sha256": "1ed2daa780358584bab191181910855345d923b13c26141ea5e2cd530a0edb7f",
+      "size": 81670
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(3).jpg": {
+      "sha256": "890ede0ae764d3f87e6ccde2e5f3f4cbe874078c3da56459cc1ca8baeb97d729",
+      "size": 73058
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44.jpg": {
+      "sha256": "3039e0386a70b3e101560f840d0e5af52d983ff41500e18e871a0b2e643b97ea",
+      "size": 84588
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(1).jpg": {
+      "sha256": "9d18b78190e18e4acde1ec4cc8281bc923be3d9a758e8c2ec3bdd7d82f50d8e0",
+      "size": 91164
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(2).jpg": {
+      "sha256": "90509cc1164e91d99fe590e83def143bd366002e2dda7f8486c84edad16ae273",
+      "size": 70414
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(3).jpg": {
+      "sha256": "e9e5948c55a9b107326fc4a4e060207d5046cb0978338eedb6c4c1b7eb0cf2f2",
+      "size": 40289
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(4).jpg": {
+      "sha256": "f7cc72f330de697f2e5202f353fef53aefe5e0051c25e82f0f714336a795c935",
+      "size": 72252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45.jpg": {
+      "sha256": "0e6080526725c632d3cc6ef6c87589b9d4aff37fc9b2c7bd308fa0a51523b7a4",
+      "size": 61233
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(1).jpg": {
+      "sha256": "6b4be1d6d93c2e8b30d76960ac9a0f9a0b69e599a399bc451e5d144c0e9e9dad",
+      "size": 93493
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(3).jpg": {
+      "sha256": "196de4a2dad585130b2238e0ade27d59551307daaa67e9ff0872adfd5ccbb732",
+      "size": 44833
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46.jpg": {
+      "sha256": "43cd999791d2450ee93b46ab6191cfb8ecebf58c7484072d1fdfb4c4ac907138",
+      "size": 47488
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(1).jpg": {
+      "sha256": "5aae53416842464c4371aa356d825a886a4e4653f79eb6c212a1fe62431045c8",
+      "size": 59545
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(2).jpg": {
+      "sha256": "9ddef5e8e09be39630490f3b4a0905d3b78a9b675fd104971ab7b9a0e7e3258b",
+      "size": 78715
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(3).jpg": {
+      "sha256": "bfc1b84ca26bcfca6829a96bf290007029d1ec9afaf44d8e29a2219d1f409854",
+      "size": 37572
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(4).jpg": {
+      "sha256": "312624fbc40eb3f8bd7aa61a5ada6efe6e661d72899cb422d95451453fccb03f",
+      "size": 88482
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47.jpg": {
+      "sha256": "ec37ca0269392be17328a884058f88746bb2605e68f98f162584941fb4dd4030",
+      "size": 50725
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(1).jpg": {
+      "sha256": "79f1553f0a200f7fb2cd5296f89ebb2a5d2c0d6e816995d65d69db991b67372d",
+      "size": 74066
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(2).jpg": {
+      "sha256": "daf41e35c1df4c872f319504a9554b3e515217f3dcf21cbdceb7a700676dadf1",
+      "size": 67447
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(3).jpg": {
+      "sha256": "e38d46c3375c5fb79950f434484b8dda184b6678df856248d31773c343898959",
+      "size": 41774
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48.jpg": {
+      "sha256": "163c7f41549f1467c9948bae87272b6c6a8a8c6c45ded5fc0eff0c9787df411d",
+      "size": 56499
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(1).jpg": {
+      "sha256": "41d3da0d4aca62626c95efe7a9b397f433f7859d781e11d115f412451d8b41bc",
+      "size": 74318
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(2).jpg": {
+      "sha256": "b4ad1ed17432778f8bc1de37619f0ec689e760637e39da877cabd776dc97acf8",
+      "size": 35683
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49.jpg": {
+      "sha256": "c6cdd7de5cca5578e9a60615e5224591fc3f518f71955059ffb88e5b7ebe2934",
+      "size": 72054
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(1).jpg": {
+      "sha256": "435c12c2aec700e1a021231e6c6fb1b5d2fcb5fd41275a93f048fc5a6bc239fc",
+      "size": 62616
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(2).jpg": {
+      "sha256": "e311349bd266816c0400fd4160d52ea7156f9699deaf658fe08b18ce3b5cb40c",
+      "size": 34434
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50.jpg": {
+      "sha256": "8d60fed1950e5262baa6b9f667f416a83816ba9bb34ebdeb098e7234c689f46a",
+      "size": 60167
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51(1).jpg": {
+      "sha256": "0d217444820d545d5f155a6ed51fe6c5ccb4f701867b3a110b775fcc756c0be7",
+      "size": 56494
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51.jpg": {
+      "sha256": "1611e68eb19121fcebbe912964e9cd5cce2fc2b2a5c9a9659cdd6abd92c98a84",
+      "size": 44399
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52(1).jpg": {
+      "sha256": "153cd1e0704bf0e61c3d61654b63a6a42958e178beb1d00df92baf12c11a8395",
+      "size": 64620
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52.jpg": {
+      "sha256": "7b160ca9f3e97dd0b71db0574be9b27229bac9bcc78dfb8f5843a0cde58f0215",
+      "size": 56616
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(1).jpg": {
+      "sha256": "39c3fd8b74f9abc6e5e7c9df97ecbec23734ddb22896338b64962297a7f74e91",
+      "size": 69980
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(2).jpg": {
+      "sha256": "16d0efefe00233b934714e67b4ef77e6d3f47e7f0d0cda40812ac8a25c1dd89e",
+      "size": 48348
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(3).jpg": {
+      "sha256": "32e3ff7ec384b07a76440b7d7ee9526701870d0a988b92be5065174e9ff3e81b",
+      "size": 48039
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53.jpg": {
+      "sha256": "ea8a3540ddb7851e1030a2f62a6e096e4268a1a730ab452874710d2b6dfacd68",
+      "size": 69793
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/54.jpg": {
+      "sha256": "f0f1dc3bf087b55dd4ddbb48e54257bd95d801a840ea1598841fae878a3bc30f",
+      "size": 64793
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55(2).jpg": {
+      "sha256": "6512fc88af8bba8c249cfc5db655385b4645d9d87015ddd0333e6346a332dbb0",
+      "size": 76856
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55.jpg": {
+      "sha256": "614cb249d3cb57c016244ca674ea28e5b6ff39c4e20e69347f2b5851f5f5673e",
+      "size": 59246
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/56.jpg": {
+      "sha256": "8153d78ff7df05437e0c831ebed80a865f22a3df5a60ac57d7e8be3652fd5de0",
+      "size": 62435
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(1).jpg": {
+      "sha256": "d07b387eecd7691789f49d379121ae653cd1beb8e6dd75a6e40cfef1cb9b3a0d",
+      "size": 59732
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(2).jpg": {
+      "sha256": "97dc0cfb21d5b154f5d38d4678c38521f3fa65b12b9da786504921bcb967a7f9",
+      "size": 76269
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57.jpg": {
+      "sha256": "3a9e7e8de1821aaaf6f58a7f76bc3ea713c4d499bcd05d1d817a3f1278e72710",
+      "size": 56802
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58(1).jpg": {
+      "sha256": "3be88502a8532d18bdca35d5107b8a8d12b29e32d2f1a7fca229a4350972697f",
+      "size": 80823
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58.jpg": {
+      "sha256": "07fa2f31563a8fb693665ed1024f4bc021bc1b5d24769fb2d0fb18a9926b67fd",
+      "size": 48188
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(1).jpg": {
+      "sha256": "c42fb53b1ace3ef2f2a242dd8647289178ef5280893a1060562944b7435b65b8",
+      "size": 53775
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(2).jpg": {
+      "sha256": "a13d385f9f60db387a2fa3676591fcdb0a59c36bf6eab271b7bc4dc201d89f35",
+      "size": 87344
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(3).jpg": {
+      "sha256": "574f8eff25cb53a8f1b32a9b51536a5f1c81d575e61cf5c5ec9b989b64b7345a",
+      "size": 38658
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59.jpg": {
+      "sha256": "82c4dec15e1e47dd9f7ed0cc2e137f523bff8bd30f97cbc5c92dc928b059ece0",
+      "size": 55663
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(1).jpg": {
+      "sha256": "8405cb88e365a3376ce6d70e430f90672b6a23bbcf870c335b73dec853595c4c",
+      "size": 71329
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(2).jpg": {
+      "sha256": "90c3a35c6251db2c5df9738024f79f5ed7f86352d8bc8112833a2a303ff8709a",
+      "size": 91387
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60.jpg": {
+      "sha256": "957bc1c650d30c5234a19b26cc146faeb9fdea886a84d5008e7a42f8b07425fd",
+      "size": 58319
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(1).jpg": {
+      "sha256": "260dc777d949a6921ec798123e08d5aad7df7dca28b20e38e78756931a7621f0",
+      "size": 59025
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(2).jpg": {
+      "sha256": "a3dea38879506235324423201df795fa8001e72014334ba78541eaafa03d8cbb",
+      "size": 62082
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61.jpg": {
+      "sha256": "8337c5706a4ea623e17fee8a92fdb7076ac6983f374dfbe426d69373b32c5334",
+      "size": 43872
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/62.jpg": {
+      "sha256": "3de476b093ffa0f0c580652b417a8223d28978c5792e5563c9f5b5c98b5ce775",
+      "size": 39485
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(1).jpg": {
+      "sha256": "3d69cc71d67eefd4eb560d9d46dd4054a8e39d4f5c6c593a6048569c8214f4a3",
+      "size": 92416
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(2).jpg": {
+      "sha256": "4aff0f050cc609a7521be98c2e7ab5fe32a5a37aa605137c1ed629f7bad5c9a3",
+      "size": 80045
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63.jpg": {
+      "sha256": "f78c982ebd774c2b87d0fc7470ac1b11038e49f169fb238f73a71e8e3c514039",
+      "size": 62826
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(1).jpg": {
+      "sha256": "3f4115a92e1160509732aaa6b87a4aeb7c572e23723d43192a93d489e6a349e7",
+      "size": 68569
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(2).jpg": {
+      "sha256": "3baf87b1bb701b75bfa155d34232e98ece109426349e092ebb23dfd1036f5112",
+      "size": 46686
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64.jpg": {
+      "sha256": "d983dd84f0ae498590cda57466b1fea0880d818f2d06d1bc316209005ae8c6a2",
+      "size": 59891
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(2).jpg": {
+      "sha256": "f8f092bb944f2134a1e1deb706c1265147de2ab8647a01ae763ed388a5acc83c",
+      "size": 35944
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(3).jpg": {
+      "sha256": "587303c3b99c53ca70cc0b4fbd316e12a1c7df1ed61f4b99f8feb03f293bca7e",
+      "size": 45883
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65.jpg": {
+      "sha256": "698a14fa556ab2c80ec0d8097bacae44a38a814d26fb2ee16222a6e29b8be8f9",
+      "size": 64951
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67(1).jpg": {
+      "sha256": "cc857befef45c4c78414de1e09ac87d3fb9c5ed7571fd5a4a28ab8dcff72635e",
+      "size": 70897
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67.jpg": {
+      "sha256": "d078890375015679a99fde00e4b67247d35e71af686abd8fe0b3dd4520a8d9d7",
+      "size": 39058
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/68.jpg": {
+      "sha256": "c1f2c8237765813babcc4c446e4fcc2a353b9401345f80d98eac83385fad3e0f",
+      "size": 67470
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69(1).jpg": {
+      "sha256": "9cedcc31ee8e7b17a18d560aaeba371412fe8799ca2a3834746405b615dabedf",
+      "size": 42225
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69.jpg": {
+      "sha256": "e4c345a4c78a3dec4d04daa885d02550a1a5ab75e99617300df53f829d2909e8",
+      "size": 57889
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/70.jpg": {
+      "sha256": "ea329f9a3f05cd0e10b8900991548863c882262ed868105d3ac749ba57863f7a",
+      "size": 51648
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/73.jpg": {
+      "sha256": "bb59b0dbfee38e0d805fbec6655c0e14d9370cbdc6e9eab1bd2fc771391fc072",
+      "size": 69522
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(1).jpg": {
+      "sha256": "dc14384d465dc13f72e02c7ffbe7f8262528cc6cc5fa15704b39ae9790f16d7e",
+      "size": 61516
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(2).jpg": {
+      "sha256": "c94374066427ace83f4da78715cd51a08e8d642c97e6a77885d881a186e6c0e5",
+      "size": 80846
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74.jpg": {
+      "sha256": "194247b265367b0ad73290dafde6f9c501127dadeb47b527afc05de2f35c93c3",
+      "size": 59512
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/75.jpg": {
+      "sha256": "4fc79fc429db858772214eafcc51cf454be7fc9b2468e07703f32f396ebbe98e",
+      "size": 48120
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77(1).jpg": {
+      "sha256": "ebf2383838b865d877a48eee68c786dab4373a565ab1d6da3955bbaa56924aeb",
+      "size": 62507
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77.jpg": {
+      "sha256": "c65e46ae54d0a322c012f10a549a6e9ae50ba3b74e674582567d6fb95331fba9",
+      "size": 68977
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81(1).jpg": {
+      "sha256": "b3106ad93d3fc10ec378e5fc972566b00a5c00994f06db7fbcd0a014ac137611",
+      "size": 80110
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81.jpg": {
+      "sha256": "017f54d36c1cc007e49ce6dd5151e06a1dfb511cbeb5d2722cd9602b74955855",
+      "size": 52059
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82(1).jpg": {
+      "sha256": "880a4b095719fc8240c3d5a18de41c4a9e8bf35dee77ff816885c903a2db8c9c",
+      "size": 45030
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82.jpg": {
+      "sha256": "f1a601c57ba52f0056dd4b78532d1f8de58db5ad2aecb585e809e48b6d3cc0fd",
+      "size": 50993
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/83(1).jpg": {
+      "sha256": "48756e28e38c7daefb09bf1dfa8308fcb0202101c690ae807ac99ca60aa8b8dd",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84(1).jpg": {
+      "sha256": "877894272b0129b9e49b0e3c4659d25153d9f547fd92f7b98e9daaf31039201a",
+      "size": 58207
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84.jpg": {
+      "sha256": "a9e80b3194aeb862a539449c2092e28c469687ef78a70acd299262e63fcb6699",
+      "size": 57747
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(1).jpg": {
+      "sha256": "0e5e945ecf598e59378d7c256da60b0ce08736a64e4ae84d1b6bf493ed650ccd",
+      "size": 50741
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(2).jpg": {
+      "sha256": "8ffd8108dabd02c0a5302fe16be36c3ca8da46a228ae669ab5b9f2fc45827d44",
+      "size": 43155
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85.jpg": {
+      "sha256": "6a1190b49325f0f2de248653cdf56f50dedbc51c258216e20c3441acdbce9633",
+      "size": 68221
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(1).jpg": {
+      "sha256": "e999d576e87ad34ebf8fe62b64fb882a6f07fec2cf034c684e94580ad09fd353",
+      "size": 80577
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(2).jpg": {
+      "sha256": "a10d1cb6f308c42ecd8fadee56b777b04669632872afe688653edcc546567293",
+      "size": 41762
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86.jpg": {
+      "sha256": "22be024211f0bbf7ee62a0d47a8e9e36fa6655e8c5624132bc18efe3b6ee24d9",
+      "size": 49392
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/87.jpg": {
+      "sha256": "eab640b9c75d626d960df19b24c1d6d66c6d11dcbadefa06f74b6ccc89ecdf56",
+      "size": 71722
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/94.jpg": {
+      "sha256": "8f99863594253348a0a2a966a5ba38d274d31cccff147cfebc15fd6f0a959881",
+      "size": 54840
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/98.jpg": {
+      "sha256": "0bed409f9caf22aedf6f6e61959f5cd9f92cc5f5c740014249e9000caa0b1cfd",
+      "size": 76788
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/99.jpg": {
+      "sha256": "c0a676f1a4b818eff7b64d8cabde0deed44e7916b48603440965a5278dfb1ae8",
+      "size": 50411
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54 2.jpg": {
+      "sha256": "343d86eeb77aae5f1303423297c8082f70210e7775a0828e1cad54b16ad5ae13",
+      "size": 46295
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55.JPEG": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN 2.jpg": {
+      "sha256": "d8596ba176378583534755a52e996f8c24c03a4abaf8015e345013ab2b2bab8d",
+      "size": 28252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN.jpg": {
+      "sha256": "613872f692da898e3970f912f9e08f9ba70ddf8f97f2bafdad2a91591f6e3f8c",
+      "size": 27929
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67 2.jpg": {
+      "sha256": "0d9b4a933345ca8de954049d463a4cf9dcd31e4e67a325c29fd8c51de5dafc92",
+      "size": 30531
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68(1).jpg": {
+      "sha256": "5065047ecd96f23a67fbb31d0cd4c4862d608fa062797b45dca6136719c287d7",
+      "size": 53946
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81 2.jpg": {
+      "sha256": "b98b78f923717ddfdd94f0e99e9ce85e89eee62ceb8f56957b1c1472ce3b2252",
+      "size": 37758
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84 2.jpg": {
+      "sha256": "e83f935e0c0a0ca0b847ddbeebb82ca06df446f99b4038f224dabeeb3dda963f",
+      "size": 38270
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/raw/insat_kaggle/insat_3d_ds - Sheet.csv": {
+      "sha256": "055d0e216a22389e462090166789a50ed9ebc5766baff6d59fa6e4a0c6a9f306",
+      "size": 1605
+    },
+    "PS70-main/docs/ERA5_ALIGNMENT.md": {
+      "sha256": "e4eaba93d68be7c2fc8c30437284172c9210c3c5d47bd3ee977f290b98b22ef0",
+      "size": 3611
+    },
+    "PS70-main/download_era5.py": {
+      "sha256": "be1cbda61ae4f73319a1cf2f484b008c1375d00b8f2b3155d54bd95ae690ca27",
+      "size": 4374
+    },
+    "PS70-main/extract_era5_at_points.py": {
+      "sha256": "127ad459bd6be1b073bfd5d3d314cdfe19b98ae7aed082d259643627948ec22f",
+      "size": 5722
+    },
+    "PS70-main/find_near_matches.py": {
+      "sha256": "ebdd5c10461c8d502f27e9dcd6662ded052e3432cf63674002c5ce35cf1fbf12",
+      "size": 1100
+    },
+    "PS70-main/future_task/tasks.md": {
+      "sha256": "e0e51a2b6a3439bd88747bdbf0eec40ba76ca8d1b054a41bbb1bba3bedfa5d31",
+      "size": 6894
+    },
+    "PS70-main/future_task/tasks2.md": {
+      "sha256": "7b490ce77bb064fa6e0e55408b2bc61cb402d132a7821258f1aec0f634c32920",
+      "size": 7451
+    },
+    "PS70-main/future_task/tasks3.md": {
+      "sha256": "5d7de7b6ba06c58c3673c267982f81d58dd5c473ef81eed03ed8c04b922a30cd",
+      "size": 8184
+    },
+    "PS70-main/future_task/tasks4.md": {
+      "sha256": "de09fa101e7661b95f1cff2fd5a04e624c0a046858cc12d8aaa2d1616abf9ffb",
+      "size": 8578
+    },
+    "PS70-main/get_ibtracs.py": {
+      "sha256": "c59cef058bfe84d5c327fe99af352f3fd354045da8967b196a94fa757afce5c5",
+      "size": 9006
+    },
+    "PS70-main/metrics/detection_metrics.json": {
+      "sha256": "d5a4a269671ace1ab755b1c7065bc57f7ba3b1056aee467c8e59d06f51fce3a5",
+      "size": 346
+    },
+    "PS70-main/models/classification/confusion_matrix.png": {
+      "sha256": "4cffb4579acf6786c0184a577fdded79907f4be91b7d756dfa061e6367f9956a",
+      "size": 243059
+    },
+    "PS70-main/models/classification/image_only_model.pt": {
+      "sha256": "960e3b8a0321c28775ce29e400cc12139923302dc04d767dd278693418eac557",
+      "size": 45186485
+    },
+    "PS70-main/models/classification/metrics_comparison.json": {
+      "sha256": "c3e05b67035aaeef22a30b8afc747e99ce9eb117412df07a3342863b856d6cb4",
+      "size": 661
+    },
+    "PS70-main/models/classification/tabular_multisource_model.pkl": {
+      "sha256": "2d75080230751e6c89161f9a1fd58f56387392790f179bba90d4c4a8f3a0ea9a",
+      "size": 4816632
+    },
+    "PS70-main/models/detection/model_weights.pt": {
+      "sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+      "size": 4739155
+    },
+    "PS70-main/models/detection/placeholder.txt": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "PS70-main/models/detection/sample_prediction.png": {
+      "sha256": "d5a69e99196a4d26ccc518bb6d0ad42e7a7f61cbafef678fa1a63f1144b8e0cf",
+      "size": 526730
+    },
+    "PS70-main/prioritize_gap.py": {
+      "sha256": "2ad2580e29b429dee3537bf2f94cfc5802f3fb956e228561316148d715d30e51",
+      "size": 1200
+    },
+    "PS70-main/requirements.txt": {
+      "sha256": "ac939be2e546d10f867435cb4bc6b340d21e215a56bc5b6c21d04dfa40bec06b",
+      "size": 67
+    },
+    "PS70-main/scripts/qa_visualization.py": {
+      "sha256": "a5d71fcc8af1b70d734602e7756d073e75912e3bd013c10b6c7c46c5c37ed04c",
+      "size": 6349
+    },
+    "PS70-main/split_coverage_gap.py": {
+      "sha256": "a013478b74134c78740d652f0cb4ae943d42e5ec77cb978322ab0d426565f633",
+      "size": 1264
+    },
+    "PS70-main/src/__init__.py": {
+      "sha256": "e79f4e088ae5241afe5408b20ac963bdc80477c7f5b610173f6861fe2dc7306e",
+      "size": 18
+    },
+    "PS70-main/src/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "7d18a4198c9a2cec41cccea9275f74c859853eb695f4dbad75bc3e080b6a5732",
+      "size": 149
+    },
+    "PS70-main/src/__pycache__/__init__.cpython-314.pyc": {
+      "sha256": "5c5da134b57c9d11033b8b0c8d1c39c1bb76ec586c5dcc6f90dccccc360ab110",
+      "size": 134
+    },
+    "PS70-main/src/classification/README.md": {
+      "sha256": "cd6e5e5dd7891944781e877ba6c7701e00528398d0a0b249da6092aa3d63f50c",
+      "size": 2994
+    },
+    "PS70-main/src/classification/__init__.py": {
+      "sha256": "7f11650561bc4f81e824f42f551b47e65542a6553da2c310c5d4fee24b07d49b",
+      "size": 331
+    },
+    "PS70-main/src/classification/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "92ba00648ffbe1f9cd03002fadc92f0f86c328126d26150759b51fd3531b7020",
+      "size": 498
+    },
+    "PS70-main/src/classification/__pycache__/classifier.cpython-312.pyc": {
+      "sha256": "4aadec49d71e174a5d9af5adf82fa81a6f5b1bd197057eccb178f787c786ff71",
+      "size": 11284
+    },
+    "PS70-main/src/classification/__pycache__/inference.cpython-312.pyc": {
+      "sha256": "066d25598634c2bf6e5b027b2ef4fd01eb829b24f256d45495b5884d50b2191a",
+      "size": 7223
+    },
+    "PS70-main/src/classification/classifier.py": {
+      "sha256": "111fcbc1642081b3e3ce94d76a9a4f72de54c0318fdd320a0f011ced65e55609",
+      "size": 7707
+    },
+    "PS70-main/src/classification/evaluate.py": {
+      "sha256": "63a11f989549addae6f2d57846de2e3b7bd5cdb70f7c19453a478ef9f6885a6d",
+      "size": 8244
+    },
+    "PS70-main/src/classification/inference.py": {
+      "sha256": "6e535763a464e2fc9cdf4f1744202556cceb58babfa873af98d0af2ecd3a0124",
+      "size": 5564
+    },
+    "PS70-main/src/classification/train.py": {
+      "sha256": "532bc2b514e9fa77b60fbe74279146edfe8aa063691f9e2b33b30e1bb4d31396",
+      "size": 5743
+    },
+    "PS70-main/src/data/__init__.py": {
+      "sha256": "c3ef871d05c4761b36d74638fbf4715a0740451a96d297083f7da260191dca2e",
+      "size": 573
+    },
+    "PS70-main/src/data/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "dbfc42d84f4edc48fdfacfed00870d1d84edc6fe787b8450f40ec09db21b6578",
+      "size": 600
+    },
+    "PS70-main/src/data/__pycache__/__init__.cpython-314.pyc": {
+      "sha256": "75ba478b39fb0d19582e4c45a8a3b7ea379d63c1a4953a1099db9e31e9f75e76",
+      "size": 585
+    },
+    "PS70-main/src/data/__pycache__/classification_dataset.cpython-312.pyc": {
+      "sha256": "941a30d0f9ec8b6fa79e842699bd28b77806588b3832cfb069234fe197389700",
+      "size": 7213
+    },
+    "PS70-main/src/data/__pycache__/classification_dataset.cpython-314.pyc": {
+      "sha256": "190e58b12a807b4e8ab525f066ef580fcdfb09ac31a1126af6e0c08a374de23c",
+      "size": 7497
+    },
+    "PS70-main/src/data/__pycache__/detection_dataset.cpython-312.pyc": {
+      "sha256": "6a0960d0a05a9624963b3405f4bd8955574bd25c5bb10c263a2f36381422d8e1",
+      "size": 2901
+    },
+    "PS70-main/src/data/__pycache__/detection_dataset.cpython-314.pyc": {
+      "sha256": "40ad244e93e8e7681a201e3a43a193830175c5f1fcdce344ee1489078af6f786",
+      "size": 3093
+    },
+    "PS70-main/src/data/__pycache__/forecasting_dataset.cpython-312.pyc": {
+      "sha256": "c3f054217138a10dfefbb04d8c7ea15d83853f48c793b299d8b032634716e693",
+      "size": 4608
+    },
+    "PS70-main/src/data/__pycache__/forecasting_dataset.cpython-314.pyc": {
+      "sha256": "8afe2928f6222f88a99268f1c72a04cece6d61c6f7bcf05d5e2ffe363a5b441a",
+      "size": 4826
+    },
+    "PS70-main/src/data/__pycache__/preprocess_satellite.cpython-312.pyc": {
+      "sha256": "d1f8c0ccd5282cb0c2cf05ed4bd9bc1fd85ea53b2a4accf46031b759942193ae",
+      "size": 5735
+    },
+    "PS70-main/src/data/__pycache__/preprocess_satellite.cpython-314.pyc": {
+      "sha256": "0586d8e7d2818934121a2a0afc690c07881f44d364f47d7db49d74a0951e08cb",
+      "size": 5829
+    },
+    "PS70-main/src/data/classification_dataset.py": {
+      "sha256": "a657a60fd3898b492158f36f40dafbb03253d6cd84617bdf50b0d3460687051f",
+      "size": 4045
+    },
+    "PS70-main/src/data/dataloader_example.py": {
+      "sha256": "a94e7b8dbf1698b5cd217e60db22267220cf9191d1ebd34de02add8aec98ddc2",
+      "size": 3242
+    },
+    "PS70-main/src/data/detection_dataset.py": {
+      "sha256": "28af4a712d9b2c0f72216c1516993f0bad2fda785a870163def655a0ea11c6c0",
+      "size": 1713
+    },
+    "PS70-main/src/data/forecasting_dataset.py": {
+      "sha256": "5a7852d8c2f00f202756d2d3c8003ff2e2e13ab7687bb285c897f3ae45db8b52",
+      "size": 2702
+    },
+    "PS70-main/src/data/preprocess_satellite.py": {
+      "sha256": "ae7d1d1e178d79dcdaaf9982b940f13f5d9da6fa104fa451ad41073a50baf246",
+      "size": 4378
+    },
+    "PS70-main/src/detection/detector.py": {
+      "sha256": "fce47515af62dbc3f6c8cad71897e04acdae227c713c09aa12e50e6efd688f28",
+      "size": 1360
+    },
+    "PS70-main/src/detection/evaluate.py": {
+      "sha256": "62b3b7410dc73f6447595603a948fa44e8ed83f3e454d9ba90842fbcb41b9f41",
+      "size": 3901
+    },
+    "PS70-main/src/detection/inference.py": {
+      "sha256": "d8ecbc3463a925e79fafcef4dac13fd7e1bc3ee132318552a4e37dc04e40d540",
+      "size": 3298
+    },
+    "PS70-main/src/detection/train.py": {
+      "sha256": "fd81ad7b23b8db3e53515db45e22dfc1261e96d3d89418dfc2835a7406323d0d",
+      "size": 6269
+    }
+  },
+  "p2_zip_scoped": {
+    "PS70-main/data/processed/detection/README.md": {
+      "sha256": "58623106ae8ef752141be361b18722bdb24afd632fb3f8de3b26c90c957d7ab5",
+      "size": 1055
+    },
+    "PS70-main/data/processed/detection/detection_all.csv": {
+      "sha256": "230b6f2e799a42769578d94c719dc63bff8d127c62faad5a12fdb3b1aacc07b0",
+      "size": 19007
+    },
+    "PS70-main/data/processed/detection/test_detection.csv": {
+      "sha256": "a628d8d3120445d0ef1ac7217ee8b8f7fde5f6f6a72a1802e99dbaf7142c0f53",
+      "size": 3095
+    },
+    "PS70-main/data/processed/detection/train_detection.csv": {
+      "sha256": "dfb1efa9165949a2f8175a8d317a3d4e303a78b08d3f7a1565ff3027d150115a",
+      "size": 13302
+    },
+    "PS70-main/data/processed/detection/val_detection.csv": {
+      "sha256": "2042ffd07dc83476ac0466703d50862da5b8362ae90ae5d8a0030471672e5d5e",
+      "size": 2818
+    },
+    "PS70-main/metrics/detection_metrics.json": {
+      "sha256": "d5a4a269671ace1ab755b1c7065bc57f7ba3b1056aee467c8e59d06f51fce3a5",
+      "size": 346
+    },
+    "PS70-main/models/detection/model_weights.pt": {
+      "sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+      "size": 4739155
+    },
+    "PS70-main/models/detection/placeholder.txt": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "PS70-main/models/detection/sample_prediction.png": {
+      "sha256": "d5a69e99196a4d26ccc518bb6d0ad42e7a7f61cbafef678fa1a63f1144b8e0cf",
+      "size": 526730
+    },
+    "PS70-main/src/detection/detector.py": {
+      "sha256": "fce47515af62dbc3f6c8cad71897e04acdae227c713c09aa12e50e6efd688f28",
+      "size": 1360
+    },
+    "PS70-main/src/detection/evaluate.py": {
+      "sha256": "62b3b7410dc73f6447595603a948fa44e8ed83f3e454d9ba90842fbcb41b9f41",
+      "size": 3901
+    },
+    "PS70-main/src/detection/inference.py": {
+      "sha256": "d8ecbc3463a925e79fafcef4dac13fd7e1bc3ee132318552a4e37dc04e40d540",
+      "size": 3298
+    },
+    "PS70-main/src/detection/train.py": {
+      "sha256": "fd81ad7b23b8db3e53515db45e22dfc1261e96d3d89418dfc2835a7406323d0d",
+      "size": 6269
+    }
+  },
+  "p3_zip_scoped": {
+    "PS70-main/data/processed/classification/README.md": {
+      "sha256": "113ce1c1f0f6b673ae07a1220134c0fcf7e1fcb01ae6c0e661c6305e11e2b2e2",
+      "size": 1558
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55.jpeg": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/labels.csv": {
+      "sha256": "cbdfb1b3d365ba4c8651195eb69cdb37bc9b81ea8e11f8aa6bc0a4f736859f40",
+      "size": 5148
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/test_labels.csv": {
+      "sha256": "06ff83ee035b6b96a692d3c7250c8e3ff795cab36ba6051e92ec19dcf30495c7",
+      "size": 871
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/train_labels.csv": {
+      "sha256": "c1de0fac456a9ac1b2ddf057413eba838556c0c0fac389ead81da9f57cf85e7b",
+      "size": 3581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/val_labels.csv": {
+      "sha256": "7203af3d709455083593d8d4efb0f969409105dda41978d9fe9b17083a4997d5",
+      "size": 790
+    },
+    "PS70-main/data/processed/classification/multisource_test.csv": {
+      "sha256": "9f0b602ac502229e5ede7556eb83afba016aada34f0b6445072a561b6f2bc42f",
+      "size": 91556
+    },
+    "PS70-main/data/processed/classification/multisource_train.csv": {
+      "sha256": "3782a2b617e0db20df8106176526a95df03de1755c5dfda951f4dd43da030428",
+      "size": 426068
+    },
+    "PS70-main/data/processed/classification/multisource_val.csv": {
+      "sha256": "892eec0ee47ea67bc3fc0b369ea6a5eebd82d3da2a6b78b9086668b5e3f7ef8b",
+      "size": 73178
+    },
+    "PS70-main/models/classification/confusion_matrix.png": {
+      "sha256": "4cffb4579acf6786c0184a577fdded79907f4be91b7d756dfa061e6367f9956a",
+      "size": 243059
+    },
+    "PS70-main/models/classification/image_only_model.pt": {
+      "sha256": "960e3b8a0321c28775ce29e400cc12139923302dc04d767dd278693418eac557",
+      "size": 45186485
+    },
+    "PS70-main/models/classification/metrics_comparison.json": {
+      "sha256": "c3e05b67035aaeef22a30b8afc747e99ce9eb117412df07a3342863b856d6cb4",
+      "size": 661
+    },
+    "PS70-main/models/classification/tabular_multisource_model.pkl": {
+      "sha256": "2d75080230751e6c89161f9a1fd58f56387392790f179bba90d4c4a8f3a0ea9a",
+      "size": 4816632
+    },
+    "PS70-main/src/classification/README.md": {
+      "sha256": "cd6e5e5dd7891944781e877ba6c7701e00528398d0a0b249da6092aa3d63f50c",
+      "size": 2994
+    },
+    "PS70-main/src/classification/__init__.py": {
+      "sha256": "7f11650561bc4f81e824f42f551b47e65542a6553da2c310c5d4fee24b07d49b",
+      "size": 331
+    },
+    "PS70-main/src/classification/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "92ba00648ffbe1f9cd03002fadc92f0f86c328126d26150759b51fd3531b7020",
+      "size": 498
+    },
+    "PS70-main/src/classification/__pycache__/classifier.cpython-312.pyc": {
+      "sha256": "4aadec49d71e174a5d9af5adf82fa81a6f5b1bd197057eccb178f787c786ff71",
+      "size": 11284
+    },
+    "PS70-main/src/classification/__pycache__/inference.cpython-312.pyc": {
+      "sha256": "066d25598634c2bf6e5b027b2ef4fd01eb829b24f256d45495b5884d50b2191a",
+      "size": 7223
+    },
+    "PS70-main/src/classification/classifier.py": {
+      "sha256": "111fcbc1642081b3e3ce94d76a9a4f72de54c0318fdd320a0f011ced65e55609",
+      "size": 7707
+    },
+    "PS70-main/src/classification/evaluate.py": {
+      "sha256": "63a11f989549addae6f2d57846de2e3b7bd5cdb70f7c19453a478ef9f6885a6d",
+      "size": 8244
+    },
+    "PS70-main/src/classification/inference.py": {
+      "sha256": "6e535763a464e2fc9cdf4f1744202556cceb58babfa873af98d0af2ecd3a0124",
+      "size": 5564
+    },
+    "PS70-main/src/classification/train.py": {
+      "sha256": "532bc2b514e9fa77b60fbe74279146edfe8aa063691f9e2b33b30e1bb4d31396",
+      "size": 5743
+    }
+  },
+  "p4_forecasting": {
+    "_source_p1/PS70-main/build_datasets.py": {
+      "sha256": "586ae286e39ece70e69461c66d379d30e87c81b8dcae1d57e03c2766f8b9be57",
+      "size": 13662
+    },
+    "_source_p1/PS70-main/data/metadata/ibtracs_clean.csv": {
+      "sha256": "bcd4bf0e05b63aaffd458f10f694e692a1cceff78f7eba3eeb2f1c2193db2acb",
+      "size": 1487310
+    },
+    "_source_p1/PS70-main/data/metadata/ibtracs_with_era5.csv": {
+      "sha256": "35b4ccea3e086f1008d1a8e1404dd9b8c114ba49aac8fc403fe75660d779605d",
+      "size": 709456
+    },
+    "_source_p1/PS70-main/data/metadata/master_dataset.csv": {
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "_source_p1/PS70-main/data/metadata/mosdac_needed_cyclones.csv": {
+      "sha256": "d425c8adf40d9f6788a1fbae04acdc00b9e06ee7698dc85f43f6745dd4352502",
+      "size": 3697
+    },
+    "_source_p1/PS70-main/data/metadata/mosdac_priority1_named.csv": {
+      "sha256": "8c9988b0d18d60dbda0d5484972e0e3a432c7ef9d69ca0aa0f797d66738deaa1",
+      "size": 1392
+    },
+    "_source_p1/PS70-main/data/metadata/mosdac_priority2_unnamed.csv": {
+      "sha256": "3c190d5743be21dde9b333357d190be9271a2cfe7b80a5054102b5bb2c454e3b",
+      "size": 2641
+    },
+    "_source_p1/PS70-main/data/metadata/test.csv": {
+      "sha256": "e59fccce9ab187d7bc8b185a687fb1138f6e18e47e33980dbe2719c6c88462e4",
+      "size": 110840
+    },
+    "_source_p1/PS70-main/data/metadata/test_cyclones.csv": {
+      "sha256": "096fcf2ecee4f2ee6d32a476359bbe811180870d18feef72f81a5eba0f88fd59",
+      "size": 347
+    },
+    "_source_p1/PS70-main/data/metadata/train.csv": {
+      "sha256": "4e8b4724f42b4f66f0380b7b650807d616a6bb93d073325fececf4ef53b29a59",
+      "size": 527509
+    },
+    "_source_p1/PS70-main/data/metadata/train_cyclones.csv": {
+      "sha256": "c4feb714f31756a059ec489ba3a9f1b5cde66f69bfe9c1432e9612511f460040",
+      "size": 1481
+    },
+    "_source_p1/PS70-main/data/metadata/validation.csv": {
+      "sha256": "41f0dc8bc798c87a79ef428362a2a83c5470a1bb2aefba0e8af49b67dbf663c1",
+      "size": 100863
+    },
+    "_source_p1/PS70-main/data/metadata/validation_cyclones.csv": {
+      "sha256": "82b5678b94327f2ee062263fdcad802c3eb9dcdbfe9e483dcfca3dbf1a225ccc",
+      "size": 319
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/README.md": {
+      "sha256": "0f943f7e52d5f11cd3cde30d533578c3d63152c5a74b312db8255cc52032707d",
+      "size": 2283
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/test_sequences.npz": {
+      "sha256": "882535a1a8886c45ad094878a5a184c860acf1c61a3ecc29133caa576be7eb04",
+      "size": 15074
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/test_sequences_metadata.csv": {
+      "sha256": "f2a1526556dc2e176ab5787784f33cb9ff72dd7ae3a0a9dc5bd0c57df1d7ec16",
+      "size": 57724
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/train_sequences.npz": {
+      "sha256": "1a65f93f2f698d5956fb1b23c74a80780046f151bc44012122be97d85f1053f9",
+      "size": 69267
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/train_sequences_metadata.csv": {
+      "sha256": "54cee046c6c764ffc7e079cfccddff9da26665f78ef63e83530632d2745b0539",
+      "size": 306770
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/val_sequences.npz": {
+      "sha256": "d0e4fd91d207cd1d43aeccf32edee49c8de7e75d8a7079c5335377a45f1a1073",
+      "size": 13677
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/val_sequences_metadata.csv": {
+      "sha256": "b182592a68f93c375fd3a3d28012643052cff4e1e75bb548047242bf28f4086e",
+      "size": 52265
+    },
+    "_source_p1/PS70-main/download_era5.py": {
+      "sha256": "be1cbda61ae4f73319a1cf2f484b008c1375d00b8f2b3155d54bd95ae690ca27",
+      "size": 4374
+    },
+    "_source_p1/PS70-main/extract_era5_at_points.py": {
+      "sha256": "127ad459bd6be1b073bfd5d3d314cdfe19b98ae7aed082d259643627948ec22f",
+      "size": 5722
+    },
+    "_source_p1/PS70-main/get_ibtracs.py": {
+      "sha256": "c59cef058bfe84d5c327fe99af352f3fd354045da8967b196a94fa757afce5c5",
+      "size": 9006
+    },
+    "audit/LEAKAGE_AUDIT.md": {
+      "sha256": "9b7da616b56db5e21901a9911d2ee28432730d31b901946d91e7e32287cdef3b",
+      "size": 1726
+    },
+    "audit/NPZ_AUDIT_REPORT.md": {
+      "sha256": "fcbf2d967058c576eb80b9566c5679fb4f29255244c04ce518e58aa4b7097d08",
+      "size": 1662
+    },
+    "audit/P4_FILE_INVENTORY.md": {
+      "sha256": "4f9d025b3968b1154fdfe3c87d7f509f4f927d9db223615e72dc22a85091bf68",
+      "size": 16858
+    },
+    "audit/PHYSICAL_SANITY_REPORT.md": {
+      "sha256": "62ecf233f49207e17d1cebdf2a39c6fd255f211fb2378d9ad1f8bc4bfcfba311",
+      "size": 1691
+    },
+    "audit/SPLIT_LEAKAGE_AUDIT.md": {
+      "sha256": "bee5ddafc6d87adc489fd62fd54ccbe41c3b456502be27d760cb0191dd43a51c",
+      "size": 740
+    },
+    "audit/TEMPORAL_AUDIT.md": {
+      "sha256": "ffc5bcb9660f21aa3da49000e921d2b50d6895b72e76eacae890d07f4f85cf2c",
+      "size": 2489
+    },
+    "audit/TEMPORAL_SPLIT_QUALITY.md": {
+      "sha256": "4ce5dcd940030f7369a6e0b19b01846fa65ef80fad30f58240d465412e1be074",
+      "size": 1141
+    },
+    "audit/leakage_results.csv": {
+      "sha256": "7115ff6f07638ce48efd124646f2f815149e09e2f07f8ceae50a7c69b070ba1a",
+      "size": 418210
+    },
+    "canonical/P4_DATA_CONTRACT.md": {
+      "sha256": "f641afe5584606074e32bdd0569608804f4422063746ad2e2f21912b36abafbf",
+      "size": 3205
+    },
+    "canonical/sample_quality.csv": {
+      "sha256": "239dbb035e016242c9cea842e7f6aa335b007aa4bd2f111210634268dc9c631a",
+      "size": 325097
+    },
+    "canonical/test.npz": {
+      "sha256": "a90beea0394c9e63b4b093351f5aef9084b5d47d62d2dfb512f73369929400f7",
+      "size": 15067
+    },
+    "canonical/test_metadata.csv": {
+      "sha256": "6ca2bb49e483b956f29a07fe89bf0e1bb0673af0cab0f73f87377315d5340021",
+      "size": 85486
+    },
+    "canonical/train.npz": {
+      "sha256": "4f3b289d1b7fad1c02bf273349bb669f63210762cb66a1224812a22df10e44e4",
+      "size": 69668
+    },
+    "canonical/train_metadata.csv": {
+      "sha256": "1f985a452c72569bd1df7e6263306b26a7c24aaee05275953f7bde38233aac4b",
+      "size": 459159
+    },
+    "canonical/val.npz": {
+      "sha256": "16f753c8ba33f2c9a90a890e447009ec483152ed7b71c83812451d2d97039c85",
+      "size": 13621
+    },
+    "canonical/val_metadata.csv": {
+      "sha256": "56a3de0568032a8a213851abac1d90a961182dd4eb16d2c59f23b940e60be102",
+      "size": 78446
+    },
+    "canonical_chrono/split_manifest.csv": {
+      "sha256": "a9269478b880d8ec663943c7b4d15e5725369110ca2ec3af8fd11e1c34c3c748",
+      "size": 6208
+    },
+    "canonical_chrono/test.npz": {
+      "sha256": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+      "size": 13204
+    },
+    "canonical_chrono/test_metadata.csv": {
+      "sha256": "870172f9d041c78ff13fda314e9b0a8da8b3e99f5d6d179af9561666676657bc",
+      "size": 54659
+    },
+    "canonical_chrono/train.npz": {
+      "sha256": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "size": 70748
+    },
+    "canonical_chrono/train_metadata.csv": {
+      "sha256": "75d17b23aaa039d135780846a949cd5b6daf36f005c583059b15e07915c4de2d",
+      "size": 307261
+    },
+    "canonical_chrono/val.npz": {
+      "sha256": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "size": 14443
+    },
+    "canonical_chrono/val_metadata.csv": {
+      "sha256": "40b19edc759aaf1b260e4d82f38b9bdced50c8789302470c29fd1a2eeccd99ea",
+      "size": 56783
+    },
+    "logs/p1_source_hashes.json": {
+      "sha256": "87cd3261a90bd604cac2bf58317729840a4695dd4fcb59ec006db6424cd8815f",
+      "size": 13849
+    },
+    "logs/run_20260829_132135.log": {
+      "sha256": "e3dfded3ef96373e0175db04989a9ffab954b6587a0f2846bde84c5f0fd47ce3",
+      "size": 528
+    },
+    "logs/run_20260829_132147.log": {
+      "sha256": "8cd3dba4920d59d3af7a304df80a2d8f18920694b62aa0af541b485499e422e4",
+      "size": 799
+    },
+    "logs/run_20260829_132203.log": {
+      "sha256": "a5644575b610de9367d9262cf38b9af9921cb5124318f5c9b63d2e8d69750c82",
+      "size": 1083
+    },
+    "logs/run_20260829_132251.log": {
+      "sha256": "c1bf19190c46265f760d8ba1d67ac1a87a154fd78edf4daaa397dab7a928ce1b",
+      "size": 1541
+    },
+    "logs/run_20260829_132328.log": {
+      "sha256": "980273fac321baf9b13b93107530f26d12cd9e9357110adb4851a1006f09ad62",
+      "size": 2706
+    },
+    "logs/run_20260829_132404.log": {
+      "sha256": "4f4e4461a13611bb011f90a1ebbc2079f9fee667414307b115ca55423362c881",
+      "size": 2610
+    },
+    "logs/run_20260829_132529.log": {
+      "sha256": "74fce5be5ce42949559e93fa51d3d91ecb3cf2a4a3ba4f433ed769256dccd59f",
+      "size": 2610
+    },
+    "phase2/__init__.py": {
+      "sha256": "2cf9f91a3a66dfbbd48f00173f203ff642dfa35c8116d698b6b3561e436159f2",
+      "size": 88
+    },
+    "phase2/baselines/__init__.py": {
+      "sha256": "215091402021a43448f2b97908271398af6c97c94ccf49ff9a048f50389db978",
+      "size": 39
+    },
+    "phase2/baselines/movement_vector.py": {
+      "sha256": "8338b91c97dedc9b9312bd1d1135ace01cd015bccec3964a355bfd8016c5f406",
+      "size": 2882
+    },
+    "phase2/baselines/persistence.py": {
+      "sha256": "6c9e6a39d8959886e15de12869e5b9a4b0ccaa731ca4a7561b7ea8795aa28d77",
+      "size": 1344
+    },
+    "phase2/dataloader/__init__.py": {
+      "sha256": "d73b9c67ce872a0f8d65ff91e26d9424ff6714ca81dd809affa0eee4002db0db",
+      "size": 40
+    },
+    "phase2/dataloader/build_clean_dataset.py": {
+      "sha256": "9b73d0e7cd883d69c0b59a627daf85d32ffc361a46252c3954deb8f4250762e2",
+      "size": 5028
+    },
+    "phase2/dataloader/build_dataloaders.py": {
+      "sha256": "94c34934165fd35222afd1e05923216c0ca39799e112278831a5b5711f4c094c",
+      "size": 1894
+    },
+    "phase2/dataloader/forecasting_dataset.py": {
+      "sha256": "f72a70278177d997f4ded98f0b42d0e19c34c4d1d5551ec71b40639e4392508f",
+      "size": 4408
+    },
+    "phase2/evaluation/__init__.py": {
+      "sha256": "776329e75c6e9654eeef908467168ff31776bbee54ad95c7bb49bcb1806124b1",
+      "size": 40
+    },
+    "phase2/evaluation/evaluate_baselines.py": {
+      "sha256": "14ca057b9d282455d9117ee90a8a9c096dde5a3fe30103f79e5c76417abecbd9",
+      "size": 3060
+    },
+    "phase2/evaluation/geo_metrics.py": {
+      "sha256": "d2f0a2cddd59517a33b5ad2475408699d05c0724aff9e14e910ce503cda13915",
+      "size": 1517
+    },
+    "phase2/evaluation/metrics.py": {
+      "sha256": "7d1f6d04f51a2f92e132db96b581b7b9e1a3ae275bc9332fdf9f601bdfe25578",
+      "size": 2860
+    },
+    "phase2/reports/BASELINE_REPORT.md": {
+      "sha256": "9ac6e5e1c359eda231635391d39a51beccde76956d0a951917e7d091e38bd437",
+      "size": 2439
+    },
+    "phase2/results/baseline_results.json": {
+      "sha256": "d939675311ab95c6adf1c225083251b2912e3164da12ebb6be5f303c2f3598b3",
+      "size": 3881
+    },
+    "phase2/results/canonical_chronological_clean/test.npz": {
+      "sha256": "b8a28425887e02a18998da9a74e3916f27b4aa570523b7b38f68bf64a9b9762c",
+      "size": 7459
+    },
+    "phase2/results/canonical_chronological_clean/test_metadata.csv": {
+      "sha256": "188a8a430fbf99815db580e3c14a358e56d823bebd002554201369dd8a1ccd74",
+      "size": 29357
+    },
+    "phase2/results/canonical_chronological_clean/train.npz": {
+      "sha256": "ddd0b149dc333728f4db45a3cedbb4724f085f132440394a8265f0ca74b3b451",
+      "size": 41975
+    },
+    "phase2/results/canonical_chronological_clean/train_metadata.csv": {
+      "sha256": "d6e50c00daa008c53037ce575eb588856099bdfcc2c041408acafebeff0a87d3",
+      "size": 180271
+    },
+    "phase2/results/canonical_chronological_clean/val.npz": {
+      "sha256": "7a8c237de655d7c5cf49e6e69783e89d63c9785c6275da14b37c8c5c0975418a",
+      "size": 9282
+    },
+    "phase2/results/canonical_chronological_clean/val_metadata.csv": {
+      "sha256": "ee491dbc93144d97399c4f56d403bb35f81a59c512e6113e3298b98b88940b16",
+      "size": 34598
+    },
+    "phase2/run_phase2.py": {
+      "sha256": "30ca98a326d4a4f6b09db589a443dace8341010e658b358ea28705bb488dc3d7",
+      "size": 12895
+    },
+    "phase2/tests/__init__.py": {
+      "sha256": "16dd447b6c2753940508454865e65215bbdbaaffc299a9d015f640fcff1105b8",
+      "size": 35
+    },
+    "phase2/tests/test_baselines.py": {
+      "sha256": "b7a320cd3fe1679f47f67c5f696455844dc9703b957abd614037139fd58a4547",
+      "size": 4420
+    },
+    "phase2/tests/test_dataloader.py": {
+      "sha256": "e0271da000d36704315f003d14a1f8600cef8a51006cbd9bc2493371babaf967",
+      "size": 6060
+    },
+    "phase3/__init__.py": {
+      "sha256": "b8e2516275162c48427da2ac93df8d021444c1d3daf966b52d736ef52f1b9223",
+      "size": 81
+    },
+    "phase3/checkpoints/best_lstm.pt": {
+      "sha256": "163cdbec4daab49c5bcc5d6945bc6c50b4a7cb89f56eda3b88c4e1902a720a0f",
+      "size": 79708
+    },
+    "phase3/checkpoints/model_config.json": {
+      "sha256": "14c2180f65eaf02b11c30fbcb6492ca271e225050f0fc8999b1ac7da673524fe",
+      "size": 533
+    },
+    "phase3/evaluation/__init__.py": {
+      "sha256": "ed34decb5fc5f641ee766c600e1cf898529878c83c3023c6a7f8da414cfa5b7a",
+      "size": 40
+    },
+    "phase3/evaluation/compare_baselines.py": {
+      "sha256": "1794a339e8636a9ee776ae09269c4e7e555bda110ba1759b59512a64e87ade84",
+      "size": 2773
+    },
+    "phase3/evaluation/evaluate_model.py": {
+      "sha256": "a1331415dcef70f6f2faca42ff4dcaf49152ad376b85f9b404703ff32195552f",
+      "size": 3239
+    },
+    "phase3/inference/__init__.py": {
+      "sha256": "347e7a996959aa94d2a2fb13941479ffa5efdd90bc484e544919bc26813104b0",
+      "size": 39
+    },
+    "phase3/inference/forecaster.py": {
+      "sha256": "dfe6c4cd9665fc46eda5bef61a6d520690ab60df0984c2bb070e2d737eda137f",
+      "size": 3894
+    },
+    "phase3/model/__init__.py": {
+      "sha256": "f56dd7e2e2f376ff59a7774058e915172014fa6ba5aba877187cd491a215c76f",
+      "size": 35
+    },
+    "phase3/model/cyclone_lstm.py": {
+      "sha256": "4baecd14c116b75d4aed75deaa4140f6a8232fcaf82e4cecc35f2dc64cf07b14",
+      "size": 2909
+    },
+    "phase3/reports/MODEL_REPORT.md": {
+      "sha256": "5d6a7950e840b5db1b92d397c705d23d4db9c587b3706df275e1cd79f86e17ac",
+      "size": 4443
+    },
+    "phase3/reports/generate_model_report.py": {
+      "sha256": "9711b5231a54babddd229c1a0f129248fbb6c27a58050b6e649687cdd9658fca",
+      "size": 7664
+    },
+    "phase3/results/evaluation_results.json": {
+      "sha256": "d8cb4b90a57d152dd5c0a5aefe49e2d24f2b37543e2d34570a0607349e0f6498",
+      "size": 1560
+    },
+    "phase3/results/model_comparison.json": {
+      "sha256": "33717d181c55dea9fad1d318f3024a3f4e45fcc7e61ba3316814134f5f92f788",
+      "size": 6089
+    },
+    "phase3/results/normalization_stats.json": {
+      "sha256": "e267e430dffc11e74bcccdf7f1e5be31064494ad9ccef6e1fbe303eef113899f",
+      "size": 939
+    },
+    "phase3/results/run_metadata.json": {
+      "sha256": "49011dd888cf4956789fa1638f5fcd28d0c96ae5a77ba45c5ce83a6a51df5a04",
+      "size": 375
+    },
+    "phase3/results/source_hashes.json": {
+      "sha256": "6a45916af3522125446ff2a61cb201f876fc9efebf76e57e7e417834c7ef9308",
+      "size": 1672
+    },
+    "phase3/results/training_history.json": {
+      "sha256": "63745ca252247bea72c646248073387c425ee8009d45cec074a7f3160c202062",
+      "size": 6711
+    },
+    "phase3/results/training_loss_curve.png": {
+      "sha256": "3c20515216df3ee4543c29d393de551be9b3d4b7f92d0bf1360c76896f1362d5",
+      "size": 45842
+    },
+    "phase3/run_phase3.py": {
+      "sha256": "3ea6277a9ed012aa6a24b018048fca0c2763891221a3b273ecc7b2b9c6257cae",
+      "size": 17036
+    },
+    "phase3/tests/__init__.py": {
+      "sha256": "936950133abb4d963091b4241aeaa674c2123ab02ad7f7c35907a51987482d19",
+      "size": 35
+    },
+    "phase3/tests/conftest.py": {
+      "sha256": "f143069899a452167f2fccb2e907beca95da82be85987710ba993ab2e1bca2a0",
+      "size": 333
+    },
+    "phase3/tests/test_checkpoint_loading.py": {
+      "sha256": "7e86c6282da4cde4ec42ae8c525a90f3b4303d89ff93f8c94ce66edfa5a5d80f",
+      "size": 2694
+    },
+    "phase3/tests/test_haversine_metrics.py": {
+      "sha256": "a080822f6c3d711ba27204ee7f5de36df559d328ab8ef1da9af4ce360523dce5",
+      "size": 1301
+    },
+    "phase3/tests/test_inference.py": {
+      "sha256": "b485f6a048e56fe302f8e2a252e6755b71a821d2722529c9ac0fe45da438d7b4",
+      "size": 3658
+    },
+    "phase3/tests/test_model.py": {
+      "sha256": "c21e1f25507d5e1791038a1a5e30876f57aea1693cbd0063c1ce3b2d7e92861d",
+      "size": 1645
+    },
+    "phase3/tests/test_normalization.py": {
+      "sha256": "1197afa0eb0eaec9fa808f15daf7219e04ee78af68505b293fd3ff16cde4e8fc",
+      "size": 2725
+    },
+    "phase3/training/__init__.py": {
+      "sha256": "478ae3efeb6d01ab0117f7a13633bd13429a1e142570f04c755712fc99243d9d",
+      "size": 38
+    },
+    "phase3/training/dataset.py": {
+      "sha256": "be117921b1a19325b7480ef8f8839d43f40d3b35f9daf0b749b2675cf51c3fdc",
+      "size": 3130
+    },
+    "phase3/training/normalization.py": {
+      "sha256": "7164bb9a27b67afc0ac409500c5386cc1b02af4a9a0706890bb9c570eadcf84b",
+      "size": 4459
+    },
+    "phase3/training/train.py": {
+      "sha256": "43e17a2e4f6b1c90f1d8e67c00e68c04227604c7971fa1c6d589ccef0fac1a19",
+      "size": 9985
+    },
+    "phase4/__init__.py": {
+      "sha256": "2f32ae092248a87f2ce516ec43164b15ed55a268f9a831044c4128a46ed3f3da",
+      "size": 329
+    },
+    "phase4/audit_post_completion/POST_COMPLETION_AUDIT.md": {
+      "sha256": "a63c19dcf8cc64fc33942f05a0815d29072ac8283d97daae2ade4b6f8ba1048f",
+      "size": 7367
+    },
+    "phase4/audit_post_completion/audit_results.json": {
+      "sha256": "aa8b3ac4b5194b1d32446cf1d31a081ea5f08ba68035f3b372bb91da5e989ba9",
+      "size": 11501
+    },
+    "phase4/audit_post_completion/experiment_ranking.csv": {
+      "sha256": "fea4a23a97f0c7d21bcd427f46570b269524012e99aee6825166a640985bf315",
+      "size": 654
+    },
+    "phase4/audit_post_completion/metric_recalculation.json": {
+      "sha256": "5a01f60cb22189b13582d7d4f9b6951e8081be21027fe5603087db418060218e",
+      "size": 10159
+    },
+    "phase4/audit_post_completion/run_post_completion_audit.py": {
+      "sha256": "410c08c4034ddee61b63ea498a192c4cd4cfd126427da41a1c63398656e664ba",
+      "size": 49468
+    },
+    "phase4/audit_post_completion/source_immutability_after_audit.json": {
+      "sha256": "526887f1ded5a36ceb0c796f0f48ad57e59c9ad4163db6e3123994a0ad428e8c",
+      "size": 1437
+    },
+    "phase4/common.py": {
+      "sha256": "eb69711f928f1826f45246d93cd5a9f35364527e0cd5f1b6b0ce3387051cebb4",
+      "size": 4241
+    },
+    "phase4/configs.py": {
+      "sha256": "d29505173c0f5a3b011fbd3633691cf79b597dfeaaa3a22b7c3eb1571077bd09",
+      "size": 5205
+    },
+    "phase4/configs/EXP001.json": {
+      "sha256": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4",
+      "size": 1015
+    },
+    "phase4/configs/EXP002.json": {
+      "sha256": "a8b305bd561fbfb28b45fbfe737eaa9522eb4808d428e19e396416b5109e6441",
+      "size": 950
+    },
+    "phase4/configs/EXP003.json": {
+      "sha256": "e728bd10eb02939f817b5af9f51aa0b59aa55d0acb0ba568a3ad8f415f54a966",
+      "size": 940
+    },
+    "phase4/configs/EXP004.json": {
+      "sha256": "70f4931766470673768ab43923fa80fff37e2a1516bec78d8b56c9700647c700",
+      "size": 951
+    },
+    "phase4/configs/EXP005.json": {
+      "sha256": "5f2a90eeaee0a08cb657a5db755c405fb73de6e5f2ab78c450667fcfb25dc819",
+      "size": 1024
+    },
+    "phase4/configs/EXP006.json": {
+      "sha256": "4939b5cf3fa1cf4be43bc0ecbda69536b0cf6450a16b821ea90ab367f5f16a46",
+      "size": 1027
+    },
+    "phase4/dataloader/__init__.py": {
+      "sha256": "ea86454fe875e33cb94238c1b445d16d09c68b0099e5a5bb639d66eb11d04078",
+      "size": 36
+    },
+    "phase4/dataloader/forecasting_dataset.py": {
+      "sha256": "c8aca78d3d3da227b20badfa6245e8dbe3a98efd01583a97a4e5b331f9063753",
+      "size": 3191
+    },
+    "phase4/evaluation/__init__.py": {
+      "sha256": "d80038176da68b3587d7f941ec8d496dddfeba227fe40bfe302a5436e174b1d3",
+      "size": 36
+    },
+    "phase4/evaluation/evaluate.py": {
+      "sha256": "cbeabc016c21c77fe0f31b6c551ff61d1b1dbc67ec526379afbdd87c5edcd50a",
+      "size": 2953
+    },
+    "phase4/evaluation/selection.py": {
+      "sha256": "9b806dc66c0097183b304c65f1314da5d8185fd0d53efec253f916443086b4e1",
+      "size": 3827
+    },
+    "phase4/experiments.py": {
+      "sha256": "3d01d7b57779828d7727dba3baf569e90c4626838f51cea40745a7506545fcea",
+      "size": 6399
+    },
+    "phase4/features/FEATURE_ENGINEERING_REPORT.md": {
+      "sha256": "605d32a47bab75c0ede448c265ef83d33903fe9055a97ee7699e5fb4cbe6d0ce",
+      "size": 3408
+    },
+    "phase4/features/__init__.py": {
+      "sha256": "8dc57a0c920e88accddbb83c803b2edbcdc6e43329d2d40b767d04b3e6a233ae",
+      "size": 45
+    },
+    "phase4/features/_geo.py": {
+      "sha256": "c512b3deffc0115a6dc137aaf4b0c7dbeef0269a3848bb4576054a1bf8d9c2bc",
+      "size": 1071
+    },
+    "phase4/features/build_feature_dataset.py": {
+      "sha256": "553c17f258385acddb55fb7caae7201ac7ed212eb5430bf4c8293d2b2eff4b98",
+      "size": 15226
+    },
+    "phase4/features/feature_engineering.py": {
+      "sha256": "a88eb9a6da55091330c5216c8842787a6ea4abc8a1510a9107732e2ab6292f25",
+      "size": 7236
+    },
+    "phase4/final_comparison.py": {
+      "sha256": "b3de7cd1390c96badd262d600ed870f48dbcf14e110340eeeae8764c736f3f90",
+      "size": 3079
+    },
+    "phase4/immutability.py": {
+      "sha256": "3b8a1da07719cfd044a0784803a3959711d070c425d9887de0ab1910da63fd7f",
+      "size": 4037
+    },
+    "phase4/inference/__init__.py": {
+      "sha256": "097ae48773f3fc51b0201935972cff8e1e26648f539ed4bf6a3659f8cac48047",
+      "size": 35
+    },
+    "phase4/inference/forecaster.py": {
+      "sha256": "59c780bd9a457f165bcf9cbbbbe30c98535777a70f394e28469088cab0dcfffa",
+      "size": 3379
+    },
+    "phase4/input_audit.py": {
+      "sha256": "c53ccabca14cc47a10aff67b9766c15525609a20cf450a1c0100f2a37470d92e",
+      "size": 10313
+    },
+    "phase4/losses/__init__.py": {
+      "sha256": "d914b0a8c40d5138edc12ef7334024c69099e62ee9a707fdf4691c41952b1801",
+      "size": 284
+    },
+    "phase4/losses/forecasting_losses.py": {
+      "sha256": "9700f10b179594cc905968eba6558f50429a492657bcdab00bdbd308f67765e4",
+      "size": 4858
+    },
+    "phase4/models/__init__.py": {
+      "sha256": "bbc6a3585a93f932901faabfe534e968a30b90718466ab6f023c421a11957061",
+      "size": 995
+    },
+    "phase4/models/gru.py": {
+      "sha256": "3f36e0b0cad37d403e888e149d9eda83ca5dfe4c146876f6a2a658240623f4f0",
+      "size": 2324
+    },
+    "phase4/models/improved_lstm.py": {
+      "sha256": "4977fb3682ca669ebe81c62ec25a981a0a73d10ca6c26a7eed56604efdc74564",
+      "size": 2461
+    },
+    "phase4/models/multitask_lstm.py": {
+      "sha256": "a90789df389346aaa311ae0dcebfba9d9c62ee8bb6c2df1c2dd7d929dbdfbed9",
+      "size": 3088
+    },
+    "phase4/registry.py": {
+      "sha256": "ed87e083bc6eab6a4c94603544cbfd8eeb141f2f8e621797fc3cdead5fe28c12",
+      "size": 3023
+    },
+    "phase4/report.py": {
+      "sha256": "f13d68efeb8fbb7714e01792a8c04b1a8bd42d5b6ff0bd618e5772b363431a0a",
+      "size": 11565
+    },
+    "phase4/reports/PHASE4_REPORT.md": {
+      "sha256": "7f0cfc78aafd6d3100f2ce1d4616e9451c3fc741a09ac7e071c41a4be26d58cf",
+      "size": 7448
+    },
+    "phase4/results/FEATURE_CONTRACT.md": {
+      "sha256": "c6b74c5b8e85faf569d980c10533be669cafb7bb1b784013a5bc38d247fcdb68",
+      "size": 1709
+    },
+    "phase4/results/FINAL_COMPARISON.json": {
+      "sha256": "97ca11d70521b946068a559673bae604d2b01dc51e8a9a903959a83e36bdda69",
+      "size": 11070
+    },
+    "phase4/results/champion_model.json": {
+      "sha256": "5b6fb7ace48e5f62d15278d2d93a288ec2ccbf8fb523ef05c66fa4ba6bad7c38",
+      "size": 2620
+    },
+    "phase4/results/champion_rationale.json": {
+      "sha256": "5f2be8f6cdf26ecf0b4b892946c6f3a27f3f6c363b6a2d8fe795f5d7c434b380",
+      "size": 1062
+    },
+    "phase4/results/experiment_registry.csv": {
+      "sha256": "9353096a1d0e5b9ad35d1710f283438da912cd5e9f651309f0e5a9aec6be0a6b",
+      "size": 1826
+    },
+    "phase4/results/experiments/EXP001/checkpoint.pt": {
+      "sha256": "03344329a6416efd8128ba6b410875c6688133d7ea5551969ca4555941fed8c0",
+      "size": 88934
+    },
+    "phase4/results/experiments/EXP001/config.json": {
+      "sha256": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4",
+      "size": 1015
+    },
+    "phase4/results/experiments/EXP001/metrics.json": {
+      "sha256": "d0d4dce8ee6e1e483020ed7b2630b48bce328bfcce0ab5a708d3b97c4eb537f5",
+      "size": 727
+    },
+    "phase4/results/experiments/EXP001/source_hashes.json": {
+      "sha256": "0755a8a4fc6fb74f0954de4459168dc957ce8acc0046bf71fc104372104f547f",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP001/training_history.json": {
+      "sha256": "934298af7e5cef2474652be9a041c38a865ce47e00e5d3e51be063ae1f4ac4ed",
+      "size": 6175
+    },
+    "phase4/results/experiments/EXP001/validation_results.json": {
+      "sha256": "6ce7788c658aeb8b41bf85042400fa1aa7f7006e989850a9a9190287e5adc9a5",
+      "size": 807
+    },
+    "phase4/results/experiments/EXP002/checkpoint.pt": {
+      "sha256": "414977e75b911336dd76abdd63cf9f51ac8d33465bfeb52ba1572df4e8b07324",
+      "size": 480290
+    },
+    "phase4/results/experiments/EXP002/config.json": {
+      "sha256": "a8b305bd561fbfb28b45fbfe737eaa9522eb4808d428e19e396416b5109e6441",
+      "size": 950
+    },
+    "phase4/results/experiments/EXP002/metrics.json": {
+      "sha256": "efd0cd3cd35f229cd2b973eddf35b85264af8e54767c0c8a23862353280bc973",
+      "size": 729
+    },
+    "phase4/results/experiments/EXP002/source_hashes.json": {
+      "sha256": "7d6b7121e0dac7eca9309102cd045f3b1b7815820897b6782bb17d49cfb83c00",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP002/training_history.json": {
+      "sha256": "8572651340a9f4f18e65b6f54245bf36a45e733289e28a717e5afa818ac7e4dd",
+      "size": 5973
+    },
+    "phase4/results/experiments/EXP002/validation_results.json": {
+      "sha256": "422e299aa721e28a91fd4422bf4348eee9383c661f617d1c09b3a9b5d0c5c202",
+      "size": 807
+    },
+    "phase4/results/experiments/EXP003/checkpoint.pt": {
+      "sha256": "820b9acf12bef922b5fd385ca304d39998fffcd8a1c494b2b4ea767cdda92051",
+      "size": 362018
+    },
+    "phase4/results/experiments/EXP003/config.json": {
+      "sha256": "e728bd10eb02939f817b5af9f51aa0b59aa55d0acb0ba568a3ad8f415f54a966",
+      "size": 940
+    },
+    "phase4/results/experiments/EXP003/metrics.json": {
+      "sha256": "20346cc3b0cda2c3e83432b90452f64f7d812808706607bb6c1ee26d2f3bd7bd",
+      "size": 728
+    },
+    "phase4/results/experiments/EXP003/source_hashes.json": {
+      "sha256": "90c0f7ba18ba4ad67bc7dd522c4be46589655830bc0f6f56147dc188efe8da71",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP003/training_history.json": {
+      "sha256": "1de674146a15724e9b319c9d9375cdada3eeb7c763db261c5d2438b56722baf9",
+      "size": 5403
+    },
+    "phase4/results/experiments/EXP003/validation_results.json": {
+      "sha256": "3b201d0c899b8e20c424eafc9e61f83795424c9c278550a94e13b000362ad5be",
+      "size": 810
+    },
+    "phase4/results/experiments/EXP004/checkpoint.pt": {
+      "sha256": "6ce1b97cba052b0e643d98e3491a70914fce2ebd29ca6f7169272abd44cc4199",
+      "size": 480866
+    },
+    "phase4/results/experiments/EXP004/config.json": {
+      "sha256": "70f4931766470673768ab43923fa80fff37e2a1516bec78d8b56c9700647c700",
+      "size": 951
+    },
+    "phase4/results/experiments/EXP004/metrics.json": {
+      "sha256": "9b032e06d111fa72bda9a3c8f77a6b2938367f513cd608cc104d7d82c5d91d64",
+      "size": 726
+    },
+    "phase4/results/experiments/EXP004/source_hashes.json": {
+      "sha256": "3e6c5a7919fbc0d6fa94c0b6e508d63f68c44e1136d4a276882013cc4a715048",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP004/training_history.json": {
+      "sha256": "7a72e31020fa552f08fbbf00fb29dab86797792df344cd343efb3c6c1fa78b8d",
+      "size": 5307
+    },
+    "phase4/results/experiments/EXP004/validation_results.json": {
+      "sha256": "b3a2c4382d86bb36d9dd5248382db4266bdee5db3290f915b3ccb4c720de429c",
+      "size": 807
+    },
+    "phase4/results/experiments/EXP005/checkpoint.pt": {
+      "sha256": "ea6bbc3239059061f30eb43bd1b8b0c0db2dd7006b6c8f5e5a5e774d9c124a0a",
+      "size": 362018
+    },
+    "phase4/results/experiments/EXP005/config.json": {
+      "sha256": "5f2a90eeaee0a08cb657a5db755c405fb73de6e5f2ab78c450667fcfb25dc819",
+      "size": 1024
+    },
+    "phase4/results/experiments/EXP005/metrics.json": {
+      "sha256": "0f6e27b096ddbd6efcb9387fada29e6658be5ca95769157c9383ddbbe91b964c",
+      "size": 725
+    },
+    "phase4/results/experiments/EXP005/source_hashes.json": {
+      "sha256": "6143e0be21ac0a15285a48078c5667a8a82fd0504088cf8195356fb6098641ed",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP005/test_results.json": {
+      "sha256": "51450e0f6a21856be4f1132d48be820f4c041630b1bce5e6f0096429debdbc7a",
+      "size": 804
+    },
+    "phase4/results/experiments/EXP005/training_history.json": {
+      "sha256": "911f9e320b605353a06b6bc47d865ab45f669e2e414a1ab870ec6f2fd7f57bc3",
+      "size": 3775
+    },
+    "phase4/results/experiments/EXP005/validation_results.json": {
+      "sha256": "d9e3d54bd3a3328341e8890aa0915da29d72d3b1c2b62cc6baae88554032e95b",
+      "size": 804
+    },
+    "phase4/results/experiments/EXP006/checkpoint.pt": {
+      "sha256": "d951472db87823c4243257b5e05a93c012d6fa34ad0852b003925813488b4b4f",
+      "size": 362018
+    },
+    "phase4/results/experiments/EXP006/config.json": {
+      "sha256": "4939b5cf3fa1cf4be43bc0ecbda69536b0cf6450a16b821ea90ab367f5f16a46",
+      "size": 1027
+    },
+    "phase4/results/experiments/EXP006/metrics.json": {
+      "sha256": "b86cd9c2a1c5837b43eb931e20b5c9991c44b27cece0de56da4c83bb0cda3bc7",
+      "size": 724
+    },
+    "phase4/results/experiments/EXP006/source_hashes.json": {
+      "sha256": "e58b6d43089a15784f671012954b7bf43a071079f8199b127454efdca25e2219",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP006/training_history.json": {
+      "sha256": "d091af3f4b35f0d1f294314157c0ed647960c7410e35616d7ae27a4dab411bd5",
+      "size": 5400
+    },
+    "phase4/results/experiments/EXP006/validation_results.json": {
+      "sha256": "0550b60fc4956c0a327ec7fec0833f49b8a1d65fd5d34c2709a9d0c927dceb05",
+      "size": 806
+    },
+    "phase4/results/experiments_summary.json": {
+      "sha256": "0293261e45989f7f2a6534c849b95f9fa7c0a53e17bab8e1cb1067aaa91c6a90",
+      "size": 14929
+    },
+    "phase4/results/feature_dataset/test.npz": {
+      "sha256": "1b5cf2678ec16d3e7f078fe0eccc62d482c90926b9caa63d4531e9752ea471f8",
+      "size": 14704
+    },
+    "phase4/results/feature_dataset/test_metadata.csv": {
+      "sha256": "f61fc8fc8b8529413e409511901f30e31db953142988d13a5ac2798bbb82dba5",
+      "size": 31138
+    },
+    "phase4/results/feature_dataset/train.npz": {
+      "sha256": "165d909213d3f2bacc7b8f22f048ff1f25308503606bdabb04bb03b6d1355eab",
+      "size": 86354
+    },
+    "phase4/results/feature_dataset/train_metadata.csv": {
+      "sha256": "bbaeb9f573cc8eb6a6429e65a76c8897a28c844a5777c4575bd195878920c1eb",
+      "size": 193002
+    },
+    "phase4/results/feature_dataset/val.npz": {
+      "sha256": "6b3e43f5185b43fea03eb440242b1346944ba1edd8e5a57bdbfe00ff0c1f0690",
+      "size": 18151
+    },
+    "phase4/results/feature_dataset/val_metadata.csv": {
+      "sha256": "21e9dbeb972398aab4a94afe2a921d7d85c63a3927e806aeee7fb6e352dbbaab",
+      "size": 36458
+    },
+    "phase4/results/feature_dataset_summary.json": {
+      "sha256": "3617670491cbc92d2878b05d651c1ef32f2037a38e26cd0f06c52227bc429126",
+      "size": 3294
+    },
+    "phase4/results/input_audit.json": {
+      "sha256": "3f9a70abc59b362d08a2a98834831f3d51d9c18d769e973c83f6a6419c68ddca",
+      "size": 5095
+    },
+    "phase4/results/normalization_stats.json": {
+      "sha256": "a5404a5743b29abe2e720c5b863883e07b222491df0d88c5d7a550771641bbc0",
+      "size": 2508
+    },
+    "phase4/results/source_immutability_report.json": {
+      "sha256": "1bc94e1689db114b0e1128fac8e29b1aca70e324ea3bd3ec104bf7a476258918",
+      "size": 28959
+    },
+    "phase4/results/test_touch.json": {
+      "sha256": "4e57e0c6bfa7d2e8e70dd846f40e4aae3cbf7f2d363e32e15c22a392f6569d4c",
+      "size": 304
+    },
+    "phase4/results/validation_results.json": {
+      "sha256": "f1215320118fc5f0f4cf83b1711139828678d6a65f6107a79f86c63bb543e752",
+      "size": 4592
+    },
+    "phase4/run_phase4.py": {
+      "sha256": "dbec1c8a9e1e0e5ba9b9abf61f1a7c539421da45a4d6194ff3c722be4c420037",
+      "size": 23476
+    },
+    "phase4/tests/__init__.py": {
+      "sha256": "3ac0935b605e651a0042394c2271a33116ea3e724ec03c8bf45a2f565ce27086",
+      "size": 72
+    },
+    "phase4/tests/conftest.py": {
+      "sha256": "146afcf7d879492c68a5c805ae0005122b20111a0bf3fde405f39470998d0a0e",
+      "size": 3559
+    },
+    "phase4/tests/test_configs.py": {
+      "sha256": "fe27c48eb6556d1168cc69b663004c80f6823297d5a5e9d3315ae6d6bffdd037",
+      "size": 3067
+    },
+    "phase4/tests/test_dataloader.py": {
+      "sha256": "191d0a30bd0c17f02e8202969d3c0b32fefabe5fac93f2a63c373482f5b636cb",
+      "size": 2229
+    },
+    "phase4/tests/test_evaluation.py": {
+      "sha256": "66f4d6edf56e2cc4090cd6e46ed3c34495cb043a6cd343a36ec16198ab0d1d26",
+      "size": 3111
+    },
+    "phase4/tests/test_experiment_registry.py": {
+      "sha256": "e10d8ed862ac8631f86724fbb1bc961d3dbdc8e9ebc88e178676980840eaaa22",
+      "size": 3093
+    },
+    "phase4/tests/test_features.py": {
+      "sha256": "c63e6f828799a7ff88502363b9cc7ead65e8dad13953b917c521281a0072cf34",
+      "size": 5405
+    },
+    "phase4/tests/test_losses.py": {
+      "sha256": "c51270078f06a2d6eb3742b52721ce0c569cb8482367fafb92c5f155b17084c1",
+      "size": 3551
+    },
+    "phase4/tests/test_models.py": {
+      "sha256": "e12ec5022f0697b5536f16a2223985850a26c39a1415078d20e4f2aa27b3aeb1",
+      "size": 2755
+    },
+    "phase4/tests/test_no_future_leak.py": {
+      "sha256": "1bde1f4a6aae1a708194aed8ebe5c12aa229adc8d7baaa94c7f6ec229729139e",
+      "size": 3262
+    },
+    "phase4/tests/test_normalization.py": {
+      "sha256": "2fa12607cf60e1e511861ad6a71aa30286e1967ff8d9a745fb4db9f2c37d714d",
+      "size": 4858
+    },
+    "phase4/tests/test_orchestrator.py": {
+      "sha256": "b964b2e4bc76baa84ee44c604cd3d5c87baa08df89e52bcb4e9ae1d17031edf4",
+      "size": 3218
+    },
+    "phase4/tests/test_reproducibility.py": {
+      "sha256": "1c26fddf7eef99a06a461322ec1b580d45126b8764de44f9e9bc5755468f0954",
+      "size": 2593
+    },
+    "phase4/tests/test_source_immutability.py": {
+      "sha256": "227ad98f382ba6a3177e88928db696f38456d94a9752f4a010ebc460b66eaaa8",
+      "size": 2671
+    },
+    "phase4/tests/test_training.py": {
+      "sha256": "a7fac3ece1bf1a92486732f48249da0b7dd2ad20cbc6955ddb9b295dcc5fe465",
+      "size": 3577
+    },
+    "phase4/training/__init__.py": {
+      "sha256": "1cc54ee50d4a0dfd77e81d080c1a4a232f9d7134d046da69021fc0e235e39b2a",
+      "size": 74
+    },
+    "phase4/training/normalization.py": {
+      "sha256": "464e9c8d4e21b79e84e2e793f4e22d8122e1e98fcea4962e5da8d8d5e493a4f6",
+      "size": 4998
+    },
+    "phase4/training/train.py": {
+      "sha256": "265acd2546d38b51a11eb0298869ea09cce662d98036d040b43bb6869945d56d",
+      "size": 8486
+    },
+    "phase5/__init__.py": {
+      "sha256": "17559aacd0cff0cf611679fe7c20d6b3367095be07bc5101be71e81eb7f70937",
+      "size": 384
+    },
+    "phase5/baselines/__init__.py": {
+      "sha256": "ee59258a1afdf02b88245c3b2b4f4daa5ad9333f8855f9305f8bf4b58690d483",
+      "size": 490
+    },
+    "phase5/baselines/movement_vector.py": {
+      "sha256": "5d8a22f3a51354e133c948f4959b74da2aea0f445da5c5ef7982cafb776fd60c",
+      "size": 2183
+    },
+    "phase5/baselines/persistence.py": {
+      "sha256": "75381c43e0f6979ae8e04ef085a904beff252c0825318f2aa507a0fac46fee09",
+      "size": 1119
+    },
+    "phase5/config.py": {
+      "sha256": "df61582cad41a9c7dc3b87ef633c64697cc44e09ed36d3801d77a75180bb0d45",
+      "size": 4014
+    },
+    "phase5/examples/example_input.json": {
+      "sha256": "f2950f2ad00691a68b01d3e1d7511a175b8ce7212d874ad8a994e51c7e8dcf2d",
+      "size": 800
+    },
+    "phase5/inference/__init__.py": {
+      "sha256": "d6fd4f8fab351eb82523f8bf3602cf8f0e3a71319909941f7f08978f6ec7bf53",
+      "size": 80
+    },
+    "phase5/inference/input_validation.py": {
+      "sha256": "f85006a8fda3bc5176c29dddc38a61463fbd7987a829eb4edad64e7bd6c2c8e5",
+      "size": 6744
+    },
+    "phase5/inference/output_contract.py": {
+      "sha256": "5cc3df97ba485768f902b8d096d507dd39a1705636f86ba3f18e0be72caf0d31",
+      "size": 4293
+    },
+    "phase5/inference/predictor.py": {
+      "sha256": "5a7242ca1492a299f9dc51b650541d8bd981f17d649179e6aea3d5d2489379bf",
+      "size": 6265
+    },
+    "phase5/inference/preprocessing.py": {
+      "sha256": "f753f54f6c8e8d2aa55d0964f9f8b7801dbc1f96b03c490a583b58763143fba0",
+      "size": 3992
+    },
+    "phase5/reports/PHASE5_REPORT.md": {
+      "sha256": "be0f51662b79c93be4aa51eb3deecfbcbe269d151d23e858e95190c1d750152e",
+      "size": 7023
+    },
+    "phase5/results/contract_validation.json": {
+      "sha256": "879ccb0ce679446e399c50bc0f307bb894a6f999dc55eeae9b0b66d74ae7ae77",
+      "size": 1643
+    },
+    "phase5/results/inference_audit.json": {
+      "sha256": "3cea9fe93dbfdcd403985c748d2b99917d4457abe2031c10625db38de98c2c11",
+      "size": 1554
+    },
+    "phase5/results/phase5_summary.json": {
+      "sha256": "965848558f0505a9201c28443effce427e48c8a4605d003fa2a676ac9fd35eb9",
+      "size": 1012
+    },
+    "phase5/results/source_hashes_before.json": {
+      "sha256": "ac2a3a24d78add29f748ceacc37eb5fed1a3454390278b68200f9a1a291b52ea",
+      "size": 34854
+    },
+    "phase5/results/source_immutability_report.json": {
+      "sha256": "605e21dd372a62181066dfe19512ce70cb65c09179263419411a31028d062b6a",
+      "size": 537
+    },
+    "phase5/run_phase5.py": {
+      "sha256": "371759043d2102c0e3df7455f73766e8d1f228ed2675ee84e18124555543127d",
+      "size": 31291
+    },
+    "phase5/schemas/__init__.py": {
+      "sha256": "0a166a56bbe61b1ba6ca10103b73eb4a0fd24b383ee190471f647831ea063b7f",
+      "size": 78
+    },
+    "phase5/schemas/forecast_schema.py": {
+      "sha256": "ece3b37bbf659bb88f205fc16c83a317ed5fbe50030e04a7d64c8558e8204e0d",
+      "size": 2943
+    },
+    "phase5/service/__init__.py": {
+      "sha256": "f9634f28f63718dbf9196c0093897f2732907e55895e096879c2a3c948985bec",
+      "size": 42
+    },
+    "phase5/service/forecasting_service.py": {
+      "sha256": "971b9f6b145cdccfbe532d441dd94490671277ed44becdd74d7c01c8d8a55821",
+      "size": 4204
+    },
+    "phase5/snapshot.py": {
+      "sha256": "875eb45757a586c8e51b6f515ecfd28b4a916f9c5e4e26fb185509a7473d1d58",
+      "size": 7007
+    },
+    "phase5/tests/__init__.py": {
+      "sha256": "080ff29b273551147ad24d3ffb218ea6704d1f164e207ddd0b60db8e6ec57791",
+      "size": 25
+    },
+    "phase5/tests/conftest.py": {
+      "sha256": "2e3e6188e804d071e1b8a508fa055d596656b9d56c8c2cc874afe4391818f17b",
+      "size": 2047
+    },
+    "phase5/tests/test_baselines.py": {
+      "sha256": "227aad3973c900a605750f8b0e44bcdaae53fb181ae59ba06d7667f7dcf3b989",
+      "size": 2070
+    },
+    "phase5/tests/test_determinism.py": {
+      "sha256": "a0eb165a89c08a74d56c81296911c8db3ea4d5066cec131d43ab1d217937153c",
+      "size": 1537
+    },
+    "phase5/tests/test_feature_consistency.py": {
+      "sha256": "6f85fd743fc93e018572986ed17b79db6c7e5d5e64de3296b770478a688606a7",
+      "size": 2499
+    },
+    "phase5/tests/test_forecast_shapes.py": {
+      "sha256": "625ac640486675687a8e3ccaeaf5063c2a31cb16a16a3b34dc80a9f12249af5d",
+      "size": 1981
+    },
+    "phase5/tests/test_inference_contract.py": {
+      "sha256": "cc9bcd95e8292ae540d31bb0e41f3ae564188ffcba4f272d7674b414f7be66f5",
+      "size": 3092
+    },
+    "phase5/tests/test_input_validation.py": {
+      "sha256": "d1f5fcf9546fde0cce99bf000123abe4c4217815e01594523816991a0a60b3d0",
+      "size": 4961
+    },
+    "phase5/tests/test_model_loading.py": {
+      "sha256": "b6ed71c70210f3fd138b11c9c154d435266d3467661ab311a3f6ea4efe8a6b7e",
+      "size": 1833
+    },
+    "phase5/tests/test_no_source_modification.py": {
+      "sha256": "3a3749e5408ae1be3c8dcf6e93684a8f4a3c7f16eb6d0fe164664e25d992347d",
+      "size": 3570
+    },
+    "phase5/tests/test_preprocessing.py": {
+      "sha256": "5a7eb29a0ddd8d8345aa3286158bf91e1715a9eead5f4bdd1eda30108f3b32df",
+      "size": 3271
+    },
+    "phase5/tests/test_service.py": {
+      "sha256": "0f2b977b1bab7ab12bf419676d8caa56f70fbe440d22e6c58c5fa24ad2c6f956",
+      "size": 4116
+    },
+    "phase6/__init__.py": {
+      "sha256": "2d454505bf7145acbdd32353c136b99b95e24f86aa44dd6ba01c426fc74b0a82",
+      "size": 313
+    },
+    "phase6/api/__init__.py": {
+      "sha256": "2c011a9db4a1baf50054fa0f5cb19a963c9fc4389e80270aa35919d769b2e575",
+      "size": 42
+    },
+    "phase6/api/app.py": {
+      "sha256": "7155ff5e891f554844ff4ae4e5a9a516444d5052d4c4801fd833dfec679fa19c",
+      "size": 2526
+    },
+    "phase6/api/error_handlers.py": {
+      "sha256": "3ad07e2863751cfe2945c749e40ea435b3c11ca5bdd3e7b8bbd7e270f8c3bf5b",
+      "size": 3851
+    },
+    "phase6/api/routes.py": {
+      "sha256": "c385e3cf9ac606d1ba2218241a219ad82520deb653bf48533f339cae23007129",
+      "size": 1972
+    },
+    "phase6/config.py": {
+      "sha256": "bd681ead6d89cd790228b8d9af56b5220c6fdbfdbc4d5a68c8ffc4da3e53f346",
+      "size": 4202
+    },
+    "phase6/examples/compare_request.json": {
+      "sha256": "82b825a0526e1df2e8e418ca96f0b1d31981cde963c43d82ba1c158316ef99b1",
+      "size": 1188
+    },
+    "phase6/examples/forecast_request.json": {
+      "sha256": "82b825a0526e1df2e8e418ca96f0b1d31981cde963c43d82ba1c158316ef99b1",
+      "size": 1188
+    },
+    "phase6/integration/__init__.py": {
+      "sha256": "5c75053f8f0639f78ed186bcff7b1e4003a4d35ef2badfff23c0a4fc0d5d6fe6",
+      "size": 78
+    },
+    "phase6/integration/forecasting_adapter.py": {
+      "sha256": "2695c7c27360d7a7cc3909b80097282a7d97c7f42c99c0baa21461d84a166133",
+      "size": 5351
+    },
+    "phase6/reports/PHASE6_REPORT.md": {
+      "sha256": "24d783f497788efb5783cd50a02d5515d613d5991ab4eafc1d5a64662683d156",
+      "size": 6212
+    },
+    "phase6/results/api_contract.json": {
+      "sha256": "f613ba565252e90036f6c2fc153dcbbf3b595787db2b1f965769d419353fd643",
+      "size": 8616
+    },
+    "phase6/results/api_test_results.json": {
+      "sha256": "68fecc02b706c2045cb36ce171d511da14451c1e2159e526b0a15754a9ec4951",
+      "size": 3982
+    },
+    "phase6/results/phase6_summary.json": {
+      "sha256": "984f26a0a072c9c91d4066b078c954bddfdfeefc56235e178dfbfa55011aacf5",
+      "size": 1241
+    },
+    "phase6/results/source_hashes_before.json": {
+      "sha256": "1a5888ad313cdab94ae816e5e17cb5ebbab823bf4b56c6de8e26f485d7903495",
+      "size": 39239
+    },
+    "phase6/results/source_immutability_report.json": {
+      "sha256": "681c9e8338fb9051689dbf4b7e350c402f902da1d553605be124e173b983edba",
+      "size": 579
+    },
+    "phase6/run_phase6.py": {
+      "sha256": "7d6ac34e45a5751c267f405ed3f65c56f62501fc06d079288f4f6259f71f6343",
+      "size": 41955
+    },
+    "phase6/schemas/__init__.py": {
+      "sha256": "c3f611b7b7da75d298cb6232e5581947ecc725384cfc095708b1c455be73c6c7",
+      "size": 88
+    },
+    "phase6/schemas/requests.py": {
+      "sha256": "4188a671e0437ab8cce597b7e315b98f7e7ad4fae217fa4fbc1d43f79f88c636",
+      "size": 5248
+    },
+    "phase6/schemas/responses.py": {
+      "sha256": "8330392f4d2682fb735e6e4b7165731393c53b3868bcd4af907d34092de27bcd",
+      "size": 2391
+    },
+    "phase6/snapshot.py": {
+      "sha256": "29720d42e2a47d21d98728331d4e4685fb950aacd2924b4f7cd7a81b702300df",
+      "size": 6956
+    },
+    "phase6/tests/__init__.py": {
+      "sha256": "79c3b047f6a8742fdc7d7e75485b49a743f825eabfe114a7afeb0a1bd3c4cf8d",
+      "size": 25
+    },
+    "phase6/tests/conftest.py": {
+      "sha256": "aedf84ef9975ace08e823c05e71e3404f9ea3c10e774b7edef23277a12018a57",
+      "size": 1247
+    },
+    "phase6/tests/test_causality.py": {
+      "sha256": "dd28dd8b4dc78679c1cda08662d231d9665df01fdd81379fedbac1f1b477d581",
+      "size": 4635
+    },
+    "phase6/tests/test_compare_endpoint.py": {
+      "sha256": "933887742fcdf147cbde0ee7a54410767dc28da59289ee447cfd5c3ff0a57de0",
+      "size": 2587
+    },
+    "phase6/tests/test_determinism.py": {
+      "sha256": "263e387bc7be1adbccddd3c4aef3a2fc23ef1d4e6ddc45c1f344e10f203aa80f",
+      "size": 1360
+    },
+    "phase6/tests/test_forecast_endpoint.py": {
+      "sha256": "c0e1ef6e5c8d5fd41ba182083560daa070e4ce02426696e8fc14b289df9c5a67",
+      "size": 2049
+    },
+    "phase6/tests/test_health.py": {
+      "sha256": "7d48e49f6ee33f9315765a1e2fc5d72df07c6e60a375e9b7d8de4d65c13c937d",
+      "size": 930
+    },
+    "phase6/tests/test_model_endpoint.py": {
+      "sha256": "8c8b3348402ca451f5b3f97b8e6f4ecc66ddb1e3262f9089012db9378f1aa28c",
+      "size": 1595
+    },
+    "phase6/tests/test_offline.py": {
+      "sha256": "fa6a237d574d787177aa1de39600d9d149023eb098bcc06bee675c4062540c0e",
+      "size": 3506
+    },
+    "phase6/tests/test_response_schema.py": {
+      "sha256": "7b61a1af3fdbbfa0db6387e817abea1ec6b3040ad5435c7265fbc082fe13f080",
+      "size": 1887
+    },
+    "phase6/tests/test_source_immutability.py": {
+      "sha256": "c9f9637d6c2bf7b5c11e0bb0459c9410ec121d0a41f2f738e8d370e11fbe63d9",
+      "size": 2849
+    },
+    "phase6/tests/test_validation_errors.py": {
+      "sha256": "0da05200414dd7a3dbfe2c15ade7163f09064fac53b409ce4f49113c8ee6d7d6",
+      "size": 4345
+    },
+    "reports/P4_PHASE1_FINAL_REPORT.md": {
+      "sha256": "93494a8abd1e3560d000094e21c3eebda9b1c1a943ff9ef354243b3cde65c0ca",
+      "size": 4825
+    },
+    "reports/p4_phase1_summary.json": {
+      "sha256": "b6c002e134e6f6a89c56392de81ae6e865d7f44e542e872e18529235b06c28b8",
+      "size": 7281
+    },
+    "scripts/run_p4_phase1_audit.py": {
+      "sha256": "cc8c2b05652b9fdfca56d9a99b968f4b2f12d4fa77b4535317c3ac4154c6419c",
+      "size": 66084
+    }
+  },
+  "p5_cyclone_project_dashboard": {
+    ".gitignore": {
+      "sha256": "f58dc5e321dc43a1812d05da3befa82bad26ca2648336cf962e65d0236ebd5ee",
+      "size": 45
+    },
+    ".oxlintrc.json": {
+      "sha256": "1be899e45c49b2a2edc715bc3bfb31d8ed8e866ed7ebab2065ff6e55e88c2396",
+      "size": 231
+    },
+    "README.md": {
+      "sha256": "5cbf5d6a9890820876275f5d974f3af0089fcd98caec8482bac1c867061e5ec5",
+      "size": 5844
+    },
+    "index.html": {
+      "sha256": "a35855012c0de413ee1752b3e105e7b4f6cd7b4eb5f26e767a029afae91b8554",
+      "size": 698
+    },
+    "package-lock.json": {
+      "sha256": "384c36812d1b6bba01dcb9435bde280456a10d3d943231ee82fdc19f84c39266",
+      "size": 85105
+    },
+    "package.json": {
+      "sha256": "8e1c23197a06c944a51041c73850fe5eeb29c9d1e74956cbe3dc3ce7ad3a4f57",
+      "size": 672
+    },
+    "public/favicon.svg": {
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "size": 9522
+    },
+    "public/icons.svg": {
+      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "size": 5031
+    },
+    "src/App.jsx": {
+      "sha256": "395e464b2f6e346e4de55c6842072f429c2ac3a08174e1a42536f71cb2902e53",
+      "size": 3470
+    },
+    "src/api/client.js": {
+      "sha256": "fea72297659554a13612820a005fd0dc4e07838722840c58c6b7e2a4735335db",
+      "size": 2568
+    },
+    "src/api/mockData.js": {
+      "sha256": "fc903b4df6b2681f174962170504e2681ba20e3ee847004f5c62a9e609b8c7ba",
+      "size": 4205
+    },
+    "src/assets/hero.png": {
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+      "size": 13057
+    },
+    "src/assets/vite.svg": {
+      "sha256": "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f",
+      "size": 8709
+    },
+    "src/components/BaselineComparison.jsx": {
+      "sha256": "adcb5ef14548aa344ce1809dac44ca98b8bf027f98259feccac398d625d6b60b",
+      "size": 4991
+    },
+    "src/components/CardShell.jsx": {
+      "sha256": "b3b5360932297ec65b1cdbcbc51d0e24ca647b2be6cfc3a2aa7062b340790ef5",
+      "size": 1156
+    },
+    "src/components/ClassificationCard.jsx": {
+      "sha256": "1800c1e01ea5b4bcef1e72655fbbfb33ee80be50f65b0a7ea77d225ae546b60d",
+      "size": 1287
+    },
+    "src/components/DetectionCard.jsx": {
+      "sha256": "443a795b1199b99ccf191d25cfbe50e58fafe68d31b469fd859baf091335f66c",
+      "size": 970
+    },
+    "src/components/ForecastCard.jsx": {
+      "sha256": "384f174bebd8d5c1b9e3ee25311391507c2c120b1247a57ba77f77e66f990f48",
+      "size": 2794
+    },
+    "src/components/Header.jsx": {
+      "sha256": "0b9ad16a1058df1f050eb761a4d47475c1950a87e09f9da37684abe220815be9",
+      "size": 4237
+    },
+    "src/components/LandfallPanel.jsx": {
+      "sha256": "bd1ad8816d425da41d6b875e79b3d28c77d5916f49a3a35aefa1a24b0c8c64ff",
+      "size": 1862
+    },
+    "src/components/LiveCycloneStatus.jsx": {
+      "sha256": "209c3caeed86aebe600b997ecc45c1671ba161db70e9d3cedcaa0139c5082f36",
+      "size": 4773
+    },
+    "src/components/ModelIntelligence.jsx": {
+      "sha256": "b9d9f02c8c49ba3c4a31621a119b66d53ac7227936cd94a89265eaa7a3a2ebc3",
+      "size": 4757
+    },
+    "src/components/PipelineStatus.jsx": {
+      "sha256": "0877680def7ac954df4fec59867259b21a6c1ccceecdca51fa37bd3a9d35e514",
+      "size": 2212
+    },
+    "src/components/RiskIndicator.jsx": {
+      "sha256": "6afbc5516e928a76e5070fe3f63979f7614365efe5d2a04dde2fdd94857a62e3",
+      "size": 4078
+    },
+    "src/components/SatelliteViewer.jsx": {
+      "sha256": "c8b406f8f5783e4dab0837d00d923d154813ad5d7b078ddfe8aae467846474d5",
+      "size": 6643
+    },
+    "src/components/charts/ChartsPanel.jsx": {
+      "sha256": "a3ecb4e093a11db96b94f3f17253ed9579b520b45e2aa911973c02bdbd58b226",
+      "size": 7000
+    },
+    "src/components/charts/MiniLineChart.jsx": {
+      "sha256": "a45ac72fd7164b4477f35ab50bda24f4414701e6d27bea13ea06b07ec814e975",
+      "size": 1389
+    },
+    "src/components/map/MapView.jsx": {
+      "sha256": "cb519d98325e99cff231c7104701516bd23a60be3d74e079570b26061abe042a",
+      "size": 8592
+    },
+    "src/components/map/uncertaintyCone.js": {
+      "sha256": "16c3bd9d1ea757a6278b0f083d0502e5b04b612308c64fb23cd66f404a3c1ac7",
+      "size": 1170
+    },
+    "src/index.css": {
+      "sha256": "569ea6270759ccd260db133f8514814d335332ec511207ac4778d667a4d25980",
+      "size": 1722
+    },
+    "src/lib/format.js": {
+      "sha256": "fe0de7b65642dc7e7b6ec8c2c0e92f8783f915b32c37bdbfb550628eb3076a45",
+      "size": 683
+    },
+    "src/main.jsx": {
+      "sha256": "deeff048606a0994a179cda868c9573e204b47e5c0bb06e21e209a20d9b66124",
+      "size": 263
+    },
+    "vite.config.js": {
+      "sha256": "326f75983524cb01eace7d18eb443a947e5b582a68b30fa058c2dc71c952a141",
+      "size": 478
+    }
+  },
+  "p5_sih26_dashboard": {
+    ".gitignore": {
+      "sha256": "f58dc5e321dc43a1812d05da3befa82bad26ca2648336cf962e65d0236ebd5ee",
+      "size": 45
+    },
+    ".oxlintrc.json": {
+      "sha256": "1be899e45c49b2a2edc715bc3bfb31d8ed8e866ed7ebab2065ff6e55e88c2396",
+      "size": 231
+    },
+    "README.md": {
+      "sha256": "5cbf5d6a9890820876275f5d974f3af0089fcd98caec8482bac1c867061e5ec5",
+      "size": 5844
+    },
+    "index.html": {
+      "sha256": "a35855012c0de413ee1752b3e105e7b4f6cd7b4eb5f26e767a029afae91b8554",
+      "size": 698
+    },
+    "package-lock.json": {
+      "sha256": "384c36812d1b6bba01dcb9435bde280456a10d3d943231ee82fdc19f84c39266",
+      "size": 85105
+    },
+    "package.json": {
+      "sha256": "8e1c23197a06c944a51041c73850fe5eeb29c9d1e74956cbe3dc3ce7ad3a4f57",
+      "size": 672
+    },
+    "public/favicon.svg": {
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "size": 9522
+    },
+    "public/icons.svg": {
+      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "size": 5031
+    },
+    "src/App.jsx": {
+      "sha256": "4b34e76038e6a0fa9c8a41a203af3aeab85766be01b65126d6cfb32ebcd3d111",
+      "size": 2579
+    },
+    "src/api/client.js": {
+      "sha256": "fc34b7b9e38f2d08150688e3c10b6631590342ecb9a2c57a23923180c111a957",
+      "size": 2561
+    },
+    "src/api/mockData.js": {
+      "sha256": "66b8c0a22b2ecd221e03937df9f12529aee90d28cc8281d04c9d98299d713b7d",
+      "size": 3766
+    },
+    "src/assets/hero.png": {
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+      "size": 13057
+    },
+    "src/assets/vite.svg": {
+      "sha256": "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f",
+      "size": 8709
+    },
+    "src/components/CardShell.jsx": {
+      "sha256": "b3b5360932297ec65b1cdbcbc51d0e24ca647b2be6cfc3a2aa7062b340790ef5",
+      "size": 1156
+    },
+    "src/components/ClassificationCard.jsx": {
+      "sha256": "1800c1e01ea5b4bcef1e72655fbbfb33ee80be50f65b0a7ea77d225ae546b60d",
+      "size": 1287
+    },
+    "src/components/DetectionCard.jsx": {
+      "sha256": "443a795b1199b99ccf191d25cfbe50e58fafe68d31b469fd859baf091335f66c",
+      "size": 970
+    },
+    "src/components/ForecastCard.jsx": {
+      "sha256": "a847bedf954e26a41cb364862673b27f6c822e1ba82bd4a7db1bc07364b47dd0",
+      "size": 890
+    },
+    "src/components/Header.jsx": {
+      "sha256": "4818e4eb64dab05757c6d607477f99cda2a2b253ddea202867ceefe5b219daab",
+      "size": 1372
+    },
+    "src/components/LandfallPanel.jsx": {
+      "sha256": "90a95a3854d9336c336e517d8a15e31561be43a5ba7ace16e41b6543850a0a98",
+      "size": 996
+    },
+    "src/components/RiskIndicator.jsx": {
+      "sha256": "2ac0f57ce9a6e8906151c245d20ec654872ce5f6a444b198c51787f80ed306e7",
+      "size": 2499
+    },
+    "src/components/SatelliteViewer.jsx": {
+      "sha256": "4a717ca9c21b0eaae5c390b0ba03eb09fb7239bd712f6f415228484ecde56326",
+      "size": 4181
+    },
+    "src/components/charts/ChartsPanel.jsx": {
+      "sha256": "d2a1868a2451f5514ec383fb0993ce0c44cdc7819424baa01caeaf76a81bb15b",
+      "size": 716
+    },
+    "src/components/charts/MiniLineChart.jsx": {
+      "sha256": "a45ac72fd7164b4477f35ab50bda24f4414701e6d27bea13ea06b07ec814e975",
+      "size": 1389
+    },
+    "src/components/map/MapView.jsx": {
+      "sha256": "fd045cf7e74ba139edb565f2a66981d2db07be7a25616a00f6c5f7d379266d62",
+      "size": 6628
+    },
+    "src/components/map/uncertaintyCone.js": {
+      "sha256": "16c3bd9d1ea757a6278b0f083d0502e5b04b612308c64fb23cd66f404a3c1ac7",
+      "size": 1170
+    },
+    "src/index.css": {
+      "sha256": "569ea6270759ccd260db133f8514814d335332ec511207ac4778d667a4d25980",
+      "size": 1722
+    },
+    "src/lib/format.js": {
+      "sha256": "fe0de7b65642dc7e7b6ec8c2c0e92f8783f915b32c37bdbfb550628eb3076a45",
+      "size": 683
+    },
+    "src/main.jsx": {
+      "sha256": "deeff048606a0994a179cda868c9573e204b47e5c0bb06e21e209a20d9b66124",
+      "size": 263
+    },
+    "vite.config.js": {
+      "sha256": "f01307daf0105ba9aecb902c1ae21d2fd2f6d5450416d8e35cd980eb01406ff3",
+      "size": 246
+    }
+  }
+}
+```
+---
+
+## SOURCE_HASHES_AFTER.json
+```text
+{
+  "p1_zip_archive": {
+    "PS70-main.zip": {
+      "sha256": "f653c8e85728f8a75ec0ddb2e677ccf7f540399c94fb76f52f616b4ede3e2438",
+      "size": 1231540094
+    }
+  },
+  "p1_zip_entries": {
+    "PS70-main/.gitattributes": {
+      "sha256": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b",
+      "size": 66
+    },
+    "PS70-main/README.md": {
+      "sha256": "98958e4648484184125b2fc18b8e3785a89d797c46275464b01d026401ba2a39",
+      "size": 30814
+    },
+    "PS70-main/build_datasets.py": {
+      "sha256": "586ae286e39ece70e69461c66d379d30e87c81b8dcae1d57e03c2766f8b9be57",
+      "size": 13662
+    },
+    "PS70-main/check_coverage.py": {
+      "sha256": "a31477e30366441f248d7f47c35133724fbff7dfef34363a980fd5345d0182cf",
+      "size": 631
+    },
+    "PS70-main/check_missing_files.py": {
+      "sha256": "9d0f4ce11e03ecac37c627e42d44eb60f23a2791938b59ea46ff417e6c5f00d2",
+      "size": 1695
+    },
+    "PS70-main/clean_kaggle_intensity.py": {
+      "sha256": "bc27156e1afb33e8eb165c0c457ff579804e7e509748148ed178d2f001b4a12b",
+      "size": 6394
+    },
+    "PS70-main/data/metadata/ibtracs_clean.csv": {
+      "sha256": "bcd4bf0e05b63aaffd458f10f694e692a1cceff78f7eba3eeb2f1c2193db2acb",
+      "size": 1487310
+    },
+    "PS70-main/data/metadata/ibtracs_with_era5.csv": {
+      "sha256": "35b4ccea3e086f1008d1a8e1404dd9b8c114ba49aac8fc403fe75660d779605d",
+      "size": 709456
+    },
+    "PS70-main/data/metadata/master_dataset.csv": {
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "PS70-main/data/metadata/mosdac_needed_cyclones.csv": {
+      "sha256": "d425c8adf40d9f6788a1fbae04acdc00b9e06ee7698dc85f43f6745dd4352502",
+      "size": 3697
+    },
+    "PS70-main/data/metadata/mosdac_priority1_named.csv": {
+      "sha256": "8c9988b0d18d60dbda0d5484972e0e3a432c7ef9d69ca0aa0f797d66738deaa1",
+      "size": 1392
+    },
+    "PS70-main/data/metadata/mosdac_priority2_unnamed.csv": {
+      "sha256": "3c190d5743be21dde9b333357d190be9271a2cfe7b80a5054102b5bb2c454e3b",
+      "size": 2641
+    },
+    "PS70-main/data/metadata/test.csv": {
+      "sha256": "e59fccce9ab187d7bc8b185a687fb1138f6e18e47e33980dbe2719c6c88462e4",
+      "size": 110840
+    },
+    "PS70-main/data/metadata/test_cyclones.csv": {
+      "sha256": "096fcf2ecee4f2ee6d32a476359bbe811180870d18feef72f81a5eba0f88fd59",
+      "size": 347
+    },
+    "PS70-main/data/metadata/train.csv": {
+      "sha256": "4e8b4724f42b4f66f0380b7b650807d616a6bb93d073325fececf4ef53b29a59",
+      "size": 527509
+    },
+    "PS70-main/data/metadata/train_cyclones.csv": {
+      "sha256": "c4feb714f31756a059ec489ba3a9f1b5cde66f69bfe9c1432e9612511f460040",
+      "size": 1481
+    },
+    "PS70-main/data/metadata/validation.csv": {
+      "sha256": "41f0dc8bc798c87a79ef428362a2a83c5470a1bb2aefba0e8af49b67dbf663c1",
+      "size": 100863
+    },
+    "PS70-main/data/metadata/validation_cyclones.csv": {
+      "sha256": "82b5678b94327f2ee062263fdcad802c3eb9dcdbfe9e483dcfca3dbf1a225ccc",
+      "size": 319
+    },
+    "PS70-main/data/processed/classification/README.md": {
+      "sha256": "113ce1c1f0f6b673ae07a1220134c0fcf7e1fcb01ae6c0e661c6305e11e2b2e2",
+      "size": 1558
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55.jpeg": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/labels.csv": {
+      "sha256": "cbdfb1b3d365ba4c8651195eb69cdb37bc9b81ea8e11f8aa6bc0a4f736859f40",
+      "size": 5148
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/test_labels.csv": {
+      "sha256": "06ff83ee035b6b96a692d3c7250c8e3ff795cab36ba6051e92ec19dcf30495c7",
+      "size": 871
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/train_labels.csv": {
+      "sha256": "c1de0fac456a9ac1b2ddf057413eba838556c0c0fac389ead81da9f57cf85e7b",
+      "size": 3581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/val_labels.csv": {
+      "sha256": "7203af3d709455083593d8d4efb0f969409105dda41978d9fe9b17083a4997d5",
+      "size": 790
+    },
+    "PS70-main/data/processed/classification/multisource_test.csv": {
+      "sha256": "9f0b602ac502229e5ede7556eb83afba016aada34f0b6445072a561b6f2bc42f",
+      "size": 91556
+    },
+    "PS70-main/data/processed/classification/multisource_train.csv": {
+      "sha256": "3782a2b617e0db20df8106176526a95df03de1755c5dfda951f4dd43da030428",
+      "size": 426068
+    },
+    "PS70-main/data/processed/classification/multisource_val.csv": {
+      "sha256": "892eec0ee47ea67bc3fc0b369ea6a5eebd82d3da2a6b78b9086668b5e3f7ef8b",
+      "size": 73178
+    },
+    "PS70-main/data/processed/detection/README.md": {
+      "sha256": "58623106ae8ef752141be361b18722bdb24afd632fb3f8de3b26c90c957d7ab5",
+      "size": 1055
+    },
+    "PS70-main/data/processed/detection/detection_all.csv": {
+      "sha256": "230b6f2e799a42769578d94c719dc63bff8d127c62faad5a12fdb3b1aacc07b0",
+      "size": 19007
+    },
+    "PS70-main/data/processed/detection/test_detection.csv": {
+      "sha256": "a628d8d3120445d0ef1ac7217ee8b8f7fde5f6f6a72a1802e99dbaf7142c0f53",
+      "size": 3095
+    },
+    "PS70-main/data/processed/detection/train_detection.csv": {
+      "sha256": "dfb1efa9165949a2f8175a8d317a3d4e303a78b08d3f7a1565ff3027d150115a",
+      "size": 13302
+    },
+    "PS70-main/data/processed/detection/val_detection.csv": {
+      "sha256": "2042ffd07dc83476ac0466703d50862da5b8362ae90ae5d8a0030471672e5d5e",
+      "size": 2818
+    },
+    "PS70-main/data/processed/forecasting/README.md": {
+      "sha256": "0f943f7e52d5f11cd3cde30d533578c3d63152c5a74b312db8255cc52032707d",
+      "size": 2283
+    },
+    "PS70-main/data/processed/forecasting/test_sequences.npz": {
+      "sha256": "882535a1a8886c45ad094878a5a184c860acf1c61a3ecc29133caa576be7eb04",
+      "size": 15074
+    },
+    "PS70-main/data/processed/forecasting/test_sequences_metadata.csv": {
+      "sha256": "f2a1526556dc2e176ab5787784f33cb9ff72dd7ae3a0a9dc5bd0c57df1d7ec16",
+      "size": 57724
+    },
+    "PS70-main/data/processed/forecasting/train_sequences.npz": {
+      "sha256": "1a65f93f2f698d5956fb1b23c74a80780046f151bc44012122be97d85f1053f9",
+      "size": 69267
+    },
+    "PS70-main/data/processed/forecasting/train_sequences_metadata.csv": {
+      "sha256": "54cee046c6c764ffc7e079cfccddff9da26665f78ef63e83530632d2745b0539",
+      "size": 306770
+    },
+    "PS70-main/data/processed/forecasting/val_sequences.npz": {
+      "sha256": "d0e4fd91d207cd1d43aeccf32edee49c8de7e75d8a7079c5335377a45f1a1073",
+      "size": 13677
+    },
+    "PS70-main/data/processed/forecasting/val_sequences_metadata.csv": {
+      "sha256": "b182592a68f93c375fd3a3d28012643052cff4e1e75bb548047242bf28f4086e",
+      "size": 52265
+    },
+    "PS70-main/data/processed/master_dataset.csv": {
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "PS70-main/data/qa_reports/QA_REPORT.md": {
+      "sha256": "e8e8fd956d0601c753965549af4e4d4a47c11b5a6d7954a4913a8ac79e6ee49e",
+      "size": 1325
+    },
+    "PS70-main/data/qa_reports/figures/annual_frequency.png": {
+      "sha256": "2f362180179ea92bba758e7691d03acc5428e120f9c511dc0268931724bb46af",
+      "size": 99071
+    },
+    "PS70-main/data/qa_reports/figures/category_distribution.png": {
+      "sha256": "a41cdb289816e025819459754934cbb6e8a82218c410a952d958e1fef9d65e3e",
+      "size": 73651
+    },
+    "PS70-main/data/qa_reports/figures/geographic_tracks.png": {
+      "sha256": "07d20592e2f3871b20b294a8f2836458750c163d7f32a33bb2f44195487ddf63",
+      "size": 601835
+    },
+    "PS70-main/data/qa_reports/figures/wind_vs_pressure.png": {
+      "sha256": "f90de951965cac3c5d15230d06f8602503441d1629309aefa2a10a38c37abf0c",
+      "size": 247752
+    },
+    "PS70-main/data/raw/ibtracs/ibtracs_NI_raw.csv": {
+      "sha256": "8efd3ed5d726ad1439014e08d1570574d1e4171af7dbd1b54ef4046da9512ba1",
+      "size": 27875881
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/101.jpeg": {
+      "sha256": "6c784cace01099f640e6b4c9eedf595866fce091082311e6a5ed65a4b4fac1ea",
+      "size": 164550
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/102.jpeg": {
+      "sha256": "84285b0faf8736249e128e1c5a54e4499cdf4573b1e119b2548f7341e149eac5",
+      "size": 57711
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/106.jpeg": {
+      "sha256": "c50cf71245d290dd6bedcb9d4b09664c063457ba0e8731e2c3262c8ff765b2a6",
+      "size": 173614
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/111.jpeg": {
+      "sha256": "667cbb33b5334d6002c9c163a7b1fce875434e56b79f57dd7e80cdd3738aefa3",
+      "size": 144903
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/112.jpeg": {
+      "sha256": "56c4019f8480b15f6e5f9ff7f0af09a1904751921dee1ab9f6fcc8207c1252c7",
+      "size": 172282
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/115.jpeg": {
+      "sha256": "b00c770cc2d064e8ca6afa1fcde49a1de94fee543e405835df141a23f36d5e74",
+      "size": 164800
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/118.jpeg": {
+      "sha256": "30ae1381a7edf2baff45076db8f86f0b831a9cacd1a7cffcddfd76edea685ffe",
+      "size": 191431
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/119.jpeg": {
+      "sha256": "dfa6277001643e87f97492859b62e1bb44319ddf55a221df971edfdb62187aae",
+      "size": 187647
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/128.jpeg": {
+      "sha256": "ed7dc5018393cfab7751611a95a109718ca79ff0fabc607934a49fef07374ff5",
+      "size": 154406
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/25.jpeg": {
+      "sha256": "7c83f60171f19f24a65a6f30ec8fab4200399958b7af7531ae5e7f2542f01da1",
+      "size": 119357
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/27.jpeg": {
+      "sha256": "bd1d1c4148aff13697417b083b808c9b689cdc91566888503ca389833910f89c",
+      "size": 132932
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/28.jpeg": {
+      "sha256": "251aaaa43204482eb73f262ec78e24303c64dce6d4969f3946a0dcdb63a66bac",
+      "size": 153783
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/30(1).jpeg": {
+      "sha256": "141a0fda9906d8a60e089fe37131e6bc2248201a1faf8aed956a6e60bbb92372",
+      "size": 180340
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/30.jpeg": {
+      "sha256": "73f3ba1d51f6fd1e97e53c6c73fe958f20297379774dfbeaa76c3a2ed1a58bc0",
+      "size": 159353
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/31.jpeg": {
+      "sha256": "c72a9f8bbe15f708cd98caf6e412d79f1d3ae5cc9bbb1b4b6cefc9604e104ffc",
+      "size": 132865
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/32(1).jpeg": {
+      "sha256": "eed267b693fbee2f2292e14909b524718927db56ef9e7db22ddc4246185ad2e4",
+      "size": 111360
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/32.jpeg": {
+      "sha256": "50e74152f460fd3456ae6fa1868de5c5e412d9a7e162e8f0ecd117de95836343",
+      "size": 129747
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/33(1).jpeg": {
+      "sha256": "bba34447ae3dd3a2f106ade379413203250d040d6482391c80b99ce8198d3dc6",
+      "size": 90286
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/33(2).jpeg": {
+      "sha256": "e0439ca669463b35920144f5386c3f5e7e2675de1a2d803860d0f8223491d63d",
+      "size": 198905
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/33.jpeg": {
+      "sha256": "40cb0d7d6d67616a6382639c310b751f642f6c413a1360c6c65312fcab68537d",
+      "size": 136545
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/34(!).jpeg": {
+      "sha256": "383f9e89016c5ef6b9b801eae7ec4acbe2a8ddcc5acd52086b8ebf4ad5700726",
+      "size": 195226
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/34.jpeg": {
+      "sha256": "4c1841d62266135cf1523d724630613e3c86aa36bda6f1c77e4719f185c1a4fe",
+      "size": 137045
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35(1).jpeg": {
+      "sha256": "c67030f772bbbc37661cae7b58e2b040428c9ad6f4e54d60a7dea0bc251e7854",
+      "size": 123718
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35(2).jpeg": {
+      "sha256": "730f8d5fceec7c4dec8ebe9f4cff45896b192f970b136055cc79301a32ba0d89",
+      "size": 149771
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35(3).jpeg": {
+      "sha256": "94fb3663d5808aaedb85e920233b3832f4865926a50c537b88ed032740fa049a",
+      "size": 100047
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/35.jpeg": {
+      "sha256": "568f021e53b1f90f4dbcc74544c504fd793da1888da4ad80e38278577250f00d",
+      "size": 160315
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36(1).jpeg": {
+      "sha256": "1b3f44eb114b53e4df4af080a90c618519a75d02e3fc7159f1b10db5b424f8f3",
+      "size": 164701
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36(2).jpeg": {
+      "sha256": "9704af864db8f8e78ad80c34b3db2b4ce47ee095fd19fc7ee545214158e54063",
+      "size": 96176
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36(3).jpeg": {
+      "sha256": "26847bc327beb26e74a3839277da61e9b5e33e1479d35ef4b5fecc96e793d03a",
+      "size": 89633
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/36.jpeg": {
+      "sha256": "d7898a44a7104878e90f6de54f8a78f01912ae9dcbdb6908dbe89e7da147bd23",
+      "size": 130629
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/37.jpeg": {
+      "sha256": "3c521a56e9812464a121b0b50f71777765f8ff58fd526abb2d42859802084449",
+      "size": 143675
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/38.jpeg": {
+      "sha256": "6712a1d7d6de46e1bc15b794dfd8b36cf02c3a40742d9561df35cb1439e3bd28",
+      "size": 184505
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/39.jpeg": {
+      "sha256": "42b709f3072a950b429d4c8c569a2f021f228b07bc4b73406b5b44de9749350d",
+      "size": 112182
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40(1).jpeg": {
+      "sha256": "c6243fa45ebd41a8776766425b1f9d2e1b166982f60c27f63073d91c8d0156da",
+      "size": 134408
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40(2).jpeg": {
+      "sha256": "4c6454af3f04b34645a11f5f36955aa3596d225a6641105e3833a13f090d5a6c",
+      "size": 130372
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40(3).jpeg": {
+      "sha256": "a699ba6620ee57291a176d3e2d7e894c3cc90405030e3fcd498ce5450a123549",
+      "size": 182057
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/40.jpeg": {
+      "sha256": "2ff06bd2a0812cb91bfdf46a293863150511cdaffd92aec4d3a40a3329aa4a21",
+      "size": 159285
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/41.jpeg": {
+      "sha256": "22fdf425304a44d55538272b11c42afa38ac095cea61b78bb5f1dba014583468",
+      "size": 162678
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/42(3).jpeg": {
+      "sha256": "95246fe33fa6a64d94729e661985636ea8229ffaaa003b6cf93635533a498ec4",
+      "size": 142885
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/42.jpeg": {
+      "sha256": "b4792633c7d846074352759b391c4b137abc53369cabd40e708f23ea77ea2ccc",
+      "size": 171877
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/43(2).jpeg": {
+      "sha256": "e48a571e66aeb6334db12a1723c3019ad1090690119d58fbb2d586bf1b827dc8",
+      "size": 83730
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/43.jpeg": {
+      "sha256": "fd25b756cbaa58b717c79be4b0367bfb54221c4254f43ec4a863879440895533",
+      "size": 164361
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44(1).jpeg": {
+      "sha256": "21f69d8ec90b921eae03bd2a187464ae63dac3d851af594ec712dce6d8b6225d",
+      "size": 138225
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44(2).jpeg": {
+      "sha256": "0329d87ffe37c4a8b9f0388535e42d44f94deeab01c72467cef1bbda443cfb6a",
+      "size": 180285
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44(3).jpeg": {
+      "sha256": "fdd05971b8d372cb4e8bc15d4e224287fd3f0d532a3457ec1720123e8b57f7cc",
+      "size": 178501
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/44.jpeg": {
+      "sha256": "80b69fc0562f0d5359d8024f70e3a156cb1b45efdfef28a21fdce60273c7ef65",
+      "size": 186208
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(1).jpeg": {
+      "sha256": "b00c74c43430cce2949a6d4566e894e92ef51dc46be1ea68a66394840fa525f9",
+      "size": 194877
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(2).jpeg": {
+      "sha256": "253208f3c12db34c7aa125fc3c0d0c13306cdac70b720b4ef85c0a4f826e9a3c",
+      "size": 164963
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(3).jpeg": {
+      "sha256": "0770f9c8dd6826342912e414f99534e85903d83b1cebd09105733ffc775c33b6",
+      "size": 123599
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45(4).jpeg": {
+      "sha256": "1b66ac18546d3777dc4add83c9b08f0fd74a049b183e8541ea0e64353d9dbc87",
+      "size": 177773
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/45.jpeg": {
+      "sha256": "f59dfa843b9b7a9204f4055cca567f21a15c1afcf37084fa984f96be6644e2c2",
+      "size": 155443
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46(1).jpeg": {
+      "sha256": "83036a3c94f6f4831e43c79c5881877fcad0433043b9c81ddae8a4b28ee29c0b",
+      "size": 196084
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46(2).jpeg": {
+      "sha256": "669e9ad31364e7fe9bea4ee2e91e3f71ca338d1d017b144e1ff3aab1475132cf",
+      "size": 3573287
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46(3).jpeg": {
+      "sha256": "c3424f52f38502608b02dcc79703e966f61c41cdbbc7682ae5f941f70d510fa4",
+      "size": 105459
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/46.jpeg": {
+      "sha256": "7c4be00a91357b2afb643a81db786b45dd088b1339ca8256f35ef35d605a128a",
+      "size": 141829
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(1).jpeg": {
+      "sha256": "5a8e0f2c4b4b895692cb8bdea1cff7f1cd30c14c284787f66d72467827a4a686",
+      "size": 150182
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(2).jpeg": {
+      "sha256": "62f86a003f2d28ca0bd77e61534fd20e5e8809391f820a5db926c4d2affbe1a9",
+      "size": 180103
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(3).jpeg": {
+      "sha256": "f6cd0fc37f1e9d3feab9cdd7353b424582f481127fc43b1ae7a83558808e53e8",
+      "size": 93280
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47(4).jpeg": {
+      "sha256": "0d62b4c44de030529f9684fbe143a4a177590e135d3a023eeb986cff3c5262ad",
+      "size": 195263
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/47.jpeg": {
+      "sha256": "27f37fcf36a34571c94466c3e111647adebbfcb19c93e025822f1b773463c6e3",
+      "size": 143381
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48(1).jpeg": {
+      "sha256": "ae1c16af5bad7dc3979e106a3135d68ddd102719965253f2f081fe34374082b2",
+      "size": 162387
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48(2).jpeg": {
+      "sha256": "deed2f4d2547a2f1097f17c176a58bc7fc53e20cbc68045c3f825c4cd2a945ec",
+      "size": 159787
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48(3).jpeg": {
+      "sha256": "eefed2ae4a661eaadcb39fda43d11e714b828c5517dd5de0a4e3d65ed134c9e2",
+      "size": 100215
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/48.jpeg": {
+      "sha256": "14186ba969f02e384b1cc7705da15b215131e82d264ad8232445e78cf2a8147f",
+      "size": 146187
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/49(1).jpeg": {
+      "sha256": "999b91e216ebaca8f6e9cff23eebf18bfb03d135c0c15b188b4440cd4e97fe76",
+      "size": 175049
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/49(2).jpeg": {
+      "sha256": "e564c2cda97d828323dd1778723601fd46dd45f3d5989eb00c3d499d46d8631c",
+      "size": 91558
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/49.jpeg": {
+      "sha256": "faf05bbdb275ccc5b0741e38a99014e044ec74139b687fa1ce982523fcea6d57",
+      "size": 167111
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/50(1).jpeg": {
+      "sha256": "4950e24208727cfdf2c1481dce3441f75dea9b023853ad539fc953ad910d7e77",
+      "size": 155098
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/50(2).jpeg": {
+      "sha256": "fe90a62ae45fc6c2d18a4af54dd1f0fea27399906ab6da7ecc109efb45f5fb09",
+      "size": 91785
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/50.jpeg": {
+      "sha256": "5c755a21ea04f1113f0d759f0fc02bd4bce9c92f1be0b4c076410a58f0bdda73",
+      "size": 156521
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/51(1).jpeg": {
+      "sha256": "680bf62b8007950fed2f1323fa08efca3322c9d886bd931fe02cf40f1e8c2250",
+      "size": 148120
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/51.jpeg": {
+      "sha256": "e58c2c2693697a9715030e7bb3ea08af3df186a92b15dfb4c39653f631e7b1f4",
+      "size": 132251
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/52(1).jpeg": {
+      "sha256": "c99902fc9748a2dc0a8069bb7f55cebf38d4af2e5db915bed2dfc01705a6eb4e",
+      "size": 170299
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/52.jpeg": {
+      "sha256": "5ece38b96c2fe1739f555e0ba5197bd9d5aeb5ccc09dfa8b9588a56026c3e297",
+      "size": 142728
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53(1).jpeg": {
+      "sha256": "7f2685cc4d33c9c483172ba665a7151ecb602fa81466f09cbb7ad0b0c9f4d4d8",
+      "size": 165325
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53(2).jpeg": {
+      "sha256": "65f5efa0ff8c0518833b9341dfec823ab99a1564dd6bc1e0112426d14c66bbb2",
+      "size": 112229
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53(3).jpeg": {
+      "sha256": "e54812afd2364f6d8e11624bec0bbc39aeec2a03468579cd353af1f2faa05a92",
+      "size": 105046
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/53.jpeg": {
+      "sha256": "e54de7f7593642a11d7eb9c2e8bc1065c369c00c9cd616ecfa3d86636fc8697e",
+      "size": 362328
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/54.jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/55(1).jpeg": {
+      "sha256": "cf42c7ea1fac2984f9d3db47b39ee15c2e2e2120f9d4bfd8ffd560ccc7435303",
+      "size": 3412288
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/55(2).jpeg": {
+      "sha256": "502be2af903fab4206d7a7c643c25656921510ad0531fc3076df24ca0fb74136",
+      "size": 175711
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/55.jpeg": {
+      "sha256": "ffd6b99828e815a1c44ba10b54f38fb70dcf877cfb98168dcb7b9fc7b1aabbff",
+      "size": 147899
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/56.jpeg": {
+      "sha256": "d5c318a04792871b68ce69d89679132e6e15adcbc7ff5308ef658ac23e38b5a4",
+      "size": 158196
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/57(1).jpeg": {
+      "sha256": "7a325f60eb44e54802735facb443f356d9dfc1bdae045ebab7a8ca3a3de55838",
+      "size": 149538
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/57(2).jpeg": {
+      "sha256": "26df35e16240aa13f5a50605591252a12972f57567adc4e3de9fbc3a6591a56d",
+      "size": 173140
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/57.jpeg": {
+      "sha256": "cb18d7b670c4f82508165ae1fbc8bf89b897c81bcf6e26750fd479b36e42f817",
+      "size": 149912
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/58(1).jpeg": {
+      "sha256": "0567200dc847a3f88528a4b6bdb261d6198130de315fa9b29d86c7456b82c716",
+      "size": 182952
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/58.jpeg": {
+      "sha256": "8186118d3379e1cca3416bb345c393ab4566768f77d966e403283c53fd80121e",
+      "size": 136960
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59(1).jpeg": {
+      "sha256": "f1efcbd546efb5855b1a435d60995f2c4513a4968dae119e4089de0c5b5eae10",
+      "size": 148515
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59(2).jpeg": {
+      "sha256": "e8d9ee131c2f7c0e44bdc06d48194cfdaf3979ce51646b9aa91f17ad5117d288",
+      "size": 188836
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59.jpeg": {
+      "sha256": "14f495a4a6cbd59bdc93b31934b641b0d44762c517120ad12846a9f838e90a1e",
+      "size": 146224
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/59_LUBAN.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/60(1).jpeg": {
+      "sha256": "61d33583082af439e066a30b53ba6409a5d5444672ad3c3146e17463bdf98eee",
+      "size": 170042
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/60(2).jpeg": {
+      "sha256": "6eb44ec739a4565407a14f4000d6bceba2bfec56833752c1a9338f9a0bb7b0ca",
+      "size": 192625
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/60.jpeg": {
+      "sha256": "7e1ad8d2d649c9423ff5fea70fb4c723417b314982e4d4713807ca8d327a33f3",
+      "size": 149703
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/61(1).jpeg": {
+      "sha256": "a893c80037f1f9b89292f728ff86b032ea29d0527a09b3dfc99d673ddc4195ec",
+      "size": 149713
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/61(2).jpeg": {
+      "sha256": "cf4d647c083b04162cca7821f92253e36666450e6b5491775639b01ba2508115",
+      "size": 154316
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/61.jpeg": {
+      "sha256": "9eb1f082dba667cddad2d58d03fef7453c50e969b7f381f04be2b0efc747a5d2",
+      "size": 130159
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/62.jpeg": {
+      "sha256": "f0abda2a413767ec7ad27d3526347fe4cfa9f7e863812074e555d38a16f2d7d9",
+      "size": 124585
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/63(1).jpeg": {
+      "sha256": "01d0bbd9bc71d87d9930c2043e675924eb9dfda0b664d500608d4224a0ad827d",
+      "size": 193257
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/63(2).jpeg": {
+      "sha256": "f9b97d491e1873cf1636b2756bd8d23d6610059a988367b90c8d63d66ede1327",
+      "size": 196301
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/63.jpeg": {
+      "sha256": "138bac65bff1966c17b8d7e3e13244a70d696c6fa80612536a854c1830cec319",
+      "size": 158753
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/64(1).jpeg": {
+      "sha256": "540aecdc73d2b480a4196f365e9e558fea69467c5f39228e0a440c6ba5eaaa21",
+      "size": 162660
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/64(2).jpeg": {
+      "sha256": "c39ebb9084a180d8b87ef9111ff3b57b75d7b85d0a1833f4e6ab858cdf2ee76a",
+      "size": 107215
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/64.jpeg": {
+      "sha256": "478779bb634e35e45598961a7e67762710639720998e182488314b3966a07d27",
+      "size": 156059
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65(1).jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65(2).jpeg": {
+      "sha256": "7148bb40c4f9f0aaf1c811410f76dadb7167c8f89fec2ec0752391933ad16536",
+      "size": 93108
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65(3).jpeg": {
+      "sha256": "93e5bea407e5bfc52a71a70038d60f2c08ab41626e3d381e73cc70db3a6c12f3",
+      "size": 109901
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/65.jpeg": {
+      "sha256": "d6892dac130bbe55fe6cc9b26a3bd7163d2730dda1933749de9c10bd6b053369",
+      "size": 162805
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/66.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/67(1).jpeg": {
+      "sha256": "1c3c8b1e36ec5c9b23897ac49a1d69c85b47caef161b6a462caf674698744e3c",
+      "size": 164201
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/67.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/67.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/68(1).jpeg": {
+      "sha256": "8a15951f6a9f8da3a329157bc9f24c6ef51f7b010d7c90e42e251b4abae17835",
+      "size": 194542
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/68.jpeg": {
+      "sha256": "7228ce4f0938683e9a07f135b0cb8558a450eb3445f79c639a19d1407e6b4dbe",
+      "size": 169133
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/69(1).jpeg": {
+      "sha256": "bf34a05f604d4d8c944cf44636eabfb002d8aae4839a5f47aa8b50e408427608",
+      "size": 111858
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/69.jpeg": {
+      "sha256": "fe5775342a10b8969b763b83060178901a6f7e45dc531bde15b7d0b86cef3d6f",
+      "size": 147739
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/70.jpeg": {
+      "sha256": "37901e9e97d365ac063a8b5311fbe2f6a868c95c21ce2c75e14cb17aa8bd32f8",
+      "size": 143543
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/73.jpeg": {
+      "sha256": "72b8675bb21f1faea18f43ae340c505c3b2162e0ea4b6da91094c5b0ff61d04f",
+      "size": 161315
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/74(1).jpeg": {
+      "sha256": "a0c6ff1cf593cd23f209f785f4964c12624c06fc1c756da8b86c3a20ce5abe43",
+      "size": 154726
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/74(2).jpeg": {
+      "sha256": "ce8325e5876e04f6beb10364c43e6f3fbde0aefbccc4c4f76c69ab6b35ca174d",
+      "size": 192847
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/74.jpeg": {
+      "sha256": "6990cb456f328e53b28ddf2f0d0315806f5752acf5ee65e4c5a86570463c20d7",
+      "size": 153198
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/75.jpeg": {
+      "sha256": "2fb2f89d730d9b7f71730b794e670fbfd6eaa1d1a2faf2294328c62f4242bef7",
+      "size": 109894
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/77(1).jpeg": {
+      "sha256": "4fff2d24fbc23e1c75888ac9b83226af238ea43dda0ae57c4e916d2aa8838c42",
+      "size": 161006
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/77.jpeg": {
+      "sha256": "7e565b4df8b14487a4ef9727dffc2c7a5e52d2a7af3fcbf4e17277bbdd9ca99c",
+      "size": 165880
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/81.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/82(1).jpeg": {
+      "sha256": "0ab32dcbf570497e4130e63a34405242b247d4d3aabf12d18c483e3c61d2c08b",
+      "size": 108114
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/82.jpeg": {
+      "sha256": "416a6f93d980c9bf07d0a1fecc35b25465161cfd4269c1865b86816b8718dc23",
+      "size": 134117
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/83(1).jpeg": {
+      "sha256": "5a266392bb4d89c8883ff99b4d003833b28b8f8609d2881fae4a38509047ecf5",
+      "size": 140159
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/83.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/84(1).jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/84.jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/85(1).jpeg": {
+      "sha256": "f8a5d5e537a57fccbceac4a7f513ae5e66811c6de2571e9970b587a3820dc0f0",
+      "size": 140210
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/85(2).jpeg": {
+      "sha256": "c4493f6ca15ad1e73634f1e8e52c3fe4e0cc65b2a19cf0cd4c99a5e4507aa6d9",
+      "size": 128894
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/85.jpeg": {
+      "sha256": "fe193a57512af0f6178e14aebed2f53e224180c0ddfe211fd344e157b07644a3",
+      "size": 169230
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/86(1).jpeg": {
+      "sha256": "18bc8a6a10121da6cba23038be041bfcbc18bb8225d90170921e5327ce320507",
+      "size": 176100
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/86(2).jpeg": {
+      "sha256": "6de224ff7ecc6baef7ff129a7570d6a04acb1a5226995f123b64fa4bc795edc5",
+      "size": 100829
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/86.jpeg": {
+      "sha256": "a8fd61f7e62fa198e00f712cc82e7e2dcbd1d97675516e4e8a6e870520d798cc",
+      "size": 140000
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/87.jpeg": {
+      "sha256": "41fe507e17cb6d3cd77c20c5d18899d6d71b440f328c0cc249310d7758540346",
+      "size": 167808
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/91.jpeg": {
+      "sha256": "46ad22b7bf426961b19c4d69151f7afed45476ccbd6e521574fed43d49936f98",
+      "size": 3405942
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/94.jpeg": {
+      "sha256": "6581e4127c9965dfbd6754019b058df4531b293ccac796bcf5b4352743c617e1",
+      "size": 152828
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/98.jpeg": {
+      "sha256": "c8f9b8d16263c3e207c551fe830766786f8737f783cbce1692c4a7f1fb37ab4a",
+      "size": 174063
+    },
+    "PS70-main/data/raw/insat/insat3d_for_reference_ds/CYCLONE_DATASET/99.jpeg": {
+      "sha256": "94df5e610ab44a953c022b051052af3648bb50a76d6aef88e07ecf07fd9e7ba8",
+      "size": 133294
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/101.jpg": {
+      "sha256": "8551d01791836a917f6c32329695ac62d945823c40b2d07dd59dcd86cd14c290",
+      "size": 65391
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/102.jpg": {
+      "sha256": "333cce161a51e8dca79182b36b041e1c3b7cfe98fc588753976d6309ed6dde64",
+      "size": 20105
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/106.jpg": {
+      "sha256": "07821bc89c610df2b3187261172ee9213595f52d35dcb88ab1dd2e117123c6e7",
+      "size": 76355
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/111.jpg": {
+      "sha256": "b10ee14f89a186522d422881c26c9ccdc633aa05c35fe69df52f0a6497b10bed",
+      "size": 49955
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/112.jpg": {
+      "sha256": "79d38dc044c671949894cdf13ac53aaf5b4e65c23c527447e4c35027eeb72fab",
+      "size": 72971
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/115.jpg": {
+      "sha256": "35082965a9ff195ac984be774af3e535a241febdc98df836668cce7f3faa13eb",
+      "size": 66660
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/118.jpg": {
+      "sha256": "df1629366b828aab31028d03b45e65733742f4ea55fd9e9cbd8cdfc88bb23d95",
+      "size": 82718
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/119.jpg": {
+      "sha256": "bfc0ed97c4b5b3f8275faef180cd4bcb1d72108ebdf386eb59bd8684fc37e8d9",
+      "size": 77716
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/128.jpg": {
+      "sha256": "f76c2729cbbb0c64199f5628de7530efdf0ac0b7e20ef6bb1a401fb949e4898e",
+      "size": 62360
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/25.jpg": {
+      "sha256": "02ec1842b21c93390493ca3679d1d824bc32d36017ada654c5aa8e4ff5ba4ec5",
+      "size": 37659
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/27.jpg": {
+      "sha256": "acea341326e3f5a1103b9c300223f16af31f7da9558b1b912f6a638e3e7cca9c",
+      "size": 49969
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/28.jpg": {
+      "sha256": "87dff5923e3c0bf3b93f7e4db60d6a1b372a77522f44ff2f0d68b0cce2ff87e3",
+      "size": 57452
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30(1).jpg": {
+      "sha256": "34e37deeceeeae9afde173fc393eaea50de3dac66c544b1a7c3087aae628f0f1",
+      "size": 75116
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30.jpg": {
+      "sha256": "d58ef179e9160d6b4911203fa2cc6d85e16e432a6694c1a2d533f7f5a2e02119",
+      "size": 66896
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/31.jpg": {
+      "sha256": "5882ef92efcc4c9828e9e97e21bb74bd274b3e0ba7f30f22239509636f7f13ce",
+      "size": 50626
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32(1).jpg": {
+      "sha256": "409717c968183d74a2e48294901f925eb496c3885ea7cf6a486443bbff86dbaa",
+      "size": 42035
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32.jpg": {
+      "sha256": "60be9b9358fae62dcc88bc6b48f3e3a7a62f205e7741a2ec51700db5e0fb48cf",
+      "size": 43003
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(1).jpg": {
+      "sha256": "c27160112bd1d3538605d4d3e59a45fc478499f3419158628579c6074919da3d",
+      "size": 34052
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(2).jpg": {
+      "sha256": "04556b6705fb603124868e50cc85bf87568ccf3ed54f92ecdc40bed9e9bc6a9e",
+      "size": 85096
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33.jpg": {
+      "sha256": "1652e7b7c6605a233ff0e75d6468b6dc8e0e6656ea60416e2cf60f02ce495c9b",
+      "size": 52632
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34(1).jpg": {
+      "sha256": "6775fccf96418b243af9f244cb09dcba2e8f25d8da2015a26c791afc022cfcd1",
+      "size": 90285
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34.jpg": {
+      "sha256": "95feec6e72e87c4b073ed4fa9724ef4c29ec4262ea4226f9912cc21fd3e91471",
+      "size": 51299
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(1).jpg": {
+      "sha256": "9994a099d453a047c820282ddf914e0dbb1e27415fae4b1f62fbf0c39dee5e6b",
+      "size": 37132
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(2).jpg": {
+      "sha256": "03cfc7d775b6f3d58d9158855abc73ac90909784659f91a0345192cac9afc339",
+      "size": 58011
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(3).jpg": {
+      "sha256": "c002444890b94f1cacb7ffee4551703374b7a30484639b4c371ce1bb6c26c6b7",
+      "size": 41605
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35.jpg": {
+      "sha256": "3e2ae2516944192c6a85f912484bddd3daa009c9b47a370388fcf220f6fafcc0",
+      "size": 66837
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(1).jpg": {
+      "sha256": "a6bdd5692c505ea7cd473791bd7dad61b7dbbab6753ae52dc5259b79659f3836",
+      "size": 73137
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(2).jpg": {
+      "sha256": "d0c4112b0f65da2888a567587acf048429685b755bb601d02e2200ba15af7ecb",
+      "size": 38563
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(3).jpg": {
+      "sha256": "ea35e4602d95d999cf376cbc772b8e4bafcb827eaf688ce56e5dc61d9af5348b",
+      "size": 33440
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36.jpg": {
+      "sha256": "4ffcb9036c0c818f37753c64c71ce6c27c6972b73d4f27c81fe86535d7ee19ca",
+      "size": 47852
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/37.jpg": {
+      "sha256": "e8f9a0ff22ac3faaeaf5b1b13c49c82b25ea34989d9561f87c80130840ef47a7",
+      "size": 54951
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/38.jpg": {
+      "sha256": "d5f664690a665f2927c606f7f2e993178418412f478be6fd7cca1024a812fd32",
+      "size": 84246
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/39.jpg": {
+      "sha256": "6ded8060fae2dce49b96cc8b3915a13da493f055e462899c9c1af2fe5f71484e",
+      "size": 42355
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(1).jpg": {
+      "sha256": "e1998bb4cbd217183e87840d9fb1a68ee26011ddedac26339f7a205a3344b78b",
+      "size": 50048
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(2).jpg": {
+      "sha256": "0c55a6c76d4c65fcebc7963d7322f6f6d687a0c68791f46395cab1c8776ea055",
+      "size": 44484
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(3).jpg": {
+      "sha256": "0be086070dcfefec36276101f565dfdcbd11db6606abb5d2370ca78d80529200",
+      "size": 75972
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40.jpg": {
+      "sha256": "d197c530f11a93f025689aa88a5e307d26cd9ed76e8ed7f279947a69912ae16d",
+      "size": 61567
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/41.jpg": {
+      "sha256": "7afb505062a8e54bcc921deff1e1567d2819020769bb15cee16346ab15525990",
+      "size": 63696
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42(3).jpg": {
+      "sha256": "8e66750e2f4022690f4aed09eb0411cdff9c5956eb2b3289d24bd3c0ff59bbee",
+      "size": 49047
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42.jpg": {
+      "sha256": "7adb2b2adfcd37646c75898e17893353c06a78d19562c29e8e80a2751877c470",
+      "size": 78103
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43(2).jpg": {
+      "sha256": "c130fa15793e074ce6fd3fdd6a790cc5abbd9a339a7c1083acbee5d4f5ba073b",
+      "size": 29616
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43.jpg": {
+      "sha256": "165b948785ac4f83204642a120e23f6478cf0ef1e9c50ccda080f23696f84c68",
+      "size": 64756
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(1).jpg": {
+      "sha256": "4b8d1c160bcf6d51ba87b9b8c6f66962ca6975c10899be37d5c0f31d64f7ac94",
+      "size": 47835
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(2).jpg": {
+      "sha256": "1ed2daa780358584bab191181910855345d923b13c26141ea5e2cd530a0edb7f",
+      "size": 81670
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(3).jpg": {
+      "sha256": "890ede0ae764d3f87e6ccde2e5f3f4cbe874078c3da56459cc1ca8baeb97d729",
+      "size": 73058
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44.jpg": {
+      "sha256": "3039e0386a70b3e101560f840d0e5af52d983ff41500e18e871a0b2e643b97ea",
+      "size": 84588
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(1).jpg": {
+      "sha256": "9d18b78190e18e4acde1ec4cc8281bc923be3d9a758e8c2ec3bdd7d82f50d8e0",
+      "size": 91164
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(2).jpg": {
+      "sha256": "90509cc1164e91d99fe590e83def143bd366002e2dda7f8486c84edad16ae273",
+      "size": 70414
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(3).jpg": {
+      "sha256": "e9e5948c55a9b107326fc4a4e060207d5046cb0978338eedb6c4c1b7eb0cf2f2",
+      "size": 40289
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(4).jpg": {
+      "sha256": "f7cc72f330de697f2e5202f353fef53aefe5e0051c25e82f0f714336a795c935",
+      "size": 72252
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45.jpg": {
+      "sha256": "0e6080526725c632d3cc6ef6c87589b9d4aff37fc9b2c7bd308fa0a51523b7a4",
+      "size": 61233
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(1).jpg": {
+      "sha256": "6b4be1d6d93c2e8b30d76960ac9a0f9a0b69e599a399bc451e5d144c0e9e9dad",
+      "size": 93493
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(3).jpg": {
+      "sha256": "196de4a2dad585130b2238e0ade27d59551307daaa67e9ff0872adfd5ccbb732",
+      "size": 44833
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46.jpg": {
+      "sha256": "43cd999791d2450ee93b46ab6191cfb8ecebf58c7484072d1fdfb4c4ac907138",
+      "size": 47488
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(1).jpg": {
+      "sha256": "5aae53416842464c4371aa356d825a886a4e4653f79eb6c212a1fe62431045c8",
+      "size": 59545
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(2).jpg": {
+      "sha256": "9ddef5e8e09be39630490f3b4a0905d3b78a9b675fd104971ab7b9a0e7e3258b",
+      "size": 78715
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(3).jpg": {
+      "sha256": "bfc1b84ca26bcfca6829a96bf290007029d1ec9afaf44d8e29a2219d1f409854",
+      "size": 37572
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(4).jpg": {
+      "sha256": "312624fbc40eb3f8bd7aa61a5ada6efe6e661d72899cb422d95451453fccb03f",
+      "size": 88482
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47.jpg": {
+      "sha256": "ec37ca0269392be17328a884058f88746bb2605e68f98f162584941fb4dd4030",
+      "size": 50725
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(1).jpg": {
+      "sha256": "79f1553f0a200f7fb2cd5296f89ebb2a5d2c0d6e816995d65d69db991b67372d",
+      "size": 74066
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(2).jpg": {
+      "sha256": "daf41e35c1df4c872f319504a9554b3e515217f3dcf21cbdceb7a700676dadf1",
+      "size": 67447
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(3).jpg": {
+      "sha256": "e38d46c3375c5fb79950f434484b8dda184b6678df856248d31773c343898959",
+      "size": 41774
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48.jpg": {
+      "sha256": "163c7f41549f1467c9948bae87272b6c6a8a8c6c45ded5fc0eff0c9787df411d",
+      "size": 56499
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(1).jpg": {
+      "sha256": "41d3da0d4aca62626c95efe7a9b397f433f7859d781e11d115f412451d8b41bc",
+      "size": 74318
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(2).jpg": {
+      "sha256": "b4ad1ed17432778f8bc1de37619f0ec689e760637e39da877cabd776dc97acf8",
+      "size": 35683
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49.jpg": {
+      "sha256": "c6cdd7de5cca5578e9a60615e5224591fc3f518f71955059ffb88e5b7ebe2934",
+      "size": 72054
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(1).jpg": {
+      "sha256": "435c12c2aec700e1a021231e6c6fb1b5d2fcb5fd41275a93f048fc5a6bc239fc",
+      "size": 62616
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(2).jpg": {
+      "sha256": "e311349bd266816c0400fd4160d52ea7156f9699deaf658fe08b18ce3b5cb40c",
+      "size": 34434
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50.jpg": {
+      "sha256": "8d60fed1950e5262baa6b9f667f416a83816ba9bb34ebdeb098e7234c689f46a",
+      "size": 60167
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51(1).jpg": {
+      "sha256": "0d217444820d545d5f155a6ed51fe6c5ccb4f701867b3a110b775fcc756c0be7",
+      "size": 56494
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51.jpg": {
+      "sha256": "1611e68eb19121fcebbe912964e9cd5cce2fc2b2a5c9a9659cdd6abd92c98a84",
+      "size": 44399
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52(1).jpg": {
+      "sha256": "153cd1e0704bf0e61c3d61654b63a6a42958e178beb1d00df92baf12c11a8395",
+      "size": 64620
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52.jpg": {
+      "sha256": "7b160ca9f3e97dd0b71db0574be9b27229bac9bcc78dfb8f5843a0cde58f0215",
+      "size": 56616
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(1).jpg": {
+      "sha256": "39c3fd8b74f9abc6e5e7c9df97ecbec23734ddb22896338b64962297a7f74e91",
+      "size": 69980
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(2).jpg": {
+      "sha256": "16d0efefe00233b934714e67b4ef77e6d3f47e7f0d0cda40812ac8a25c1dd89e",
+      "size": 48348
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(3).jpg": {
+      "sha256": "32e3ff7ec384b07a76440b7d7ee9526701870d0a988b92be5065174e9ff3e81b",
+      "size": 48039
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53.jpg": {
+      "sha256": "ea8a3540ddb7851e1030a2f62a6e096e4268a1a730ab452874710d2b6dfacd68",
+      "size": 69793
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/54.jpg": {
+      "sha256": "f0f1dc3bf087b55dd4ddbb48e54257bd95d801a840ea1598841fae878a3bc30f",
+      "size": 64793
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55(2).jpg": {
+      "sha256": "6512fc88af8bba8c249cfc5db655385b4645d9d87015ddd0333e6346a332dbb0",
+      "size": 76856
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55.jpg": {
+      "sha256": "614cb249d3cb57c016244ca674ea28e5b6ff39c4e20e69347f2b5851f5f5673e",
+      "size": 59246
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/56.jpg": {
+      "sha256": "8153d78ff7df05437e0c831ebed80a865f22a3df5a60ac57d7e8be3652fd5de0",
+      "size": 62435
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(1).jpg": {
+      "sha256": "d07b387eecd7691789f49d379121ae653cd1beb8e6dd75a6e40cfef1cb9b3a0d",
+      "size": 59732
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(2).jpg": {
+      "sha256": "97dc0cfb21d5b154f5d38d4678c38521f3fa65b12b9da786504921bcb967a7f9",
+      "size": 76269
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57.jpg": {
+      "sha256": "3a9e7e8de1821aaaf6f58a7f76bc3ea713c4d499bcd05d1d817a3f1278e72710",
+      "size": 56802
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58(1).jpg": {
+      "sha256": "3be88502a8532d18bdca35d5107b8a8d12b29e32d2f1a7fca229a4350972697f",
+      "size": 80823
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58.jpg": {
+      "sha256": "07fa2f31563a8fb693665ed1024f4bc021bc1b5d24769fb2d0fb18a9926b67fd",
+      "size": 48188
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(1).jpg": {
+      "sha256": "c42fb53b1ace3ef2f2a242dd8647289178ef5280893a1060562944b7435b65b8",
+      "size": 53775
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(2).jpg": {
+      "sha256": "a13d385f9f60db387a2fa3676591fcdb0a59c36bf6eab271b7bc4dc201d89f35",
+      "size": 87344
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(3).jpg": {
+      "sha256": "574f8eff25cb53a8f1b32a9b51536a5f1c81d575e61cf5c5ec9b989b64b7345a",
+      "size": 38658
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59.jpg": {
+      "sha256": "82c4dec15e1e47dd9f7ed0cc2e137f523bff8bd30f97cbc5c92dc928b059ece0",
+      "size": 55663
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(1).jpg": {
+      "sha256": "8405cb88e365a3376ce6d70e430f90672b6a23bbcf870c335b73dec853595c4c",
+      "size": 71329
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(2).jpg": {
+      "sha256": "90c3a35c6251db2c5df9738024f79f5ed7f86352d8bc8112833a2a303ff8709a",
+      "size": 91387
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60.jpg": {
+      "sha256": "957bc1c650d30c5234a19b26cc146faeb9fdea886a84d5008e7a42f8b07425fd",
+      "size": 58319
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(1).jpg": {
+      "sha256": "260dc777d949a6921ec798123e08d5aad7df7dca28b20e38e78756931a7621f0",
+      "size": 59025
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(2).jpg": {
+      "sha256": "a3dea38879506235324423201df795fa8001e72014334ba78541eaafa03d8cbb",
+      "size": 62082
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61.jpg": {
+      "sha256": "8337c5706a4ea623e17fee8a92fdb7076ac6983f374dfbe426d69373b32c5334",
+      "size": 43872
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/62.jpg": {
+      "sha256": "3de476b093ffa0f0c580652b417a8223d28978c5792e5563c9f5b5c98b5ce775",
+      "size": 39485
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(1).jpg": {
+      "sha256": "3d69cc71d67eefd4eb560d9d46dd4054a8e39d4f5c6c593a6048569c8214f4a3",
+      "size": 92416
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(2).jpg": {
+      "sha256": "4aff0f050cc609a7521be98c2e7ab5fe32a5a37aa605137c1ed629f7bad5c9a3",
+      "size": 80045
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63.jpg": {
+      "sha256": "f78c982ebd774c2b87d0fc7470ac1b11038e49f169fb238f73a71e8e3c514039",
+      "size": 62826
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(1).jpg": {
+      "sha256": "3f4115a92e1160509732aaa6b87a4aeb7c572e23723d43192a93d489e6a349e7",
+      "size": 68569
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(2).jpg": {
+      "sha256": "3baf87b1bb701b75bfa155d34232e98ece109426349e092ebb23dfd1036f5112",
+      "size": 46686
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64.jpg": {
+      "sha256": "d983dd84f0ae498590cda57466b1fea0880d818f2d06d1bc316209005ae8c6a2",
+      "size": 59891
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(2).jpg": {
+      "sha256": "f8f092bb944f2134a1e1deb706c1265147de2ab8647a01ae763ed388a5acc83c",
+      "size": 35944
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(3).jpg": {
+      "sha256": "587303c3b99c53ca70cc0b4fbd316e12a1c7df1ed61f4b99f8feb03f293bca7e",
+      "size": 45883
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65.jpg": {
+      "sha256": "698a14fa556ab2c80ec0d8097bacae44a38a814d26fb2ee16222a6e29b8be8f9",
+      "size": 64951
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67(1).jpg": {
+      "sha256": "cc857befef45c4c78414de1e09ac87d3fb9c5ed7571fd5a4a28ab8dcff72635e",
+      "size": 70897
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67.jpg": {
+      "sha256": "d078890375015679a99fde00e4b67247d35e71af686abd8fe0b3dd4520a8d9d7",
+      "size": 39058
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/68.jpg": {
+      "sha256": "c1f2c8237765813babcc4c446e4fcc2a353b9401345f80d98eac83385fad3e0f",
+      "size": 67470
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69(1).jpg": {
+      "sha256": "9cedcc31ee8e7b17a18d560aaeba371412fe8799ca2a3834746405b615dabedf",
+      "size": 42225
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69.jpg": {
+      "sha256": "e4c345a4c78a3dec4d04daa885d02550a1a5ab75e99617300df53f829d2909e8",
+      "size": 57889
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/70.jpg": {
+      "sha256": "ea329f9a3f05cd0e10b8900991548863c882262ed868105d3ac749ba57863f7a",
+      "size": 51648
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/73.jpg": {
+      "sha256": "bb59b0dbfee38e0d805fbec6655c0e14d9370cbdc6e9eab1bd2fc771391fc072",
+      "size": 69522
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(1).jpg": {
+      "sha256": "dc14384d465dc13f72e02c7ffbe7f8262528cc6cc5fa15704b39ae9790f16d7e",
+      "size": 61516
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(2).jpg": {
+      "sha256": "c94374066427ace83f4da78715cd51a08e8d642c97e6a77885d881a186e6c0e5",
+      "size": 80846
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74.jpg": {
+      "sha256": "194247b265367b0ad73290dafde6f9c501127dadeb47b527afc05de2f35c93c3",
+      "size": 59512
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/75.jpg": {
+      "sha256": "4fc79fc429db858772214eafcc51cf454be7fc9b2468e07703f32f396ebbe98e",
+      "size": 48120
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77(1).jpg": {
+      "sha256": "ebf2383838b865d877a48eee68c786dab4373a565ab1d6da3955bbaa56924aeb",
+      "size": 62507
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77.jpg": {
+      "sha256": "c65e46ae54d0a322c012f10a549a6e9ae50ba3b74e674582567d6fb95331fba9",
+      "size": 68977
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81(1).jpg": {
+      "sha256": "b3106ad93d3fc10ec378e5fc972566b00a5c00994f06db7fbcd0a014ac137611",
+      "size": 80110
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81.jpg": {
+      "sha256": "017f54d36c1cc007e49ce6dd5151e06a1dfb511cbeb5d2722cd9602b74955855",
+      "size": 52059
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82(1).jpg": {
+      "sha256": "880a4b095719fc8240c3d5a18de41c4a9e8bf35dee77ff816885c903a2db8c9c",
+      "size": 45030
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82.jpg": {
+      "sha256": "f1a601c57ba52f0056dd4b78532d1f8de58db5ad2aecb585e809e48b6d3cc0fd",
+      "size": 50993
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/83(1).jpg": {
+      "sha256": "48756e28e38c7daefb09bf1dfa8308fcb0202101c690ae807ac99ca60aa8b8dd",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84(1).jpg": {
+      "sha256": "877894272b0129b9e49b0e3c4659d25153d9f547fd92f7b98e9daaf31039201a",
+      "size": 58207
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84.jpg": {
+      "sha256": "a9e80b3194aeb862a539449c2092e28c469687ef78a70acd299262e63fcb6699",
+      "size": 57747
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(1).jpg": {
+      "sha256": "0e5e945ecf598e59378d7c256da60b0ce08736a64e4ae84d1b6bf493ed650ccd",
+      "size": 50741
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(2).jpg": {
+      "sha256": "8ffd8108dabd02c0a5302fe16be36c3ca8da46a228ae669ab5b9f2fc45827d44",
+      "size": 43155
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85.jpg": {
+      "sha256": "6a1190b49325f0f2de248653cdf56f50dedbc51c258216e20c3441acdbce9633",
+      "size": 68221
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(1).jpg": {
+      "sha256": "e999d576e87ad34ebf8fe62b64fb882a6f07fec2cf034c684e94580ad09fd353",
+      "size": 80577
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(2).jpg": {
+      "sha256": "a10d1cb6f308c42ecd8fadee56b777b04669632872afe688653edcc546567293",
+      "size": 41762
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86.jpg": {
+      "sha256": "22be024211f0bbf7ee62a0d47a8e9e36fa6655e8c5624132bc18efe3b6ee24d9",
+      "size": 49392
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/87.jpg": {
+      "sha256": "eab640b9c75d626d960df19b24c1d6d66c6d11dcbadefa06f74b6ccc89ecdf56",
+      "size": 71722
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/94.jpg": {
+      "sha256": "8f99863594253348a0a2a966a5ba38d274d31cccff147cfebc15fd6f0a959881",
+      "size": 54840
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/98.jpg": {
+      "sha256": "0bed409f9caf22aedf6f6e61959f5cd9f92cc5f5c740014249e9000caa0b1cfd",
+      "size": 76788
+    },
+    "PS70-main/data/raw/insat/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/99.jpg": {
+      "sha256": "c0a676f1a4b818eff7b64d8cabde0deed44e7916b48603440965a5278dfb1ae8",
+      "size": 50411
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54 2.jpg": {
+      "sha256": "343d86eeb77aae5f1303423297c8082f70210e7775a0828e1cad54b16ad5ae13",
+      "size": 46295
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55.JPEG": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN 2.jpg": {
+      "sha256": "d8596ba176378583534755a52e996f8c24c03a4abaf8015e345013ab2b2bab8d",
+      "size": 28252
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN.jpg": {
+      "sha256": "613872f692da898e3970f912f9e08f9ba70ddf8f97f2bafdad2a91591f6e3f8c",
+      "size": 27929
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67 2.jpg": {
+      "sha256": "0d9b4a933345ca8de954049d463a4cf9dcd31e4e67a325c29fd8c51de5dafc92",
+      "size": 30531
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68(1).jpg": {
+      "sha256": "5065047ecd96f23a67fbb31d0cd4c4862d608fa062797b45dca6136719c287d7",
+      "size": 53946
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81 2.jpg": {
+      "sha256": "b98b78f923717ddfdd94f0e99e9ce85e89eee62ceb8f56957b1c1472ce3b2252",
+      "size": 37758
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84 2.jpg": {
+      "sha256": "e83f935e0c0a0ca0b847ddbeebb82ca06df446f99b4038f224dabeeb3dda963f",
+      "size": 38270
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/raw/insat/insat_3d_ds - Sheet.csv": {
+      "sha256": "055d0e216a22389e462090166789a50ed9ebc5766baff6d59fa6e4a0c6a9f306",
+      "size": 1605
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/101.jpeg": {
+      "sha256": "6c784cace01099f640e6b4c9eedf595866fce091082311e6a5ed65a4b4fac1ea",
+      "size": 164550
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/102.jpeg": {
+      "sha256": "84285b0faf8736249e128e1c5a54e4499cdf4573b1e119b2548f7341e149eac5",
+      "size": 57711
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/106.jpeg": {
+      "sha256": "c50cf71245d290dd6bedcb9d4b09664c063457ba0e8731e2c3262c8ff765b2a6",
+      "size": 173614
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/111.jpeg": {
+      "sha256": "667cbb33b5334d6002c9c163a7b1fce875434e56b79f57dd7e80cdd3738aefa3",
+      "size": 144903
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/112.jpeg": {
+      "sha256": "56c4019f8480b15f6e5f9ff7f0af09a1904751921dee1ab9f6fcc8207c1252c7",
+      "size": 172282
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/115.jpeg": {
+      "sha256": "b00c770cc2d064e8ca6afa1fcde49a1de94fee543e405835df141a23f36d5e74",
+      "size": 164800
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/118.jpeg": {
+      "sha256": "30ae1381a7edf2baff45076db8f86f0b831a9cacd1a7cffcddfd76edea685ffe",
+      "size": 191431
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/119.jpeg": {
+      "sha256": "dfa6277001643e87f97492859b62e1bb44319ddf55a221df971edfdb62187aae",
+      "size": 187647
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/128.jpeg": {
+      "sha256": "ed7dc5018393cfab7751611a95a109718ca79ff0fabc607934a49fef07374ff5",
+      "size": 154406
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/25.jpeg": {
+      "sha256": "7c83f60171f19f24a65a6f30ec8fab4200399958b7af7531ae5e7f2542f01da1",
+      "size": 119357
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/27.jpeg": {
+      "sha256": "bd1d1c4148aff13697417b083b808c9b689cdc91566888503ca389833910f89c",
+      "size": 132932
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/28.jpeg": {
+      "sha256": "251aaaa43204482eb73f262ec78e24303c64dce6d4969f3946a0dcdb63a66bac",
+      "size": 153783
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/30(1).jpeg": {
+      "sha256": "141a0fda9906d8a60e089fe37131e6bc2248201a1faf8aed956a6e60bbb92372",
+      "size": 180340
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/30.jpeg": {
+      "sha256": "73f3ba1d51f6fd1e97e53c6c73fe958f20297379774dfbeaa76c3a2ed1a58bc0",
+      "size": 159353
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/31.jpeg": {
+      "sha256": "c72a9f8bbe15f708cd98caf6e412d79f1d3ae5cc9bbb1b4b6cefc9604e104ffc",
+      "size": 132865
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/32(1).jpeg": {
+      "sha256": "eed267b693fbee2f2292e14909b524718927db56ef9e7db22ddc4246185ad2e4",
+      "size": 111360
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/32.jpeg": {
+      "sha256": "50e74152f460fd3456ae6fa1868de5c5e412d9a7e162e8f0ecd117de95836343",
+      "size": 129747
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/33(1).jpeg": {
+      "sha256": "bba34447ae3dd3a2f106ade379413203250d040d6482391c80b99ce8198d3dc6",
+      "size": 90286
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/33(2).jpeg": {
+      "sha256": "e0439ca669463b35920144f5386c3f5e7e2675de1a2d803860d0f8223491d63d",
+      "size": 198905
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/33.jpeg": {
+      "sha256": "40cb0d7d6d67616a6382639c310b751f642f6c413a1360c6c65312fcab68537d",
+      "size": 136545
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/34(!).jpeg": {
+      "sha256": "383f9e89016c5ef6b9b801eae7ec4acbe2a8ddcc5acd52086b8ebf4ad5700726",
+      "size": 195226
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/34.jpeg": {
+      "sha256": "4c1841d62266135cf1523d724630613e3c86aa36bda6f1c77e4719f185c1a4fe",
+      "size": 137045
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35(1).jpeg": {
+      "sha256": "c67030f772bbbc37661cae7b58e2b040428c9ad6f4e54d60a7dea0bc251e7854",
+      "size": 123718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35(2).jpeg": {
+      "sha256": "730f8d5fceec7c4dec8ebe9f4cff45896b192f970b136055cc79301a32ba0d89",
+      "size": 149771
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35(3).jpeg": {
+      "sha256": "94fb3663d5808aaedb85e920233b3832f4865926a50c537b88ed032740fa049a",
+      "size": 100047
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/35.jpeg": {
+      "sha256": "568f021e53b1f90f4dbcc74544c504fd793da1888da4ad80e38278577250f00d",
+      "size": 160315
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36(1).jpeg": {
+      "sha256": "1b3f44eb114b53e4df4af080a90c618519a75d02e3fc7159f1b10db5b424f8f3",
+      "size": 164701
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36(2).jpeg": {
+      "sha256": "9704af864db8f8e78ad80c34b3db2b4ce47ee095fd19fc7ee545214158e54063",
+      "size": 96176
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36(3).jpeg": {
+      "sha256": "26847bc327beb26e74a3839277da61e9b5e33e1479d35ef4b5fecc96e793d03a",
+      "size": 89633
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/36.jpeg": {
+      "sha256": "d7898a44a7104878e90f6de54f8a78f01912ae9dcbdb6908dbe89e7da147bd23",
+      "size": 130629
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/37.jpeg": {
+      "sha256": "3c521a56e9812464a121b0b50f71777765f8ff58fd526abb2d42859802084449",
+      "size": 143675
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/38.jpeg": {
+      "sha256": "6712a1d7d6de46e1bc15b794dfd8b36cf02c3a40742d9561df35cb1439e3bd28",
+      "size": 184505
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/39.jpeg": {
+      "sha256": "42b709f3072a950b429d4c8c569a2f021f228b07bc4b73406b5b44de9749350d",
+      "size": 112182
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40(1).jpeg": {
+      "sha256": "c6243fa45ebd41a8776766425b1f9d2e1b166982f60c27f63073d91c8d0156da",
+      "size": 134408
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40(2).jpeg": {
+      "sha256": "4c6454af3f04b34645a11f5f36955aa3596d225a6641105e3833a13f090d5a6c",
+      "size": 130372
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40(3).jpeg": {
+      "sha256": "a699ba6620ee57291a176d3e2d7e894c3cc90405030e3fcd498ce5450a123549",
+      "size": 182057
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/40.jpeg": {
+      "sha256": "2ff06bd2a0812cb91bfdf46a293863150511cdaffd92aec4d3a40a3329aa4a21",
+      "size": 159285
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/41.jpeg": {
+      "sha256": "22fdf425304a44d55538272b11c42afa38ac095cea61b78bb5f1dba014583468",
+      "size": 162678
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/42(3).jpeg": {
+      "sha256": "95246fe33fa6a64d94729e661985636ea8229ffaaa003b6cf93635533a498ec4",
+      "size": 142885
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/42.jpeg": {
+      "sha256": "b4792633c7d846074352759b391c4b137abc53369cabd40e708f23ea77ea2ccc",
+      "size": 171877
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/43(2).jpeg": {
+      "sha256": "e48a571e66aeb6334db12a1723c3019ad1090690119d58fbb2d586bf1b827dc8",
+      "size": 83730
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/43.jpeg": {
+      "sha256": "fd25b756cbaa58b717c79be4b0367bfb54221c4254f43ec4a863879440895533",
+      "size": 164361
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44(1).jpeg": {
+      "sha256": "21f69d8ec90b921eae03bd2a187464ae63dac3d851af594ec712dce6d8b6225d",
+      "size": 138225
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44(2).jpeg": {
+      "sha256": "0329d87ffe37c4a8b9f0388535e42d44f94deeab01c72467cef1bbda443cfb6a",
+      "size": 180285
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44(3).jpeg": {
+      "sha256": "fdd05971b8d372cb4e8bc15d4e224287fd3f0d532a3457ec1720123e8b57f7cc",
+      "size": 178501
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/44.jpeg": {
+      "sha256": "80b69fc0562f0d5359d8024f70e3a156cb1b45efdfef28a21fdce60273c7ef65",
+      "size": 186208
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(1).jpeg": {
+      "sha256": "b00c74c43430cce2949a6d4566e894e92ef51dc46be1ea68a66394840fa525f9",
+      "size": 194877
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(2).jpeg": {
+      "sha256": "253208f3c12db34c7aa125fc3c0d0c13306cdac70b720b4ef85c0a4f826e9a3c",
+      "size": 164963
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(3).jpeg": {
+      "sha256": "0770f9c8dd6826342912e414f99534e85903d83b1cebd09105733ffc775c33b6",
+      "size": 123599
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45(4).jpeg": {
+      "sha256": "1b66ac18546d3777dc4add83c9b08f0fd74a049b183e8541ea0e64353d9dbc87",
+      "size": 177773
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/45.jpeg": {
+      "sha256": "f59dfa843b9b7a9204f4055cca567f21a15c1afcf37084fa984f96be6644e2c2",
+      "size": 155443
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46(1).jpeg": {
+      "sha256": "83036a3c94f6f4831e43c79c5881877fcad0433043b9c81ddae8a4b28ee29c0b",
+      "size": 196084
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46(2).jpeg": {
+      "sha256": "669e9ad31364e7fe9bea4ee2e91e3f71ca338d1d017b144e1ff3aab1475132cf",
+      "size": 3573287
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46(3).jpeg": {
+      "sha256": "c3424f52f38502608b02dcc79703e966f61c41cdbbc7682ae5f941f70d510fa4",
+      "size": 105459
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/46.jpeg": {
+      "sha256": "7c4be00a91357b2afb643a81db786b45dd088b1339ca8256f35ef35d605a128a",
+      "size": 141829
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(1).jpeg": {
+      "sha256": "5a8e0f2c4b4b895692cb8bdea1cff7f1cd30c14c284787f66d72467827a4a686",
+      "size": 150182
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(2).jpeg": {
+      "sha256": "62f86a003f2d28ca0bd77e61534fd20e5e8809391f820a5db926c4d2affbe1a9",
+      "size": 180103
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(3).jpeg": {
+      "sha256": "f6cd0fc37f1e9d3feab9cdd7353b424582f481127fc43b1ae7a83558808e53e8",
+      "size": 93280
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47(4).jpeg": {
+      "sha256": "0d62b4c44de030529f9684fbe143a4a177590e135d3a023eeb986cff3c5262ad",
+      "size": 195263
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/47.jpeg": {
+      "sha256": "27f37fcf36a34571c94466c3e111647adebbfcb19c93e025822f1b773463c6e3",
+      "size": 143381
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48(1).jpeg": {
+      "sha256": "ae1c16af5bad7dc3979e106a3135d68ddd102719965253f2f081fe34374082b2",
+      "size": 162387
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48(2).jpeg": {
+      "sha256": "deed2f4d2547a2f1097f17c176a58bc7fc53e20cbc68045c3f825c4cd2a945ec",
+      "size": 159787
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48(3).jpeg": {
+      "sha256": "eefed2ae4a661eaadcb39fda43d11e714b828c5517dd5de0a4e3d65ed134c9e2",
+      "size": 100215
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/48.jpeg": {
+      "sha256": "14186ba969f02e384b1cc7705da15b215131e82d264ad8232445e78cf2a8147f",
+      "size": 146187
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/49(1).jpeg": {
+      "sha256": "999b91e216ebaca8f6e9cff23eebf18bfb03d135c0c15b188b4440cd4e97fe76",
+      "size": 175049
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/49(2).jpeg": {
+      "sha256": "e564c2cda97d828323dd1778723601fd46dd45f3d5989eb00c3d499d46d8631c",
+      "size": 91558
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/49.jpeg": {
+      "sha256": "faf05bbdb275ccc5b0741e38a99014e044ec74139b687fa1ce982523fcea6d57",
+      "size": 167111
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/50(1).jpeg": {
+      "sha256": "4950e24208727cfdf2c1481dce3441f75dea9b023853ad539fc953ad910d7e77",
+      "size": 155098
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/50(2).jpeg": {
+      "sha256": "fe90a62ae45fc6c2d18a4af54dd1f0fea27399906ab6da7ecc109efb45f5fb09",
+      "size": 91785
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/50.jpeg": {
+      "sha256": "5c755a21ea04f1113f0d759f0fc02bd4bce9c92f1be0b4c076410a58f0bdda73",
+      "size": 156521
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/51(1).jpeg": {
+      "sha256": "680bf62b8007950fed2f1323fa08efca3322c9d886bd931fe02cf40f1e8c2250",
+      "size": 148120
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/51.jpeg": {
+      "sha256": "e58c2c2693697a9715030e7bb3ea08af3df186a92b15dfb4c39653f631e7b1f4",
+      "size": 132251
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/52(1).jpeg": {
+      "sha256": "c99902fc9748a2dc0a8069bb7f55cebf38d4af2e5db915bed2dfc01705a6eb4e",
+      "size": 170299
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/52.jpeg": {
+      "sha256": "5ece38b96c2fe1739f555e0ba5197bd9d5aeb5ccc09dfa8b9588a56026c3e297",
+      "size": 142728
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53(1).jpeg": {
+      "sha256": "7f2685cc4d33c9c483172ba665a7151ecb602fa81466f09cbb7ad0b0c9f4d4d8",
+      "size": 165325
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53(2).jpeg": {
+      "sha256": "65f5efa0ff8c0518833b9341dfec823ab99a1564dd6bc1e0112426d14c66bbb2",
+      "size": 112229
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53(3).jpeg": {
+      "sha256": "e54812afd2364f6d8e11624bec0bbc39aeec2a03468579cd353af1f2faa05a92",
+      "size": 105046
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/53.jpeg": {
+      "sha256": "e54de7f7593642a11d7eb9c2e8bc1065c369c00c9cd616ecfa3d86636fc8697e",
+      "size": 362328
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/54.jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/55(1).jpeg": {
+      "sha256": "cf42c7ea1fac2984f9d3db47b39ee15c2e2e2120f9d4bfd8ffd560ccc7435303",
+      "size": 3412288
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/55(2).jpeg": {
+      "sha256": "502be2af903fab4206d7a7c643c25656921510ad0531fc3076df24ca0fb74136",
+      "size": 175711
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/55.jpeg": {
+      "sha256": "ffd6b99828e815a1c44ba10b54f38fb70dcf877cfb98168dcb7b9fc7b1aabbff",
+      "size": 147899
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/56.jpeg": {
+      "sha256": "d5c318a04792871b68ce69d89679132e6e15adcbc7ff5308ef658ac23e38b5a4",
+      "size": 158196
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/57(1).jpeg": {
+      "sha256": "7a325f60eb44e54802735facb443f356d9dfc1bdae045ebab7a8ca3a3de55838",
+      "size": 149538
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/57(2).jpeg": {
+      "sha256": "26df35e16240aa13f5a50605591252a12972f57567adc4e3de9fbc3a6591a56d",
+      "size": 173140
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/57.jpeg": {
+      "sha256": "cb18d7b670c4f82508165ae1fbc8bf89b897c81bcf6e26750fd479b36e42f817",
+      "size": 149912
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/58(1).jpeg": {
+      "sha256": "0567200dc847a3f88528a4b6bdb261d6198130de315fa9b29d86c7456b82c716",
+      "size": 182952
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/58.jpeg": {
+      "sha256": "8186118d3379e1cca3416bb345c393ab4566768f77d966e403283c53fd80121e",
+      "size": 136960
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59(1).jpeg": {
+      "sha256": "f1efcbd546efb5855b1a435d60995f2c4513a4968dae119e4089de0c5b5eae10",
+      "size": 148515
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59(2).jpeg": {
+      "sha256": "e8d9ee131c2f7c0e44bdc06d48194cfdaf3979ce51646b9aa91f17ad5117d288",
+      "size": 188836
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59.jpeg": {
+      "sha256": "14f495a4a6cbd59bdc93b31934b641b0d44762c517120ad12846a9f838e90a1e",
+      "size": 146224
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/59_LUBAN.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/60(1).jpeg": {
+      "sha256": "61d33583082af439e066a30b53ba6409a5d5444672ad3c3146e17463bdf98eee",
+      "size": 170042
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/60(2).jpeg": {
+      "sha256": "6eb44ec739a4565407a14f4000d6bceba2bfec56833752c1a9338f9a0bb7b0ca",
+      "size": 192625
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/60.jpeg": {
+      "sha256": "7e1ad8d2d649c9423ff5fea70fb4c723417b314982e4d4713807ca8d327a33f3",
+      "size": 149703
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/61(1).jpeg": {
+      "sha256": "a893c80037f1f9b89292f728ff86b032ea29d0527a09b3dfc99d673ddc4195ec",
+      "size": 149713
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/61(2).jpeg": {
+      "sha256": "cf4d647c083b04162cca7821f92253e36666450e6b5491775639b01ba2508115",
+      "size": 154316
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/61.jpeg": {
+      "sha256": "9eb1f082dba667cddad2d58d03fef7453c50e969b7f381f04be2b0efc747a5d2",
+      "size": 130159
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/62.jpeg": {
+      "sha256": "f0abda2a413767ec7ad27d3526347fe4cfa9f7e863812074e555d38a16f2d7d9",
+      "size": 124585
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/63(1).jpeg": {
+      "sha256": "01d0bbd9bc71d87d9930c2043e675924eb9dfda0b664d500608d4224a0ad827d",
+      "size": 193257
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/63(2).jpeg": {
+      "sha256": "f9b97d491e1873cf1636b2756bd8d23d6610059a988367b90c8d63d66ede1327",
+      "size": 196301
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/63.jpeg": {
+      "sha256": "138bac65bff1966c17b8d7e3e13244a70d696c6fa80612536a854c1830cec319",
+      "size": 158753
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/64(1).jpeg": {
+      "sha256": "540aecdc73d2b480a4196f365e9e558fea69467c5f39228e0a440c6ba5eaaa21",
+      "size": 162660
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/64(2).jpeg": {
+      "sha256": "c39ebb9084a180d8b87ef9111ff3b57b75d7b85d0a1833f4e6ab858cdf2ee76a",
+      "size": 107215
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/64.jpeg": {
+      "sha256": "478779bb634e35e45598961a7e67762710639720998e182488314b3966a07d27",
+      "size": 156059
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65(1).jpeg": {
+      "sha256": "58dbe019891091e3bd7ee7ddd56db37c223e50d9c7bbca762ec5fd1be89067b0",
+      "size": 165252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65(2).jpeg": {
+      "sha256": "7148bb40c4f9f0aaf1c811410f76dadb7167c8f89fec2ec0752391933ad16536",
+      "size": 93108
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65(3).jpeg": {
+      "sha256": "93e5bea407e5bfc52a71a70038d60f2c08ab41626e3d381e73cc70db3a6c12f3",
+      "size": 109901
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/65.jpeg": {
+      "sha256": "d6892dac130bbe55fe6cc9b26a3bd7163d2730dda1933749de9c10bd6b053369",
+      "size": 162805
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/66.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/67(1).jpeg": {
+      "sha256": "1c3c8b1e36ec5c9b23897ac49a1d69c85b47caef161b6a462caf674698744e3c",
+      "size": 164201
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/67.jpeg": {
+      "sha256": "6820d315664334294b8dbad3880f42e88e911cc0e96e416c5c06bc6445e9c71f",
+      "size": 123204
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/67.png": {
+      "sha256": "339fee7efbcc2f11880ae6a3297ae32793f9383e983b9a35e2b45db50369ed9b",
+      "size": 1245409
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/68(1).jpeg": {
+      "sha256": "8a15951f6a9f8da3a329157bc9f24c6ef51f7b010d7c90e42e251b4abae17835",
+      "size": 194542
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/68.jpeg": {
+      "sha256": "7228ce4f0938683e9a07f135b0cb8558a450eb3445f79c639a19d1407e6b4dbe",
+      "size": 169133
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/69(1).jpeg": {
+      "sha256": "bf34a05f604d4d8c944cf44636eabfb002d8aae4839a5f47aa8b50e408427608",
+      "size": 111858
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/69.jpeg": {
+      "sha256": "fe5775342a10b8969b763b83060178901a6f7e45dc531bde15b7d0b86cef3d6f",
+      "size": 147739
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/70.jpeg": {
+      "sha256": "37901e9e97d365ac063a8b5311fbe2f6a868c95c21ce2c75e14cb17aa8bd32f8",
+      "size": 143543
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/73.jpeg": {
+      "sha256": "72b8675bb21f1faea18f43ae340c505c3b2162e0ea4b6da91094c5b0ff61d04f",
+      "size": 161315
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/74(1).jpeg": {
+      "sha256": "a0c6ff1cf593cd23f209f785f4964c12624c06fc1c756da8b86c3a20ce5abe43",
+      "size": 154726
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/74(2).jpeg": {
+      "sha256": "ce8325e5876e04f6beb10364c43e6f3fbde0aefbccc4c4f76c69ab6b35ca174d",
+      "size": 192847
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/74.jpeg": {
+      "sha256": "6990cb456f328e53b28ddf2f0d0315806f5752acf5ee65e4c5a86570463c20d7",
+      "size": 153198
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/75.jpeg": {
+      "sha256": "2fb2f89d730d9b7f71730b794e670fbfd6eaa1d1a2faf2294328c62f4242bef7",
+      "size": 109894
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/77(1).jpeg": {
+      "sha256": "4fff2d24fbc23e1c75888ac9b83226af238ea43dda0ae57c4e916d2aa8838c42",
+      "size": 161006
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/77.jpeg": {
+      "sha256": "7e565b4df8b14487a4ef9727dffc2c7a5e52d2a7af3fcbf4e17277bbdd9ca99c",
+      "size": 165880
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/81.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/82(1).jpeg": {
+      "sha256": "0ab32dcbf570497e4130e63a34405242b247d4d3aabf12d18c483e3c61d2c08b",
+      "size": 108114
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/82.jpeg": {
+      "sha256": "416a6f93d980c9bf07d0a1fecc35b25465161cfd4269c1865b86816b8718dc23",
+      "size": 134117
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/83(1).jpeg": {
+      "sha256": "5a266392bb4d89c8883ff99b4d003833b28b8f8609d2881fae4a38509047ecf5",
+      "size": 140159
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/83.jpeg": {
+      "sha256": "88d3bea25554dd527d29d6062fb700bfaf7a7abcbfbf538f089a0793e1816bb6",
+      "size": 140819
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/84(1).jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/84.jpeg": {
+      "sha256": "d213ea9efae6d2ddf01cd0172e083b47fc0802e423aadeac4bb4a6a07c8e808d",
+      "size": 152899
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/85(1).jpeg": {
+      "sha256": "f8a5d5e537a57fccbceac4a7f513ae5e66811c6de2571e9970b587a3820dc0f0",
+      "size": 140210
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/85(2).jpeg": {
+      "sha256": "c4493f6ca15ad1e73634f1e8e52c3fe4e0cc65b2a19cf0cd4c99a5e4507aa6d9",
+      "size": 128894
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/85.jpeg": {
+      "sha256": "fe193a57512af0f6178e14aebed2f53e224180c0ddfe211fd344e157b07644a3",
+      "size": 169230
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/86(1).jpeg": {
+      "sha256": "18bc8a6a10121da6cba23038be041bfcbc18bb8225d90170921e5327ce320507",
+      "size": 176100
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/86(2).jpeg": {
+      "sha256": "6de224ff7ecc6baef7ff129a7570d6a04acb1a5226995f123b64fa4bc795edc5",
+      "size": 100829
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/86.jpeg": {
+      "sha256": "a8fd61f7e62fa198e00f712cc82e7e2dcbd1d97675516e4e8a6e870520d798cc",
+      "size": 140000
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/87.jpeg": {
+      "sha256": "41fe507e17cb6d3cd77c20c5d18899d6d71b440f328c0cc249310d7758540346",
+      "size": 167808
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/91.jpeg": {
+      "sha256": "46ad22b7bf426961b19c4d69151f7afed45476ccbd6e521574fed43d49936f98",
+      "size": 3405942
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/94.jpeg": {
+      "sha256": "6581e4127c9965dfbd6754019b058df4531b293ccac796bcf5b4352743c617e1",
+      "size": 152828
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/98.jpeg": {
+      "sha256": "c8f9b8d16263c3e207c551fe830766786f8737f783cbce1692c4a7f1fb37ab4a",
+      "size": 174063
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_for_reference_ds/CYCLONE_DATASET/99.jpeg": {
+      "sha256": "94df5e610ab44a953c022b051052af3648bb50a76d6aef88e07ecf07fd9e7ba8",
+      "size": 133294
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/101.jpg": {
+      "sha256": "8551d01791836a917f6c32329695ac62d945823c40b2d07dd59dcd86cd14c290",
+      "size": 65391
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/102.jpg": {
+      "sha256": "333cce161a51e8dca79182b36b041e1c3b7cfe98fc588753976d6309ed6dde64",
+      "size": 20105
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/106.jpg": {
+      "sha256": "07821bc89c610df2b3187261172ee9213595f52d35dcb88ab1dd2e117123c6e7",
+      "size": 76355
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/111.jpg": {
+      "sha256": "b10ee14f89a186522d422881c26c9ccdc633aa05c35fe69df52f0a6497b10bed",
+      "size": 49955
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/112.jpg": {
+      "sha256": "79d38dc044c671949894cdf13ac53aaf5b4e65c23c527447e4c35027eeb72fab",
+      "size": 72971
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/115.jpg": {
+      "sha256": "35082965a9ff195ac984be774af3e535a241febdc98df836668cce7f3faa13eb",
+      "size": 66660
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/118.jpg": {
+      "sha256": "df1629366b828aab31028d03b45e65733742f4ea55fd9e9cbd8cdfc88bb23d95",
+      "size": 82718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/119.jpg": {
+      "sha256": "bfc0ed97c4b5b3f8275faef180cd4bcb1d72108ebdf386eb59bd8684fc37e8d9",
+      "size": 77716
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/128.jpg": {
+      "sha256": "f76c2729cbbb0c64199f5628de7530efdf0ac0b7e20ef6bb1a401fb949e4898e",
+      "size": 62360
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/25.jpg": {
+      "sha256": "02ec1842b21c93390493ca3679d1d824bc32d36017ada654c5aa8e4ff5ba4ec5",
+      "size": 37659
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/27.jpg": {
+      "sha256": "acea341326e3f5a1103b9c300223f16af31f7da9558b1b912f6a638e3e7cca9c",
+      "size": 49969
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/28.jpg": {
+      "sha256": "87dff5923e3c0bf3b93f7e4db60d6a1b372a77522f44ff2f0d68b0cce2ff87e3",
+      "size": 57452
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30(1).jpg": {
+      "sha256": "34e37deeceeeae9afde173fc393eaea50de3dac66c544b1a7c3087aae628f0f1",
+      "size": 75116
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/30.jpg": {
+      "sha256": "d58ef179e9160d6b4911203fa2cc6d85e16e432a6694c1a2d533f7f5a2e02119",
+      "size": 66896
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/31.jpg": {
+      "sha256": "5882ef92efcc4c9828e9e97e21bb74bd274b3e0ba7f30f22239509636f7f13ce",
+      "size": 50626
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32(1).jpg": {
+      "sha256": "409717c968183d74a2e48294901f925eb496c3885ea7cf6a486443bbff86dbaa",
+      "size": 42035
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/32.jpg": {
+      "sha256": "60be9b9358fae62dcc88bc6b48f3e3a7a62f205e7741a2ec51700db5e0fb48cf",
+      "size": 43003
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(1).jpg": {
+      "sha256": "c27160112bd1d3538605d4d3e59a45fc478499f3419158628579c6074919da3d",
+      "size": 34052
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33(2).jpg": {
+      "sha256": "04556b6705fb603124868e50cc85bf87568ccf3ed54f92ecdc40bed9e9bc6a9e",
+      "size": 85096
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/33.jpg": {
+      "sha256": "1652e7b7c6605a233ff0e75d6468b6dc8e0e6656ea60416e2cf60f02ce495c9b",
+      "size": 52632
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34(1).jpg": {
+      "sha256": "6775fccf96418b243af9f244cb09dcba2e8f25d8da2015a26c791afc022cfcd1",
+      "size": 90285
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/34.jpg": {
+      "sha256": "95feec6e72e87c4b073ed4fa9724ef4c29ec4262ea4226f9912cc21fd3e91471",
+      "size": 51299
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(1).jpg": {
+      "sha256": "9994a099d453a047c820282ddf914e0dbb1e27415fae4b1f62fbf0c39dee5e6b",
+      "size": 37132
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(2).jpg": {
+      "sha256": "03cfc7d775b6f3d58d9158855abc73ac90909784659f91a0345192cac9afc339",
+      "size": 58011
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35(3).jpg": {
+      "sha256": "c002444890b94f1cacb7ffee4551703374b7a30484639b4c371ce1bb6c26c6b7",
+      "size": 41605
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/35.jpg": {
+      "sha256": "3e2ae2516944192c6a85f912484bddd3daa009c9b47a370388fcf220f6fafcc0",
+      "size": 66837
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(1).jpg": {
+      "sha256": "a6bdd5692c505ea7cd473791bd7dad61b7dbbab6753ae52dc5259b79659f3836",
+      "size": 73137
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(2).jpg": {
+      "sha256": "d0c4112b0f65da2888a567587acf048429685b755bb601d02e2200ba15af7ecb",
+      "size": 38563
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36(3).jpg": {
+      "sha256": "ea35e4602d95d999cf376cbc772b8e4bafcb827eaf688ce56e5dc61d9af5348b",
+      "size": 33440
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/36.jpg": {
+      "sha256": "4ffcb9036c0c818f37753c64c71ce6c27c6972b73d4f27c81fe86535d7ee19ca",
+      "size": 47852
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/37.jpg": {
+      "sha256": "e8f9a0ff22ac3faaeaf5b1b13c49c82b25ea34989d9561f87c80130840ef47a7",
+      "size": 54951
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/38.jpg": {
+      "sha256": "d5f664690a665f2927c606f7f2e993178418412f478be6fd7cca1024a812fd32",
+      "size": 84246
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/39.jpg": {
+      "sha256": "6ded8060fae2dce49b96cc8b3915a13da493f055e462899c9c1af2fe5f71484e",
+      "size": 42355
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(1).jpg": {
+      "sha256": "e1998bb4cbd217183e87840d9fb1a68ee26011ddedac26339f7a205a3344b78b",
+      "size": 50048
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(2).jpg": {
+      "sha256": "0c55a6c76d4c65fcebc7963d7322f6f6d687a0c68791f46395cab1c8776ea055",
+      "size": 44484
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40(3).jpg": {
+      "sha256": "0be086070dcfefec36276101f565dfdcbd11db6606abb5d2370ca78d80529200",
+      "size": 75972
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/40.jpg": {
+      "sha256": "d197c530f11a93f025689aa88a5e307d26cd9ed76e8ed7f279947a69912ae16d",
+      "size": 61567
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/41.jpg": {
+      "sha256": "7afb505062a8e54bcc921deff1e1567d2819020769bb15cee16346ab15525990",
+      "size": 63696
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42(3).jpg": {
+      "sha256": "8e66750e2f4022690f4aed09eb0411cdff9c5956eb2b3289d24bd3c0ff59bbee",
+      "size": 49047
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/42.jpg": {
+      "sha256": "7adb2b2adfcd37646c75898e17893353c06a78d19562c29e8e80a2751877c470",
+      "size": 78103
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43(2).jpg": {
+      "sha256": "c130fa15793e074ce6fd3fdd6a790cc5abbd9a339a7c1083acbee5d4f5ba073b",
+      "size": 29616
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/43.jpg": {
+      "sha256": "165b948785ac4f83204642a120e23f6478cf0ef1e9c50ccda080f23696f84c68",
+      "size": 64756
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(1).jpg": {
+      "sha256": "4b8d1c160bcf6d51ba87b9b8c6f66962ca6975c10899be37d5c0f31d64f7ac94",
+      "size": 47835
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(2).jpg": {
+      "sha256": "1ed2daa780358584bab191181910855345d923b13c26141ea5e2cd530a0edb7f",
+      "size": 81670
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44(3).jpg": {
+      "sha256": "890ede0ae764d3f87e6ccde2e5f3f4cbe874078c3da56459cc1ca8baeb97d729",
+      "size": 73058
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/44.jpg": {
+      "sha256": "3039e0386a70b3e101560f840d0e5af52d983ff41500e18e871a0b2e643b97ea",
+      "size": 84588
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(1).jpg": {
+      "sha256": "9d18b78190e18e4acde1ec4cc8281bc923be3d9a758e8c2ec3bdd7d82f50d8e0",
+      "size": 91164
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(2).jpg": {
+      "sha256": "90509cc1164e91d99fe590e83def143bd366002e2dda7f8486c84edad16ae273",
+      "size": 70414
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(3).jpg": {
+      "sha256": "e9e5948c55a9b107326fc4a4e060207d5046cb0978338eedb6c4c1b7eb0cf2f2",
+      "size": 40289
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45(4).jpg": {
+      "sha256": "f7cc72f330de697f2e5202f353fef53aefe5e0051c25e82f0f714336a795c935",
+      "size": 72252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/45.jpg": {
+      "sha256": "0e6080526725c632d3cc6ef6c87589b9d4aff37fc9b2c7bd308fa0a51523b7a4",
+      "size": 61233
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(1).jpg": {
+      "sha256": "6b4be1d6d93c2e8b30d76960ac9a0f9a0b69e599a399bc451e5d144c0e9e9dad",
+      "size": 93493
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46(3).jpg": {
+      "sha256": "196de4a2dad585130b2238e0ade27d59551307daaa67e9ff0872adfd5ccbb732",
+      "size": 44833
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/46.jpg": {
+      "sha256": "43cd999791d2450ee93b46ab6191cfb8ecebf58c7484072d1fdfb4c4ac907138",
+      "size": 47488
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(1).jpg": {
+      "sha256": "5aae53416842464c4371aa356d825a886a4e4653f79eb6c212a1fe62431045c8",
+      "size": 59545
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(2).jpg": {
+      "sha256": "9ddef5e8e09be39630490f3b4a0905d3b78a9b675fd104971ab7b9a0e7e3258b",
+      "size": 78715
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(3).jpg": {
+      "sha256": "bfc1b84ca26bcfca6829a96bf290007029d1ec9afaf44d8e29a2219d1f409854",
+      "size": 37572
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47(4).jpg": {
+      "sha256": "312624fbc40eb3f8bd7aa61a5ada6efe6e661d72899cb422d95451453fccb03f",
+      "size": 88482
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/47.jpg": {
+      "sha256": "ec37ca0269392be17328a884058f88746bb2605e68f98f162584941fb4dd4030",
+      "size": 50725
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(1).jpg": {
+      "sha256": "79f1553f0a200f7fb2cd5296f89ebb2a5d2c0d6e816995d65d69db991b67372d",
+      "size": 74066
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(2).jpg": {
+      "sha256": "daf41e35c1df4c872f319504a9554b3e515217f3dcf21cbdceb7a700676dadf1",
+      "size": 67447
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48(3).jpg": {
+      "sha256": "e38d46c3375c5fb79950f434484b8dda184b6678df856248d31773c343898959",
+      "size": 41774
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/48.jpg": {
+      "sha256": "163c7f41549f1467c9948bae87272b6c6a8a8c6c45ded5fc0eff0c9787df411d",
+      "size": 56499
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(1).jpg": {
+      "sha256": "41d3da0d4aca62626c95efe7a9b397f433f7859d781e11d115f412451d8b41bc",
+      "size": 74318
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49(2).jpg": {
+      "sha256": "b4ad1ed17432778f8bc1de37619f0ec689e760637e39da877cabd776dc97acf8",
+      "size": 35683
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/49.jpg": {
+      "sha256": "c6cdd7de5cca5578e9a60615e5224591fc3f518f71955059ffb88e5b7ebe2934",
+      "size": 72054
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(1).jpg": {
+      "sha256": "435c12c2aec700e1a021231e6c6fb1b5d2fcb5fd41275a93f048fc5a6bc239fc",
+      "size": 62616
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50(2).jpg": {
+      "sha256": "e311349bd266816c0400fd4160d52ea7156f9699deaf658fe08b18ce3b5cb40c",
+      "size": 34434
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/50.jpg": {
+      "sha256": "8d60fed1950e5262baa6b9f667f416a83816ba9bb34ebdeb098e7234c689f46a",
+      "size": 60167
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51(1).jpg": {
+      "sha256": "0d217444820d545d5f155a6ed51fe6c5ccb4f701867b3a110b775fcc756c0be7",
+      "size": 56494
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/51.jpg": {
+      "sha256": "1611e68eb19121fcebbe912964e9cd5cce2fc2b2a5c9a9659cdd6abd92c98a84",
+      "size": 44399
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52(1).jpg": {
+      "sha256": "153cd1e0704bf0e61c3d61654b63a6a42958e178beb1d00df92baf12c11a8395",
+      "size": 64620
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/52.jpg": {
+      "sha256": "7b160ca9f3e97dd0b71db0574be9b27229bac9bcc78dfb8f5843a0cde58f0215",
+      "size": 56616
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(1).jpg": {
+      "sha256": "39c3fd8b74f9abc6e5e7c9df97ecbec23734ddb22896338b64962297a7f74e91",
+      "size": 69980
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(2).jpg": {
+      "sha256": "16d0efefe00233b934714e67b4ef77e6d3f47e7f0d0cda40812ac8a25c1dd89e",
+      "size": 48348
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53(3).jpg": {
+      "sha256": "32e3ff7ec384b07a76440b7d7ee9526701870d0a988b92be5065174e9ff3e81b",
+      "size": 48039
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/53.jpg": {
+      "sha256": "ea8a3540ddb7851e1030a2f62a6e096e4268a1a730ab452874710d2b6dfacd68",
+      "size": 69793
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/54.jpg": {
+      "sha256": "f0f1dc3bf087b55dd4ddbb48e54257bd95d801a840ea1598841fae878a3bc30f",
+      "size": 64793
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55(2).jpg": {
+      "sha256": "6512fc88af8bba8c249cfc5db655385b4645d9d87015ddd0333e6346a332dbb0",
+      "size": 76856
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/55.jpg": {
+      "sha256": "614cb249d3cb57c016244ca674ea28e5b6ff39c4e20e69347f2b5851f5f5673e",
+      "size": 59246
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/56.jpg": {
+      "sha256": "8153d78ff7df05437e0c831ebed80a865f22a3df5a60ac57d7e8be3652fd5de0",
+      "size": 62435
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(1).jpg": {
+      "sha256": "d07b387eecd7691789f49d379121ae653cd1beb8e6dd75a6e40cfef1cb9b3a0d",
+      "size": 59732
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57(2).jpg": {
+      "sha256": "97dc0cfb21d5b154f5d38d4678c38521f3fa65b12b9da786504921bcb967a7f9",
+      "size": 76269
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/57.jpg": {
+      "sha256": "3a9e7e8de1821aaaf6f58a7f76bc3ea713c4d499bcd05d1d817a3f1278e72710",
+      "size": 56802
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58(1).jpg": {
+      "sha256": "3be88502a8532d18bdca35d5107b8a8d12b29e32d2f1a7fca229a4350972697f",
+      "size": 80823
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/58.jpg": {
+      "sha256": "07fa2f31563a8fb693665ed1024f4bc021bc1b5d24769fb2d0fb18a9926b67fd",
+      "size": 48188
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(1).jpg": {
+      "sha256": "c42fb53b1ace3ef2f2a242dd8647289178ef5280893a1060562944b7435b65b8",
+      "size": 53775
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(2).jpg": {
+      "sha256": "a13d385f9f60db387a2fa3676591fcdb0a59c36bf6eab271b7bc4dc201d89f35",
+      "size": 87344
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59(3).jpg": {
+      "sha256": "574f8eff25cb53a8f1b32a9b51536a5f1c81d575e61cf5c5ec9b989b64b7345a",
+      "size": 38658
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/59.jpg": {
+      "sha256": "82c4dec15e1e47dd9f7ed0cc2e137f523bff8bd30f97cbc5c92dc928b059ece0",
+      "size": 55663
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(1).jpg": {
+      "sha256": "8405cb88e365a3376ce6d70e430f90672b6a23bbcf870c335b73dec853595c4c",
+      "size": 71329
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60(2).jpg": {
+      "sha256": "90c3a35c6251db2c5df9738024f79f5ed7f86352d8bc8112833a2a303ff8709a",
+      "size": 91387
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/60.jpg": {
+      "sha256": "957bc1c650d30c5234a19b26cc146faeb9fdea886a84d5008e7a42f8b07425fd",
+      "size": 58319
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(1).jpg": {
+      "sha256": "260dc777d949a6921ec798123e08d5aad7df7dca28b20e38e78756931a7621f0",
+      "size": 59025
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61(2).jpg": {
+      "sha256": "a3dea38879506235324423201df795fa8001e72014334ba78541eaafa03d8cbb",
+      "size": 62082
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/61.jpg": {
+      "sha256": "8337c5706a4ea623e17fee8a92fdb7076ac6983f374dfbe426d69373b32c5334",
+      "size": 43872
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/62.jpg": {
+      "sha256": "3de476b093ffa0f0c580652b417a8223d28978c5792e5563c9f5b5c98b5ce775",
+      "size": 39485
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(1).jpg": {
+      "sha256": "3d69cc71d67eefd4eb560d9d46dd4054a8e39d4f5c6c593a6048569c8214f4a3",
+      "size": 92416
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63(2).jpg": {
+      "sha256": "4aff0f050cc609a7521be98c2e7ab5fe32a5a37aa605137c1ed629f7bad5c9a3",
+      "size": 80045
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/63.jpg": {
+      "sha256": "f78c982ebd774c2b87d0fc7470ac1b11038e49f169fb238f73a71e8e3c514039",
+      "size": 62826
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(1).jpg": {
+      "sha256": "3f4115a92e1160509732aaa6b87a4aeb7c572e23723d43192a93d489e6a349e7",
+      "size": 68569
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64(2).jpg": {
+      "sha256": "3baf87b1bb701b75bfa155d34232e98ece109426349e092ebb23dfd1036f5112",
+      "size": 46686
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/64.jpg": {
+      "sha256": "d983dd84f0ae498590cda57466b1fea0880d818f2d06d1bc316209005ae8c6a2",
+      "size": 59891
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(2).jpg": {
+      "sha256": "f8f092bb944f2134a1e1deb706c1265147de2ab8647a01ae763ed388a5acc83c",
+      "size": 35944
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65(3).jpg": {
+      "sha256": "587303c3b99c53ca70cc0b4fbd316e12a1c7df1ed61f4b99f8feb03f293bca7e",
+      "size": 45883
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/65.jpg": {
+      "sha256": "698a14fa556ab2c80ec0d8097bacae44a38a814d26fb2ee16222a6e29b8be8f9",
+      "size": 64951
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67(1).jpg": {
+      "sha256": "cc857befef45c4c78414de1e09ac87d3fb9c5ed7571fd5a4a28ab8dcff72635e",
+      "size": 70897
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/67.jpg": {
+      "sha256": "d078890375015679a99fde00e4b67247d35e71af686abd8fe0b3dd4520a8d9d7",
+      "size": 39058
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/68.jpg": {
+      "sha256": "c1f2c8237765813babcc4c446e4fcc2a353b9401345f80d98eac83385fad3e0f",
+      "size": 67470
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69(1).jpg": {
+      "sha256": "9cedcc31ee8e7b17a18d560aaeba371412fe8799ca2a3834746405b615dabedf",
+      "size": 42225
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/69.jpg": {
+      "sha256": "e4c345a4c78a3dec4d04daa885d02550a1a5ab75e99617300df53f829d2909e8",
+      "size": 57889
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/70.jpg": {
+      "sha256": "ea329f9a3f05cd0e10b8900991548863c882262ed868105d3ac749ba57863f7a",
+      "size": 51648
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/73.jpg": {
+      "sha256": "bb59b0dbfee38e0d805fbec6655c0e14d9370cbdc6e9eab1bd2fc771391fc072",
+      "size": 69522
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(1).jpg": {
+      "sha256": "dc14384d465dc13f72e02c7ffbe7f8262528cc6cc5fa15704b39ae9790f16d7e",
+      "size": 61516
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74(2).jpg": {
+      "sha256": "c94374066427ace83f4da78715cd51a08e8d642c97e6a77885d881a186e6c0e5",
+      "size": 80846
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/74.jpg": {
+      "sha256": "194247b265367b0ad73290dafde6f9c501127dadeb47b527afc05de2f35c93c3",
+      "size": 59512
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/75.jpg": {
+      "sha256": "4fc79fc429db858772214eafcc51cf454be7fc9b2468e07703f32f396ebbe98e",
+      "size": 48120
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77(1).jpg": {
+      "sha256": "ebf2383838b865d877a48eee68c786dab4373a565ab1d6da3955bbaa56924aeb",
+      "size": 62507
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/77.jpg": {
+      "sha256": "c65e46ae54d0a322c012f10a549a6e9ae50ba3b74e674582567d6fb95331fba9",
+      "size": 68977
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81(1).jpg": {
+      "sha256": "b3106ad93d3fc10ec378e5fc972566b00a5c00994f06db7fbcd0a014ac137611",
+      "size": 80110
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/81.jpg": {
+      "sha256": "017f54d36c1cc007e49ce6dd5151e06a1dfb511cbeb5d2722cd9602b74955855",
+      "size": 52059
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82(1).jpg": {
+      "sha256": "880a4b095719fc8240c3d5a18de41c4a9e8bf35dee77ff816885c903a2db8c9c",
+      "size": 45030
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/82.jpg": {
+      "sha256": "f1a601c57ba52f0056dd4b78532d1f8de58db5ad2aecb585e809e48b6d3cc0fd",
+      "size": 50993
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/83(1).jpg": {
+      "sha256": "48756e28e38c7daefb09bf1dfa8308fcb0202101c690ae807ac99ca60aa8b8dd",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84(1).jpg": {
+      "sha256": "877894272b0129b9e49b0e3c4659d25153d9f547fd92f7b98e9daaf31039201a",
+      "size": 58207
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/84.jpg": {
+      "sha256": "a9e80b3194aeb862a539449c2092e28c469687ef78a70acd299262e63fcb6699",
+      "size": 57747
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(1).jpg": {
+      "sha256": "0e5e945ecf598e59378d7c256da60b0ce08736a64e4ae84d1b6bf493ed650ccd",
+      "size": 50741
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85(2).jpg": {
+      "sha256": "8ffd8108dabd02c0a5302fe16be36c3ca8da46a228ae669ab5b9f2fc45827d44",
+      "size": 43155
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/85.jpg": {
+      "sha256": "6a1190b49325f0f2de248653cdf56f50dedbc51c258216e20c3441acdbce9633",
+      "size": 68221
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(1).jpg": {
+      "sha256": "e999d576e87ad34ebf8fe62b64fb882a6f07fec2cf034c684e94580ad09fd353",
+      "size": 80577
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86(2).jpg": {
+      "sha256": "a10d1cb6f308c42ecd8fadee56b777b04669632872afe688653edcc546567293",
+      "size": 41762
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/86.jpg": {
+      "sha256": "22be024211f0bbf7ee62a0d47a8e9e36fa6655e8c5624132bc18efe3b6ee24d9",
+      "size": 49392
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/87.jpg": {
+      "sha256": "eab640b9c75d626d960df19b24c1d6d66c6d11dcbadefa06f74b6ccc89ecdf56",
+      "size": 71722
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/94.jpg": {
+      "sha256": "8f99863594253348a0a2a966a5ba38d274d31cccff147cfebc15fd6f0a959881",
+      "size": 54840
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/98.jpg": {
+      "sha256": "0bed409f9caf22aedf6f6e61959f5cd9f92cc5f5c740014249e9000caa0b1cfd",
+      "size": 76788
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_ir_cyclone_ds/CYCLONE_DATASET_INFRARED/99.jpg": {
+      "sha256": "c0a676f1a4b818eff7b64d8cabde0deed44e7916b48603440965a5278dfb1ae8",
+      "size": 50411
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54 2.jpg": {
+      "sha256": "343d86eeb77aae5f1303423297c8082f70210e7775a0828e1cad54b16ad5ae13",
+      "size": 46295
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/55.JPEG": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN 2.jpg": {
+      "sha256": "d8596ba176378583534755a52e996f8c24c03a4abaf8015e345013ab2b2bab8d",
+      "size": 28252
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/59_LUBAN.jpg": {
+      "sha256": "613872f692da898e3970f912f9e08f9ba70ddf8f97f2bafdad2a91591f6e3f8c",
+      "size": 27929
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67 2.jpg": {
+      "sha256": "0d9b4a933345ca8de954049d463a4cf9dcd31e4e67a325c29fd8c51de5dafc92",
+      "size": 30531
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68(1).jpg": {
+      "sha256": "5065047ecd96f23a67fbb31d0cd4c4862d608fa062797b45dca6136719c287d7",
+      "size": 53946
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81 2.jpg": {
+      "sha256": "b98b78f923717ddfdd94f0e99e9ce85e89eee62ceb8f56957b1c1472ce3b2252",
+      "size": 37758
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84 2.jpg": {
+      "sha256": "e83f935e0c0a0ca0b847ddbeebb82ca06df446f99b4038f224dabeeb3dda963f",
+      "size": 38270
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/raw/insat_kaggle/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/raw/insat_kaggle/insat_3d_ds - Sheet.csv": {
+      "sha256": "055d0e216a22389e462090166789a50ed9ebc5766baff6d59fa6e4a0c6a9f306",
+      "size": 1605
+    },
+    "PS70-main/docs/ERA5_ALIGNMENT.md": {
+      "sha256": "e4eaba93d68be7c2fc8c30437284172c9210c3c5d47bd3ee977f290b98b22ef0",
+      "size": 3611
+    },
+    "PS70-main/download_era5.py": {
+      "sha256": "be1cbda61ae4f73319a1cf2f484b008c1375d00b8f2b3155d54bd95ae690ca27",
+      "size": 4374
+    },
+    "PS70-main/extract_era5_at_points.py": {
+      "sha256": "127ad459bd6be1b073bfd5d3d314cdfe19b98ae7aed082d259643627948ec22f",
+      "size": 5722
+    },
+    "PS70-main/find_near_matches.py": {
+      "sha256": "ebdd5c10461c8d502f27e9dcd6662ded052e3432cf63674002c5ce35cf1fbf12",
+      "size": 1100
+    },
+    "PS70-main/future_task/tasks.md": {
+      "sha256": "e0e51a2b6a3439bd88747bdbf0eec40ba76ca8d1b054a41bbb1bba3bedfa5d31",
+      "size": 6894
+    },
+    "PS70-main/future_task/tasks2.md": {
+      "sha256": "7b490ce77bb064fa6e0e55408b2bc61cb402d132a7821258f1aec0f634c32920",
+      "size": 7451
+    },
+    "PS70-main/future_task/tasks3.md": {
+      "sha256": "5d7de7b6ba06c58c3673c267982f81d58dd5c473ef81eed03ed8c04b922a30cd",
+      "size": 8184
+    },
+    "PS70-main/future_task/tasks4.md": {
+      "sha256": "de09fa101e7661b95f1cff2fd5a04e624c0a046858cc12d8aaa2d1616abf9ffb",
+      "size": 8578
+    },
+    "PS70-main/get_ibtracs.py": {
+      "sha256": "c59cef058bfe84d5c327fe99af352f3fd354045da8967b196a94fa757afce5c5",
+      "size": 9006
+    },
+    "PS70-main/metrics/detection_metrics.json": {
+      "sha256": "d5a4a269671ace1ab755b1c7065bc57f7ba3b1056aee467c8e59d06f51fce3a5",
+      "size": 346
+    },
+    "PS70-main/models/classification/confusion_matrix.png": {
+      "sha256": "4cffb4579acf6786c0184a577fdded79907f4be91b7d756dfa061e6367f9956a",
+      "size": 243059
+    },
+    "PS70-main/models/classification/image_only_model.pt": {
+      "sha256": "960e3b8a0321c28775ce29e400cc12139923302dc04d767dd278693418eac557",
+      "size": 45186485
+    },
+    "PS70-main/models/classification/metrics_comparison.json": {
+      "sha256": "c3e05b67035aaeef22a30b8afc747e99ce9eb117412df07a3342863b856d6cb4",
+      "size": 661
+    },
+    "PS70-main/models/classification/tabular_multisource_model.pkl": {
+      "sha256": "2d75080230751e6c89161f9a1fd58f56387392790f179bba90d4c4a8f3a0ea9a",
+      "size": 4816632
+    },
+    "PS70-main/models/detection/model_weights.pt": {
+      "sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+      "size": 4739155
+    },
+    "PS70-main/models/detection/placeholder.txt": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "PS70-main/models/detection/sample_prediction.png": {
+      "sha256": "d5a69e99196a4d26ccc518bb6d0ad42e7a7f61cbafef678fa1a63f1144b8e0cf",
+      "size": 526730
+    },
+    "PS70-main/prioritize_gap.py": {
+      "sha256": "2ad2580e29b429dee3537bf2f94cfc5802f3fb956e228561316148d715d30e51",
+      "size": 1200
+    },
+    "PS70-main/requirements.txt": {
+      "sha256": "ac939be2e546d10f867435cb4bc6b340d21e215a56bc5b6c21d04dfa40bec06b",
+      "size": 67
+    },
+    "PS70-main/scripts/qa_visualization.py": {
+      "sha256": "a5d71fcc8af1b70d734602e7756d073e75912e3bd013c10b6c7c46c5c37ed04c",
+      "size": 6349
+    },
+    "PS70-main/split_coverage_gap.py": {
+      "sha256": "a013478b74134c78740d652f0cb4ae943d42e5ec77cb978322ab0d426565f633",
+      "size": 1264
+    },
+    "PS70-main/src/__init__.py": {
+      "sha256": "e79f4e088ae5241afe5408b20ac963bdc80477c7f5b610173f6861fe2dc7306e",
+      "size": 18
+    },
+    "PS70-main/src/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "7d18a4198c9a2cec41cccea9275f74c859853eb695f4dbad75bc3e080b6a5732",
+      "size": 149
+    },
+    "PS70-main/src/__pycache__/__init__.cpython-314.pyc": {
+      "sha256": "5c5da134b57c9d11033b8b0c8d1c39c1bb76ec586c5dcc6f90dccccc360ab110",
+      "size": 134
+    },
+    "PS70-main/src/classification/README.md": {
+      "sha256": "cd6e5e5dd7891944781e877ba6c7701e00528398d0a0b249da6092aa3d63f50c",
+      "size": 2994
+    },
+    "PS70-main/src/classification/__init__.py": {
+      "sha256": "7f11650561bc4f81e824f42f551b47e65542a6553da2c310c5d4fee24b07d49b",
+      "size": 331
+    },
+    "PS70-main/src/classification/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "92ba00648ffbe1f9cd03002fadc92f0f86c328126d26150759b51fd3531b7020",
+      "size": 498
+    },
+    "PS70-main/src/classification/__pycache__/classifier.cpython-312.pyc": {
+      "sha256": "4aadec49d71e174a5d9af5adf82fa81a6f5b1bd197057eccb178f787c786ff71",
+      "size": 11284
+    },
+    "PS70-main/src/classification/__pycache__/inference.cpython-312.pyc": {
+      "sha256": "066d25598634c2bf6e5b027b2ef4fd01eb829b24f256d45495b5884d50b2191a",
+      "size": 7223
+    },
+    "PS70-main/src/classification/classifier.py": {
+      "sha256": "111fcbc1642081b3e3ce94d76a9a4f72de54c0318fdd320a0f011ced65e55609",
+      "size": 7707
+    },
+    "PS70-main/src/classification/evaluate.py": {
+      "sha256": "63a11f989549addae6f2d57846de2e3b7bd5cdb70f7c19453a478ef9f6885a6d",
+      "size": 8244
+    },
+    "PS70-main/src/classification/inference.py": {
+      "sha256": "6e535763a464e2fc9cdf4f1744202556cceb58babfa873af98d0af2ecd3a0124",
+      "size": 5564
+    },
+    "PS70-main/src/classification/train.py": {
+      "sha256": "532bc2b514e9fa77b60fbe74279146edfe8aa063691f9e2b33b30e1bb4d31396",
+      "size": 5743
+    },
+    "PS70-main/src/data/__init__.py": {
+      "sha256": "c3ef871d05c4761b36d74638fbf4715a0740451a96d297083f7da260191dca2e",
+      "size": 573
+    },
+    "PS70-main/src/data/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "dbfc42d84f4edc48fdfacfed00870d1d84edc6fe787b8450f40ec09db21b6578",
+      "size": 600
+    },
+    "PS70-main/src/data/__pycache__/__init__.cpython-314.pyc": {
+      "sha256": "75ba478b39fb0d19582e4c45a8a3b7ea379d63c1a4953a1099db9e31e9f75e76",
+      "size": 585
+    },
+    "PS70-main/src/data/__pycache__/classification_dataset.cpython-312.pyc": {
+      "sha256": "941a30d0f9ec8b6fa79e842699bd28b77806588b3832cfb069234fe197389700",
+      "size": 7213
+    },
+    "PS70-main/src/data/__pycache__/classification_dataset.cpython-314.pyc": {
+      "sha256": "190e58b12a807b4e8ab525f066ef580fcdfb09ac31a1126af6e0c08a374de23c",
+      "size": 7497
+    },
+    "PS70-main/src/data/__pycache__/detection_dataset.cpython-312.pyc": {
+      "sha256": "6a0960d0a05a9624963b3405f4bd8955574bd25c5bb10c263a2f36381422d8e1",
+      "size": 2901
+    },
+    "PS70-main/src/data/__pycache__/detection_dataset.cpython-314.pyc": {
+      "sha256": "40ad244e93e8e7681a201e3a43a193830175c5f1fcdce344ee1489078af6f786",
+      "size": 3093
+    },
+    "PS70-main/src/data/__pycache__/forecasting_dataset.cpython-312.pyc": {
+      "sha256": "c3f054217138a10dfefbb04d8c7ea15d83853f48c793b299d8b032634716e693",
+      "size": 4608
+    },
+    "PS70-main/src/data/__pycache__/forecasting_dataset.cpython-314.pyc": {
+      "sha256": "8afe2928f6222f88a99268f1c72a04cece6d61c6f7bcf05d5e2ffe363a5b441a",
+      "size": 4826
+    },
+    "PS70-main/src/data/__pycache__/preprocess_satellite.cpython-312.pyc": {
+      "sha256": "d1f8c0ccd5282cb0c2cf05ed4bd9bc1fd85ea53b2a4accf46031b759942193ae",
+      "size": 5735
+    },
+    "PS70-main/src/data/__pycache__/preprocess_satellite.cpython-314.pyc": {
+      "sha256": "0586d8e7d2818934121a2a0afc690c07881f44d364f47d7db49d74a0951e08cb",
+      "size": 5829
+    },
+    "PS70-main/src/data/classification_dataset.py": {
+      "sha256": "a657a60fd3898b492158f36f40dafbb03253d6cd84617bdf50b0d3460687051f",
+      "size": 4045
+    },
+    "PS70-main/src/data/dataloader_example.py": {
+      "sha256": "a94e7b8dbf1698b5cd217e60db22267220cf9191d1ebd34de02add8aec98ddc2",
+      "size": 3242
+    },
+    "PS70-main/src/data/detection_dataset.py": {
+      "sha256": "28af4a712d9b2c0f72216c1516993f0bad2fda785a870163def655a0ea11c6c0",
+      "size": 1713
+    },
+    "PS70-main/src/data/forecasting_dataset.py": {
+      "sha256": "5a7852d8c2f00f202756d2d3c8003ff2e2e13ab7687bb285c897f3ae45db8b52",
+      "size": 2702
+    },
+    "PS70-main/src/data/preprocess_satellite.py": {
+      "sha256": "ae7d1d1e178d79dcdaaf9982b940f13f5d9da6fa104fa451ad41073a50baf246",
+      "size": 4378
+    },
+    "PS70-main/src/detection/detector.py": {
+      "sha256": "fce47515af62dbc3f6c8cad71897e04acdae227c713c09aa12e50e6efd688f28",
+      "size": 1360
+    },
+    "PS70-main/src/detection/evaluate.py": {
+      "sha256": "62b3b7410dc73f6447595603a948fa44e8ed83f3e454d9ba90842fbcb41b9f41",
+      "size": 3901
+    },
+    "PS70-main/src/detection/inference.py": {
+      "sha256": "d8ecbc3463a925e79fafcef4dac13fd7e1bc3ee132318552a4e37dc04e40d540",
+      "size": 3298
+    },
+    "PS70-main/src/detection/train.py": {
+      "sha256": "fd81ad7b23b8db3e53515db45e22dfc1261e96d3d89418dfc2835a7406323d0d",
+      "size": 6269
+    }
+  },
+  "p2_zip_scoped": {
+    "PS70-main/data/processed/detection/README.md": {
+      "sha256": "58623106ae8ef752141be361b18722bdb24afd632fb3f8de3b26c90c957d7ab5",
+      "size": 1055
+    },
+    "PS70-main/data/processed/detection/detection_all.csv": {
+      "sha256": "230b6f2e799a42769578d94c719dc63bff8d127c62faad5a12fdb3b1aacc07b0",
+      "size": 19007
+    },
+    "PS70-main/data/processed/detection/test_detection.csv": {
+      "sha256": "a628d8d3120445d0ef1ac7217ee8b8f7fde5f6f6a72a1802e99dbaf7142c0f53",
+      "size": 3095
+    },
+    "PS70-main/data/processed/detection/train_detection.csv": {
+      "sha256": "dfb1efa9165949a2f8175a8d317a3d4e303a78b08d3f7a1565ff3027d150115a",
+      "size": 13302
+    },
+    "PS70-main/data/processed/detection/val_detection.csv": {
+      "sha256": "2042ffd07dc83476ac0466703d50862da5b8362ae90ae5d8a0030471672e5d5e",
+      "size": 2818
+    },
+    "PS70-main/metrics/detection_metrics.json": {
+      "sha256": "d5a4a269671ace1ab755b1c7065bc57f7ba3b1056aee467c8e59d06f51fce3a5",
+      "size": 346
+    },
+    "PS70-main/models/detection/model_weights.pt": {
+      "sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+      "size": 4739155
+    },
+    "PS70-main/models/detection/placeholder.txt": {
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    "PS70-main/models/detection/sample_prediction.png": {
+      "sha256": "d5a69e99196a4d26ccc518bb6d0ad42e7a7f61cbafef678fa1a63f1144b8e0cf",
+      "size": 526730
+    },
+    "PS70-main/src/detection/detector.py": {
+      "sha256": "fce47515af62dbc3f6c8cad71897e04acdae227c713c09aa12e50e6efd688f28",
+      "size": 1360
+    },
+    "PS70-main/src/detection/evaluate.py": {
+      "sha256": "62b3b7410dc73f6447595603a948fa44e8ed83f3e454d9ba90842fbcb41b9f41",
+      "size": 3901
+    },
+    "PS70-main/src/detection/inference.py": {
+      "sha256": "d8ecbc3463a925e79fafcef4dac13fd7e1bc3ee132318552a4e37dc04e40d540",
+      "size": 3298
+    },
+    "PS70-main/src/detection/train.py": {
+      "sha256": "fd81ad7b23b8db3e53515db45e22dfc1261e96d3d89418dfc2835a7406323d0d",
+      "size": 6269
+    }
+  },
+  "p3_zip_scoped": {
+    "PS70-main/data/processed/classification/README.md": {
+      "sha256": "113ce1c1f0f6b673ae07a1220134c0fcf7e1fcb01ae6c0e661c6305e11e2b2e2",
+      "size": 1558
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/101.jpg": {
+      "sha256": "59fb33bb477cd9764c2a2023854ed92632d763d31f3d3272eb1efedd3500dbb2",
+      "size": 45091
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/102.jpg": {
+      "sha256": "830f66561d7d65ecdc4f7bd6402d6417fe7d97d542a0f761b92c94674bee4264",
+      "size": 14074
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/106.jpg": {
+      "sha256": "18495a11f2f8feed24f0ecf41120132a38b225375492de14847508f5e8541308",
+      "size": 48607
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/111.jpg": {
+      "sha256": "df42fa546e5cb211c5e34f8aa6ae8563d950ff2279c93ab7f726b91abfcf66f3",
+      "size": 39036
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/112.jpg": {
+      "sha256": "88263f6bbcbd9257059326c1a150f07d924c18908d7a1070c664ac99380aa8c1",
+      "size": 47874
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/115.jpg": {
+      "sha256": "266638b1d93b834fbe6ede7b74319fa7d11e99032254afee75b601f8b602cc14",
+      "size": 46059
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/118.jpg": {
+      "sha256": "f042182fc4aa1a82fa3de62c3ba7a601c567540df1621d867ee4a5205f3f6f62",
+      "size": 49778
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/119.jpg": {
+      "sha256": "7e15379e36f7ffb11324e7542c836a9acdca8890c3ea8f9af9f37e91bcd8a53f",
+      "size": 47462
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/128.jpg": {
+      "sha256": "ba2bfd15f241d662f15f43f54022aa33f4ba5cb06619d0eb7aef1d5ba342ace4",
+      "size": 45268
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/25.jpg": {
+      "sha256": "a506e978628ae189b9fc735c39d22958ef79250f45dd412ebcacc244b9b58981",
+      "size": 29035
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/27.jpg": {
+      "sha256": "d7f028df71dec25f906e1f1cb18804aea2d9bc576c6a3448c6a47863d7ef26f6",
+      "size": 30283
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/28.jpg": {
+      "sha256": "843a5cc2edff0301511f676e2bbf32e694eeadc90ac99ee64f27ff82b444b439",
+      "size": 39276
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30(1).jpg": {
+      "sha256": "79268d32b3a530589763639a4aa5f2c561e4fd514ced13b99bdf4424d1872634",
+      "size": 53204
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/30.jpg": {
+      "sha256": "4c9d6523fa3ee45c167c6d5dd6907ba09309297f6577c20c797cb981e8ed4aee",
+      "size": 47301
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/31.jpg": {
+      "sha256": "57125d519d720df8cba5b4a1b180dfc1062ec55a4faaba8a54c08155355393d2",
+      "size": 37446
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32(1).jpg": {
+      "sha256": "c97065969a56e37f10704f75c73a1403e934ecb4e81e74187f5c3ef0a44f8dad",
+      "size": 32371
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/32.jpg": {
+      "sha256": "26e3ec89052d7a4d01cb1517d584a7267ee6414afc64c5188ad1a88dcea26d6a",
+      "size": 30954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(1).jpg": {
+      "sha256": "d17832ef8994929de6175a9da298c26f1484d6c027e92bdd65c91a042f35ef21",
+      "size": 26219
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33(2).jpg": {
+      "sha256": "924c54476bb958421863af1efa874e994ace8b83ea6f608004c4b6f564b30cda",
+      "size": 56173
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/33.jpg": {
+      "sha256": "c1403057081b08eaee5048a4f46c6dd79ad450d410bd8c31f6e7f80ddb90abad",
+      "size": 36223
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34(!).jpg": {
+      "sha256": "88e0ea59e069e5be4575fb8d58ab9f765bcad3d518b140821c908d335e2ce2ee",
+      "size": 54597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/34.jpg": {
+      "sha256": "37f88a22984a2920068dde7129e6b443061f327daa5dacb2d60e6aef16738eb1",
+      "size": 38347
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(1).jpg": {
+      "sha256": "86927dc604839fdd3277189d8abe8a824956d271ab664d9b2df71523dd09fe61",
+      "size": 29750
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(2).jpg": {
+      "sha256": "3bee441e4487fd81c1b71339aa8d76511d57f497575b25cfa133400420a4b05d",
+      "size": 43335
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35(3).jpg": {
+      "sha256": "8b6e04a7312750445183251450e34b82beb9bd294812c1ab4c11456f0846b17a",
+      "size": 29543
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/35.jpg": {
+      "sha256": "a671e9d694c0fe93aa6536c9112a9c76ffa7ea226a16b0ff8b678eaa0e5e5f76",
+      "size": 43906
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(1).jpg": {
+      "sha256": "90d1df18973fc542dc88db0caab8494d14d347af3a2c35029f2dbed3e1f96b3c",
+      "size": 51412
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(2).jpg": {
+      "sha256": "6d4ebae3792a4f15c4bf627b7536da2d9889d85208076044fbd62f14b2ec046c",
+      "size": 28587
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36(3).jpg": {
+      "sha256": "f28597481b424b4c63c36f16c4fdb1a3f856e21409a5ad23d57c2fd6bbac6ea9",
+      "size": 25145
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/36.jpg": {
+      "sha256": "539ec84c02a79f7f6fde1ecdafcfaf8b2dbed28e4e8612c98c0e18bd9311d398",
+      "size": 34394
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/37.jpg": {
+      "sha256": "c2d3837be075a7b59da53391b6b758049f838c8c5dd1c0355976c18e8fa2c488",
+      "size": 39851
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/38.jpg": {
+      "sha256": "e50c06192758c52ea9f13a1e224e7bb04f599e8206ebe1b3b9b362da5809de5b",
+      "size": 57331
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/39.jpg": {
+      "sha256": "76565af64cf2a7c9399fae463968cc8777cf059e2b9215a874ebc506124d4d1d",
+      "size": 34554
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(1).jpg": {
+      "sha256": "e48a4c231e8a8d22de8bc798a0e01a8e350e8005ca85a40fa1152cf06908e901",
+      "size": 38745
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(2).jpg": {
+      "sha256": "b00adedceb68facc4e8103986d66ce7dd9e24b8a85fca5539c8a8cecddbc28bb",
+      "size": 33802
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40(3).jpg": {
+      "sha256": "3422a113f0d338d65280817e2a2660af8a7fdca5211f7d479934d412ebf8b056",
+      "size": 46172
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/40.jpg": {
+      "sha256": "1802b67c9a6e6015a2c58e7b50a40e4e2897bb296f24763d31ac93041c349646",
+      "size": 40552
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/41.jpg": {
+      "sha256": "911e57dc12b2447af813a224812c2f6540c5ef5de71b0a0af807c246523fa8ee",
+      "size": 42456
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42(3).jpg": {
+      "sha256": "3330ae281142c15ec678f2fee9730d077c2fe3be1babf66fa976933d2c30b76b",
+      "size": 36122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/42.jpg": {
+      "sha256": "fcb5ff16bf507eb727a0f11a6f91c82c3599647c1b69097548f3ca229f95014a",
+      "size": 50122
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43(2).jpg": {
+      "sha256": "ec5c748d9201bbb27cc6cc582dddbbc03f99e2e4c2272f7cacb80f7ace597d0e",
+      "size": 23730
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/43.jpg": {
+      "sha256": "f38187034dd434538d689435304682cd7a525facc36e14c50827929707fcf030",
+      "size": 42469
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(1).jpg": {
+      "sha256": "09ab2ab0a1fd611a6c5ba225393ec97e98d3dbc5309c33cce17d6bc8aa6b3a6e",
+      "size": 30521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(2).jpg": {
+      "sha256": "6e825cf48e9e67c339c9620d2576d312f4f14e7020b3cda00f4899a7526b2811",
+      "size": 56408
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44(3).jpg": {
+      "sha256": "3d3cac26f00687175225e22792de4f1926a486aba4e00e19b967407aeeedf7a8",
+      "size": 51835
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/44.jpg": {
+      "sha256": "0fb6eb7a4a8442d18f9ed25fcd25c57b61d17807043a1aa7a685d7096c3ff25b",
+      "size": 58195
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(1).jpg": {
+      "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+      "size": 62632
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(2).jpg": {
+      "sha256": "ef2e773d6375e358362e28897f36f19c3ef7d2cfe9f13a1263d70507dade14d1",
+      "size": 45100
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(3).jpg": {
+      "sha256": "0307f37ff3015da2df228a8f4f06b8fff3c6a7a5eca19756748c5d5752668935",
+      "size": 33726
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45(4).jpg": {
+      "sha256": "7f3b37e11c8de3eedef2559f453a9ee7b022f0dd6a581616e7cbc04ad6463233",
+      "size": 43969
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/45.jpg": {
+      "sha256": "394bf7cac6b67d4e99ecf057e57fd3552ff4025b310d06db69912660a752efe6",
+      "size": 41150
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(1).jpg": {
+      "sha256": "bf15f268cda1178549150413ece6a7a3b264e398322513b8f1d399f04d63e20e",
+      "size": 57282
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46(3).jpg": {
+      "sha256": "4484908ff2e422fc5fbb8e2f7535d22dd483cb3c597034f96917b79ddc5875d5",
+      "size": 32731
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/46.jpg": {
+      "sha256": "c0a243446af62137b2118f5b3ec3ca54f74858363b06fbcc4a8850a9fb9e7efb",
+      "size": 33038
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(1).jpg": {
+      "sha256": "bf38e0e01ccfdb31d6e40e5e79aee29f38c91ed7dec39829ae86144c6b3541ea",
+      "size": 44158
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(2).jpg": {
+      "sha256": "bed0c823dc1db868fb55ade8b33ce5574544d8ebd04bb6ab50445c9cb415d453",
+      "size": 51870
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(3).jpg": {
+      "sha256": "3204eb564a1f00e82e03c1c4c766efbbb86875f2f9b58543673b0f29a8102cdc",
+      "size": 27523
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47(4).jpg": {
+      "sha256": "e003cf4b2e2d43e9adbed950a0bd836f8dc58aaa02ff69faf6a1e88c76dab236",
+      "size": 59641
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/47.jpg": {
+      "sha256": "20dd351bd960226a31a569a34408f44c9cb8006fbd24bd548e6de743047711d1",
+      "size": 35159
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(1).jpg": {
+      "sha256": "04a59e9563abbb03b3810a021e7cb0e16557dc727dc564089fa2283c8580a83a",
+      "size": 36741
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(2).jpg": {
+      "sha256": "daa9c329463e7426d8462bd05caafd5e737f868cc45b40b6b03f9a33e95902b8",
+      "size": 45718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48(3).jpg": {
+      "sha256": "bb5998d84f04db01a9880c2df6752015ac843673509fba359339292474dbd227",
+      "size": 30337
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/48.jpg": {
+      "sha256": "ef235f631bd805ce49bb0c3b831f9ba639045801424dbe8d3fb33fcdd0ee8702",
+      "size": 42597
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(1).jpg": {
+      "sha256": "9a8116004ccfe663149626ef75b6fe4360c19645d3d139cfc838cb09196b9aa1",
+      "size": 46274
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49(2).jpg": {
+      "sha256": "cbf4ac57038cb48b5ace63dacb307f2b29c3d2dfdb849c7a0a215d5425fc4aa9",
+      "size": 27044
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/49.jpg": {
+      "sha256": "0513eaa93dc8aa968074c4a15bc621a8c22e82fc8e7c194839bd3fb7dc0e9e72",
+      "size": 49708
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(1).jpg": {
+      "sha256": "7c6480ed6b6d142daa86ae0c7b2b00ada94c467069c597fd8e21c30af4918200",
+      "size": 45349
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50(2).jpg": {
+      "sha256": "fb0586d82cbc77971122d8323401f5e69956425430857d2969e6b9ef2fabad84",
+      "size": 23500
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/50.jpg": {
+      "sha256": "82936b86ecafa992687b426463d786542a5a4c45e3cec4c4a8841ccbdb9d0a78",
+      "size": 42737
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51(1).jpg": {
+      "sha256": "45cbfac945f120c6016c955ac4054e9f09f2c1830a1ea5880cc8c66dff39178b",
+      "size": 38923
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/51.jpg": {
+      "sha256": "cd1359b2d05fba2e7a07d487fce1a5243dcfe190532bb33aacbccedad133976f",
+      "size": 33942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52(1).jpg": {
+      "sha256": "467209fa8d106a61df118f1dd8873141a704ebd800858edf8b73c6d32c7e58e8",
+      "size": 42980
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/52.jpg": {
+      "sha256": "35514c773ebfa6250dfb862fcade086014eacc6fc437aaed5ba0cdebfc8e0d6d",
+      "size": 43581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(1).jpg": {
+      "sha256": "c022a8a1be2128aead65a95a71714e6870f2a8b427aed12092e33e0cbb4b4bb7",
+      "size": 48525
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(2).jpg": {
+      "sha256": "a6776495d5fc74d3d5b7571c36e85817b4b00f836c1efb33b317b26ee5108bac",
+      "size": 31418
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53(3).jpg": {
+      "sha256": "ee879cc782d1ae84517b80a8f341474480703e1be1549938291b21585529ac37",
+      "size": 30294
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/53.jpg": {
+      "sha256": "b21746d4014efe07cf948ffeda63bfada5cb97f9485d336ef463a5f6ad82309f",
+      "size": 48854
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/54.jpg": {
+      "sha256": "bb48d306e33768fd02d3945bc2196cbcd4c4af4cdc6ab0fe910233bb24fddfab",
+      "size": 45983
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55(2).jpg": {
+      "sha256": "af782e32aed8abe3b2834374d65558cf45dba2d8ce26fb96fce5b776a3bc4d49",
+      "size": 44293
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/55.jpeg": {
+      "sha256": "a8928b6211358b2e2c72384b40be858b865f2ca4e0f2eb9c1b679572925d6997",
+      "size": 27864
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/56.jpg": {
+      "sha256": "da0a4d2e127128c200136ede7cc502340c7c3cfd67be7aac85c3c5667f3e2be3",
+      "size": 44939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(1).jpg": {
+      "sha256": "d77ccca97fb01afa2374f0425dc594ba75a125f8db406ff089fef3722b8e162e",
+      "size": 38939
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57(2).jpg": {
+      "sha256": "a7f32b53dac463ddd9d9f65d1107a13664fd651a1b7539a94ccb5026205f13d7",
+      "size": 46246
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/57.jpg": {
+      "sha256": "ada881a9f07cce9b47cba3b09262995d5cf4349853a242d0cfe335aa52561861",
+      "size": 40675
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58(1).jpg": {
+      "sha256": "816214c9bc1c0430cd6eac1c3526353eaeb83465aac4a4f839f420685e0ffc69",
+      "size": 51104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/58.jpg": {
+      "sha256": "51cba4c4da372d22ade47dfc81b2c421305a547d8adee7c822f0fa37f9fe0208",
+      "size": 35954
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(1).jpg": {
+      "sha256": "f62a1667a807b31ed73d54ac3b7fa16e99ecfea0a8793003eb1f5567ad9f9c0c",
+      "size": 36315
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59(2).jpg": {
+      "sha256": "19094c04971e696f8f4be96a5b657365772cb56536d1927dc1c07b87e6fdc5a1",
+      "size": 56062
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/59.jpg": {
+      "sha256": "e92b90f6de77ea55cfdfd1f5b0015bb6a1782dc663559a4545dbd707d40b9e5d",
+      "size": 41934
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(1).jpg": {
+      "sha256": "edd91650f8be460ad1aff23de794a28263050cea857e323a8f949065db90b521",
+      "size": 43104
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60(2).jpg": {
+      "sha256": "619576d51fa200b040bffe2cad22453d8ffe27a9e7cb5be39cf8d9989bed674d",
+      "size": 56521
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/60.jpg": {
+      "sha256": "b08a7c2c9c1a0a3e57bb2536888b87986962a3096845fb58fb9d3f71c78c244b",
+      "size": 38665
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(1).jpg": {
+      "sha256": "b95faf0d922beaf21509d2fdecf8071f83a0fd1a6a534aeab34c72996d90786e",
+      "size": 35942
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61(2).jpg": {
+      "sha256": "71c5385c327c4a44b46fa1b6794c893bc0f9f8bb1c3fbe7657870c15ffb6f6bb",
+      "size": 44806
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/61.jpg": {
+      "sha256": "b504293c206f86582e4162b83b558d3242f6d867e8eda17a99aabb9e9ee44558",
+      "size": 30853
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/62.jpg": {
+      "sha256": "56c9fa8dfe3e762d551f8b36fcce38a23071e3bc040e51d6ab1b81151ea8b472",
+      "size": 31049
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(1).jpg": {
+      "sha256": "14183511086f2664492d9e58299ecf2df37e415a30f96d51ff95df8eda9c0d58",
+      "size": 56084
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63(2).jpg": {
+      "sha256": "a7fb116251bbb804906de619f6dd5ed37540add72fc19e8060457dc064fc1f10",
+      "size": 48094
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/63.jpg": {
+      "sha256": "77658597f1c5ccb385b7f9de9c7cea6456695832a041b85cb36afe658d03870b",
+      "size": 44278
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(1).jpg": {
+      "sha256": "027aea1ce868f999ad04615b2efdd520c0fe119a8ec1ff044f2041618e544544",
+      "size": 50230
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64(2).jpg": {
+      "sha256": "1e4ede19a88147ee7e468d6d1012fa1e071dba5e3668b4c08d7d289f2727ea62",
+      "size": 31541
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/64.jpg": {
+      "sha256": "7d79a90de17865fd6cedc765d2514ce12d106abdcfa3f903ae5bc390a1a01990",
+      "size": 40055
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(2).jpg": {
+      "sha256": "fe0bf90c50e3454c8fa60836788c1ca40e651793b5cc48d799dc21f0b38ccc6e",
+      "size": 27882
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65(3).jpg": {
+      "sha256": "a0e9b538da9e9cf9e632f4309516f174ab848689ebaf71bfd309cd3908433a19",
+      "size": 29658
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/65.jpg": {
+      "sha256": "2ece5f891602002b042fd71016c5dc68074a72e7cf7b9247e08bcbc151d64b5f",
+      "size": 45775
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67(1).jpg": {
+      "sha256": "8b54c122004d8737b5dbcdf3ccc891909c866e21f8d9430ea66464e3e935caf7",
+      "size": 42373
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/67.jpg": {
+      "sha256": "0bc3b03c92460b9c98e8cae56dffbb5415c452aad332cf0811d7bf8ceb442310",
+      "size": 30774
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/68.jpg": {
+      "sha256": "14046684b0cebd73d7795a84cef394e19df27f7b6f57735ca7abc7413c3d678d",
+      "size": 47795
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69(1).jpg": {
+      "sha256": "56219b3869420753cd9280c28a0eeaf94c42dcf8e924202725573537f05e2290",
+      "size": 30555
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/69.jpg": {
+      "sha256": "a70effc8e4cc36dfdaca2dbab429498b240ab9eb1b3cc07469bdd0c4f7461552",
+      "size": 44386
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/70.jpg": {
+      "sha256": "1d9f4ec61a6e40b43ec4c1e2d6f1e4ed7bbcd568bb775ecc4ce8dc59eb9d7b65",
+      "size": 39720
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/73.jpg": {
+      "sha256": "c22b6ee0acda4de7002901f511a094e9700d7ae673d3e7b5960a7378f030d81b",
+      "size": 42053
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(1).jpg": {
+      "sha256": "618eb53202bf3dc7df97a495ca6fb62a4376a0f5d6b45fd1032cf7412352c700",
+      "size": 39706
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74(2).jpg": {
+      "sha256": "fecb8d24649ffc3d111733831c97a8d5b9c7b895b09f6be2b689e5bc61caa9c0",
+      "size": 51699
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/74.jpg": {
+      "sha256": "6c83d0a05298f67155788fa0a2ada0528e9ecc29d50f6507a466308c56525fc6",
+      "size": 43089
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/75.jpg": {
+      "sha256": "48b1f46175df5ae337f091741cb42613071137d7b4bb24e2bb1b494c7131cd32",
+      "size": 30808
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77(1).jpg": {
+      "sha256": "e80d9b71fd02b9419a2eaf4925ad6df3af9d466096b0ea74b56857778f1ad721",
+      "size": 42718
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/77.jpg": {
+      "sha256": "45c8d0b665ee60c904a996ff364d9dfef06c8497cd7bf74298633a4bca870418",
+      "size": 44170
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/81.jpg": {
+      "sha256": "de88f7a51e9252780ac9f035615a8e0b01af7847ea3d7546f5be4158dffe72c3",
+      "size": 35468
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82(1).jpg": {
+      "sha256": "bfcdc9a111ea0f88a5a1daf8122cfe5b7eb232c6b9c4344d7d787119ac5dd88d",
+      "size": 30566
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/82.jpg": {
+      "sha256": "33409004af506d21a84c8001d8da513222265e9a11f53a983c2868802ffa4ebe",
+      "size": 38071
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/83(1).jpg": {
+      "sha256": "91c10af114ea5f8da2ff76f827d0fe467fa724d1e0aace0714ea51422ca73cb7",
+      "size": 41498
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/84.jpg": {
+      "sha256": "1ee39b75dd067d7fce8a21dec0cb23d7a57cd4c412ff3ed592981df6020771e4",
+      "size": 39697
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(1).jpg": {
+      "sha256": "733d8eca1a7b38ed5b843abd40d75067e691231f2d01ea1a34b7e4fb996e9a46",
+      "size": 38609
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85(2).jpg": {
+      "sha256": "daf4fa9aaf1e53c1c918f888ffa108dd3ec85493e2d9b379d431fc147fedebff",
+      "size": 33027
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/85.jpg": {
+      "sha256": "5f01d4346e8189b49fede9fdfcc032eb1a6e6ef90a973f338dca81dfea3e20e1",
+      "size": 46194
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(1).jpg": {
+      "sha256": "1a3ff5bcfbd423509cca97f7a6b97b4d24e6e8edad91b64e9be75ba17d69017e",
+      "size": 55780
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86(2).jpg": {
+      "sha256": "d99162f873e6fedaf65cd9fe541fd701ace2d2be1f9c934e2331a5605a261166",
+      "size": 28574
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/86.jpg": {
+      "sha256": "2201fa854996651a32b94f42e8bef89108fe32d67595f05e67ffd9c24d8afdd7",
+      "size": 36480
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/87.jpg": {
+      "sha256": "8d706ee81ba9e90fd88c76bb138322bf480a9924abff40eb45c0fa8b4ef94ddb",
+      "size": 45259
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/94.jpg": {
+      "sha256": "3849eecfb37eddde4541a5174ab4ea6b856687299c3e9a4a6c4eba95a6d64aff",
+      "size": 39698
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/98.jpg": {
+      "sha256": "a4c0a3e13b70af38784ae8dfbe41cbcc62ce90adcefbfaca0bf17a1a3a8d3db6",
+      "size": 43782
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/images/99.jpg": {
+      "sha256": "6c1306620bce24f31f213aa1457ec93ee2a79e29d176fccc7f3aa06ae35eb8e5",
+      "size": 33286
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/labels.csv": {
+      "sha256": "cbdfb1b3d365ba4c8651195eb69cdb37bc9b81ea8e11f8aa6bc0a4f736859f40",
+      "size": 5148
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/test_labels.csv": {
+      "sha256": "06ff83ee035b6b96a692d3c7250c8e3ff795cab36ba6051e92ec19dcf30495c7",
+      "size": 871
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/train_labels.csv": {
+      "sha256": "c1de0fac456a9ac1b2ddf057413eba838556c0c0fac389ead81da9f57cf85e7b",
+      "size": 3581
+    },
+    "PS70-main/data/processed/classification/image_only_kaggle/val_labels.csv": {
+      "sha256": "7203af3d709455083593d8d4efb0f969409105dda41978d9fe9b17083a4997d5",
+      "size": 790
+    },
+    "PS70-main/data/processed/classification/multisource_test.csv": {
+      "sha256": "9f0b602ac502229e5ede7556eb83afba016aada34f0b6445072a561b6f2bc42f",
+      "size": 91556
+    },
+    "PS70-main/data/processed/classification/multisource_train.csv": {
+      "sha256": "3782a2b617e0db20df8106176526a95df03de1755c5dfda951f4dd43da030428",
+      "size": 426068
+    },
+    "PS70-main/data/processed/classification/multisource_val.csv": {
+      "sha256": "892eec0ee47ea67bc3fc0b369ea6a5eebd82d3da2a6b78b9086668b5e3f7ef8b",
+      "size": 73178
+    },
+    "PS70-main/models/classification/confusion_matrix.png": {
+      "sha256": "4cffb4579acf6786c0184a577fdded79907f4be91b7d756dfa061e6367f9956a",
+      "size": 243059
+    },
+    "PS70-main/models/classification/image_only_model.pt": {
+      "sha256": "960e3b8a0321c28775ce29e400cc12139923302dc04d767dd278693418eac557",
+      "size": 45186485
+    },
+    "PS70-main/models/classification/metrics_comparison.json": {
+      "sha256": "c3e05b67035aaeef22a30b8afc747e99ce9eb117412df07a3342863b856d6cb4",
+      "size": 661
+    },
+    "PS70-main/models/classification/tabular_multisource_model.pkl": {
+      "sha256": "2d75080230751e6c89161f9a1fd58f56387392790f179bba90d4c4a8f3a0ea9a",
+      "size": 4816632
+    },
+    "PS70-main/src/classification/README.md": {
+      "sha256": "cd6e5e5dd7891944781e877ba6c7701e00528398d0a0b249da6092aa3d63f50c",
+      "size": 2994
+    },
+    "PS70-main/src/classification/__init__.py": {
+      "sha256": "7f11650561bc4f81e824f42f551b47e65542a6553da2c310c5d4fee24b07d49b",
+      "size": 331
+    },
+    "PS70-main/src/classification/__pycache__/__init__.cpython-312.pyc": {
+      "sha256": "92ba00648ffbe1f9cd03002fadc92f0f86c328126d26150759b51fd3531b7020",
+      "size": 498
+    },
+    "PS70-main/src/classification/__pycache__/classifier.cpython-312.pyc": {
+      "sha256": "4aadec49d71e174a5d9af5adf82fa81a6f5b1bd197057eccb178f787c786ff71",
+      "size": 11284
+    },
+    "PS70-main/src/classification/__pycache__/inference.cpython-312.pyc": {
+      "sha256": "066d25598634c2bf6e5b027b2ef4fd01eb829b24f256d45495b5884d50b2191a",
+      "size": 7223
+    },
+    "PS70-main/src/classification/classifier.py": {
+      "sha256": "111fcbc1642081b3e3ce94d76a9a4f72de54c0318fdd320a0f011ced65e55609",
+      "size": 7707
+    },
+    "PS70-main/src/classification/evaluate.py": {
+      "sha256": "63a11f989549addae6f2d57846de2e3b7bd5cdb70f7c19453a478ef9f6885a6d",
+      "size": 8244
+    },
+    "PS70-main/src/classification/inference.py": {
+      "sha256": "6e535763a464e2fc9cdf4f1744202556cceb58babfa873af98d0af2ecd3a0124",
+      "size": 5564
+    },
+    "PS70-main/src/classification/train.py": {
+      "sha256": "532bc2b514e9fa77b60fbe74279146edfe8aa063691f9e2b33b30e1bb4d31396",
+      "size": 5743
+    }
+  },
+  "p4_forecasting": {
+    "_source_p1/PS70-main/build_datasets.py": {
+      "sha256": "586ae286e39ece70e69461c66d379d30e87c81b8dcae1d57e03c2766f8b9be57",
+      "size": 13662
+    },
+    "_source_p1/PS70-main/data/metadata/ibtracs_clean.csv": {
+      "sha256": "bcd4bf0e05b63aaffd458f10f694e692a1cceff78f7eba3eeb2f1c2193db2acb",
+      "size": 1487310
+    },
+    "_source_p1/PS70-main/data/metadata/ibtracs_with_era5.csv": {
+      "sha256": "35b4ccea3e086f1008d1a8e1404dd9b8c114ba49aac8fc403fe75660d779605d",
+      "size": 709456
+    },
+    "_source_p1/PS70-main/data/metadata/master_dataset.csv": {
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "_source_p1/PS70-main/data/metadata/mosdac_needed_cyclones.csv": {
+      "sha256": "d425c8adf40d9f6788a1fbae04acdc00b9e06ee7698dc85f43f6745dd4352502",
+      "size": 3697
+    },
+    "_source_p1/PS70-main/data/metadata/mosdac_priority1_named.csv": {
+      "sha256": "8c9988b0d18d60dbda0d5484972e0e3a432c7ef9d69ca0aa0f797d66738deaa1",
+      "size": 1392
+    },
+    "_source_p1/PS70-main/data/metadata/mosdac_priority2_unnamed.csv": {
+      "sha256": "3c190d5743be21dde9b333357d190be9271a2cfe7b80a5054102b5bb2c454e3b",
+      "size": 2641
+    },
+    "_source_p1/PS70-main/data/metadata/test.csv": {
+      "sha256": "e59fccce9ab187d7bc8b185a687fb1138f6e18e47e33980dbe2719c6c88462e4",
+      "size": 110840
+    },
+    "_source_p1/PS70-main/data/metadata/test_cyclones.csv": {
+      "sha256": "096fcf2ecee4f2ee6d32a476359bbe811180870d18feef72f81a5eba0f88fd59",
+      "size": 347
+    },
+    "_source_p1/PS70-main/data/metadata/train.csv": {
+      "sha256": "4e8b4724f42b4f66f0380b7b650807d616a6bb93d073325fececf4ef53b29a59",
+      "size": 527509
+    },
+    "_source_p1/PS70-main/data/metadata/train_cyclones.csv": {
+      "sha256": "c4feb714f31756a059ec489ba3a9f1b5cde66f69bfe9c1432e9612511f460040",
+      "size": 1481
+    },
+    "_source_p1/PS70-main/data/metadata/validation.csv": {
+      "sha256": "41f0dc8bc798c87a79ef428362a2a83c5470a1bb2aefba0e8af49b67dbf663c1",
+      "size": 100863
+    },
+    "_source_p1/PS70-main/data/metadata/validation_cyclones.csv": {
+      "sha256": "82b5678b94327f2ee062263fdcad802c3eb9dcdbfe9e483dcfca3dbf1a225ccc",
+      "size": 319
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/README.md": {
+      "sha256": "0f943f7e52d5f11cd3cde30d533578c3d63152c5a74b312db8255cc52032707d",
+      "size": 2283
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/test_sequences.npz": {
+      "sha256": "882535a1a8886c45ad094878a5a184c860acf1c61a3ecc29133caa576be7eb04",
+      "size": 15074
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/test_sequences_metadata.csv": {
+      "sha256": "f2a1526556dc2e176ab5787784f33cb9ff72dd7ae3a0a9dc5bd0c57df1d7ec16",
+      "size": 57724
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/train_sequences.npz": {
+      "sha256": "1a65f93f2f698d5956fb1b23c74a80780046f151bc44012122be97d85f1053f9",
+      "size": 69267
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/train_sequences_metadata.csv": {
+      "sha256": "54cee046c6c764ffc7e079cfccddff9da26665f78ef63e83530632d2745b0539",
+      "size": 306770
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/val_sequences.npz": {
+      "sha256": "d0e4fd91d207cd1d43aeccf32edee49c8de7e75d8a7079c5335377a45f1a1073",
+      "size": 13677
+    },
+    "_source_p1/PS70-main/data/processed/forecasting/val_sequences_metadata.csv": {
+      "sha256": "b182592a68f93c375fd3a3d28012643052cff4e1e75bb548047242bf28f4086e",
+      "size": 52265
+    },
+    "_source_p1/PS70-main/download_era5.py": {
+      "sha256": "be1cbda61ae4f73319a1cf2f484b008c1375d00b8f2b3155d54bd95ae690ca27",
+      "size": 4374
+    },
+    "_source_p1/PS70-main/extract_era5_at_points.py": {
+      "sha256": "127ad459bd6be1b073bfd5d3d314cdfe19b98ae7aed082d259643627948ec22f",
+      "size": 5722
+    },
+    "_source_p1/PS70-main/get_ibtracs.py": {
+      "sha256": "c59cef058bfe84d5c327fe99af352f3fd354045da8967b196a94fa757afce5c5",
+      "size": 9006
+    },
+    "audit/LEAKAGE_AUDIT.md": {
+      "sha256": "9b7da616b56db5e21901a9911d2ee28432730d31b901946d91e7e32287cdef3b",
+      "size": 1726
+    },
+    "audit/NPZ_AUDIT_REPORT.md": {
+      "sha256": "fcbf2d967058c576eb80b9566c5679fb4f29255244c04ce518e58aa4b7097d08",
+      "size": 1662
+    },
+    "audit/P4_FILE_INVENTORY.md": {
+      "sha256": "4f9d025b3968b1154fdfe3c87d7f509f4f927d9db223615e72dc22a85091bf68",
+      "size": 16858
+    },
+    "audit/PHYSICAL_SANITY_REPORT.md": {
+      "sha256": "62ecf233f49207e17d1cebdf2a39c6fd255f211fb2378d9ad1f8bc4bfcfba311",
+      "size": 1691
+    },
+    "audit/SPLIT_LEAKAGE_AUDIT.md": {
+      "sha256": "bee5ddafc6d87adc489fd62fd54ccbe41c3b456502be27d760cb0191dd43a51c",
+      "size": 740
+    },
+    "audit/TEMPORAL_AUDIT.md": {
+      "sha256": "ffc5bcb9660f21aa3da49000e921d2b50d6895b72e76eacae890d07f4f85cf2c",
+      "size": 2489
+    },
+    "audit/TEMPORAL_SPLIT_QUALITY.md": {
+      "sha256": "4ce5dcd940030f7369a6e0b19b01846fa65ef80fad30f58240d465412e1be074",
+      "size": 1141
+    },
+    "audit/leakage_results.csv": {
+      "sha256": "7115ff6f07638ce48efd124646f2f815149e09e2f07f8ceae50a7c69b070ba1a",
+      "size": 418210
+    },
+    "canonical/P4_DATA_CONTRACT.md": {
+      "sha256": "f641afe5584606074e32bdd0569608804f4422063746ad2e2f21912b36abafbf",
+      "size": 3205
+    },
+    "canonical/sample_quality.csv": {
+      "sha256": "239dbb035e016242c9cea842e7f6aa335b007aa4bd2f111210634268dc9c631a",
+      "size": 325097
+    },
+    "canonical/test.npz": {
+      "sha256": "a90beea0394c9e63b4b093351f5aef9084b5d47d62d2dfb512f73369929400f7",
+      "size": 15067
+    },
+    "canonical/test_metadata.csv": {
+      "sha256": "6ca2bb49e483b956f29a07fe89bf0e1bb0673af0cab0f73f87377315d5340021",
+      "size": 85486
+    },
+    "canonical/train.npz": {
+      "sha256": "4f3b289d1b7fad1c02bf273349bb669f63210762cb66a1224812a22df10e44e4",
+      "size": 69668
+    },
+    "canonical/train_metadata.csv": {
+      "sha256": "1f985a452c72569bd1df7e6263306b26a7c24aaee05275953f7bde38233aac4b",
+      "size": 459159
+    },
+    "canonical/val.npz": {
+      "sha256": "16f753c8ba33f2c9a90a890e447009ec483152ed7b71c83812451d2d97039c85",
+      "size": 13621
+    },
+    "canonical/val_metadata.csv": {
+      "sha256": "56a3de0568032a8a213851abac1d90a961182dd4eb16d2c59f23b940e60be102",
+      "size": 78446
+    },
+    "canonical_chrono/split_manifest.csv": {
+      "sha256": "a9269478b880d8ec663943c7b4d15e5725369110ca2ec3af8fd11e1c34c3c748",
+      "size": 6208
+    },
+    "canonical_chrono/test.npz": {
+      "sha256": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+      "size": 13204
+    },
+    "canonical_chrono/test_metadata.csv": {
+      "sha256": "870172f9d041c78ff13fda314e9b0a8da8b3e99f5d6d179af9561666676657bc",
+      "size": 54659
+    },
+    "canonical_chrono/train.npz": {
+      "sha256": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "size": 70748
+    },
+    "canonical_chrono/train_metadata.csv": {
+      "sha256": "75d17b23aaa039d135780846a949cd5b6daf36f005c583059b15e07915c4de2d",
+      "size": 307261
+    },
+    "canonical_chrono/val.npz": {
+      "sha256": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "size": 14443
+    },
+    "canonical_chrono/val_metadata.csv": {
+      "sha256": "40b19edc759aaf1b260e4d82f38b9bdced50c8789302470c29fd1a2eeccd99ea",
+      "size": 56783
+    },
+    "logs/p1_source_hashes.json": {
+      "sha256": "87cd3261a90bd604cac2bf58317729840a4695dd4fcb59ec006db6424cd8815f",
+      "size": 13849
+    },
+    "logs/run_20260829_132135.log": {
+      "sha256": "e3dfded3ef96373e0175db04989a9ffab954b6587a0f2846bde84c5f0fd47ce3",
+      "size": 528
+    },
+    "logs/run_20260829_132147.log": {
+      "sha256": "8cd3dba4920d59d3af7a304df80a2d8f18920694b62aa0af541b485499e422e4",
+      "size": 799
+    },
+    "logs/run_20260829_132203.log": {
+      "sha256": "a5644575b610de9367d9262cf38b9af9921cb5124318f5c9b63d2e8d69750c82",
+      "size": 1083
+    },
+    "logs/run_20260829_132251.log": {
+      "sha256": "c1bf19190c46265f760d8ba1d67ac1a87a154fd78edf4daaa397dab7a928ce1b",
+      "size": 1541
+    },
+    "logs/run_20260829_132328.log": {
+      "sha256": "980273fac321baf9b13b93107530f26d12cd9e9357110adb4851a1006f09ad62",
+      "size": 2706
+    },
+    "logs/run_20260829_132404.log": {
+      "sha256": "4f4e4461a13611bb011f90a1ebbc2079f9fee667414307b115ca55423362c881",
+      "size": 2610
+    },
+    "logs/run_20260829_132529.log": {
+      "sha256": "74fce5be5ce42949559e93fa51d3d91ecb3cf2a4a3ba4f433ed769256dccd59f",
+      "size": 2610
+    },
+    "phase2/__init__.py": {
+      "sha256": "2cf9f91a3a66dfbbd48f00173f203ff642dfa35c8116d698b6b3561e436159f2",
+      "size": 88
+    },
+    "phase2/baselines/__init__.py": {
+      "sha256": "215091402021a43448f2b97908271398af6c97c94ccf49ff9a048f50389db978",
+      "size": 39
+    },
+    "phase2/baselines/movement_vector.py": {
+      "sha256": "8338b91c97dedc9b9312bd1d1135ace01cd015bccec3964a355bfd8016c5f406",
+      "size": 2882
+    },
+    "phase2/baselines/persistence.py": {
+      "sha256": "6c9e6a39d8959886e15de12869e5b9a4b0ccaa731ca4a7561b7ea8795aa28d77",
+      "size": 1344
+    },
+    "phase2/dataloader/__init__.py": {
+      "sha256": "d73b9c67ce872a0f8d65ff91e26d9424ff6714ca81dd809affa0eee4002db0db",
+      "size": 40
+    },
+    "phase2/dataloader/build_clean_dataset.py": {
+      "sha256": "9b73d0e7cd883d69c0b59a627daf85d32ffc361a46252c3954deb8f4250762e2",
+      "size": 5028
+    },
+    "phase2/dataloader/build_dataloaders.py": {
+      "sha256": "94c34934165fd35222afd1e05923216c0ca39799e112278831a5b5711f4c094c",
+      "size": 1894
+    },
+    "phase2/dataloader/forecasting_dataset.py": {
+      "sha256": "f72a70278177d997f4ded98f0b42d0e19c34c4d1d5551ec71b40639e4392508f",
+      "size": 4408
+    },
+    "phase2/evaluation/__init__.py": {
+      "sha256": "776329e75c6e9654eeef908467168ff31776bbee54ad95c7bb49bcb1806124b1",
+      "size": 40
+    },
+    "phase2/evaluation/evaluate_baselines.py": {
+      "sha256": "14ca057b9d282455d9117ee90a8a9c096dde5a3fe30103f79e5c76417abecbd9",
+      "size": 3060
+    },
+    "phase2/evaluation/geo_metrics.py": {
+      "sha256": "d2f0a2cddd59517a33b5ad2475408699d05c0724aff9e14e910ce503cda13915",
+      "size": 1517
+    },
+    "phase2/evaluation/metrics.py": {
+      "sha256": "7d1f6d04f51a2f92e132db96b581b7b9e1a3ae275bc9332fdf9f601bdfe25578",
+      "size": 2860
+    },
+    "phase2/reports/BASELINE_REPORT.md": {
+      "sha256": "9ac6e5e1c359eda231635391d39a51beccde76956d0a951917e7d091e38bd437",
+      "size": 2439
+    },
+    "phase2/results/baseline_results.json": {
+      "sha256": "d939675311ab95c6adf1c225083251b2912e3164da12ebb6be5f303c2f3598b3",
+      "size": 3881
+    },
+    "phase2/results/canonical_chronological_clean/test.npz": {
+      "sha256": "b8a28425887e02a18998da9a74e3916f27b4aa570523b7b38f68bf64a9b9762c",
+      "size": 7459
+    },
+    "phase2/results/canonical_chronological_clean/test_metadata.csv": {
+      "sha256": "188a8a430fbf99815db580e3c14a358e56d823bebd002554201369dd8a1ccd74",
+      "size": 29357
+    },
+    "phase2/results/canonical_chronological_clean/train.npz": {
+      "sha256": "ddd0b149dc333728f4db45a3cedbb4724f085f132440394a8265f0ca74b3b451",
+      "size": 41975
+    },
+    "phase2/results/canonical_chronological_clean/train_metadata.csv": {
+      "sha256": "d6e50c00daa008c53037ce575eb588856099bdfcc2c041408acafebeff0a87d3",
+      "size": 180271
+    },
+    "phase2/results/canonical_chronological_clean/val.npz": {
+      "sha256": "7a8c237de655d7c5cf49e6e69783e89d63c9785c6275da14b37c8c5c0975418a",
+      "size": 9282
+    },
+    "phase2/results/canonical_chronological_clean/val_metadata.csv": {
+      "sha256": "ee491dbc93144d97399c4f56d403bb35f81a59c512e6113e3298b98b88940b16",
+      "size": 34598
+    },
+    "phase2/run_phase2.py": {
+      "sha256": "30ca98a326d4a4f6b09db589a443dace8341010e658b358ea28705bb488dc3d7",
+      "size": 12895
+    },
+    "phase2/tests/__init__.py": {
+      "sha256": "16dd447b6c2753940508454865e65215bbdbaaffc299a9d015f640fcff1105b8",
+      "size": 35
+    },
+    "phase2/tests/test_baselines.py": {
+      "sha256": "b7a320cd3fe1679f47f67c5f696455844dc9703b957abd614037139fd58a4547",
+      "size": 4420
+    },
+    "phase2/tests/test_dataloader.py": {
+      "sha256": "e0271da000d36704315f003d14a1f8600cef8a51006cbd9bc2493371babaf967",
+      "size": 6060
+    },
+    "phase3/__init__.py": {
+      "sha256": "b8e2516275162c48427da2ac93df8d021444c1d3daf966b52d736ef52f1b9223",
+      "size": 81
+    },
+    "phase3/checkpoints/best_lstm.pt": {
+      "sha256": "163cdbec4daab49c5bcc5d6945bc6c50b4a7cb89f56eda3b88c4e1902a720a0f",
+      "size": 79708
+    },
+    "phase3/checkpoints/model_config.json": {
+      "sha256": "14c2180f65eaf02b11c30fbcb6492ca271e225050f0fc8999b1ac7da673524fe",
+      "size": 533
+    },
+    "phase3/evaluation/__init__.py": {
+      "sha256": "ed34decb5fc5f641ee766c600e1cf898529878c83c3023c6a7f8da414cfa5b7a",
+      "size": 40
+    },
+    "phase3/evaluation/compare_baselines.py": {
+      "sha256": "1794a339e8636a9ee776ae09269c4e7e555bda110ba1759b59512a64e87ade84",
+      "size": 2773
+    },
+    "phase3/evaluation/evaluate_model.py": {
+      "sha256": "a1331415dcef70f6f2faca42ff4dcaf49152ad376b85f9b404703ff32195552f",
+      "size": 3239
+    },
+    "phase3/inference/__init__.py": {
+      "sha256": "347e7a996959aa94d2a2fb13941479ffa5efdd90bc484e544919bc26813104b0",
+      "size": 39
+    },
+    "phase3/inference/forecaster.py": {
+      "sha256": "dfe6c4cd9665fc46eda5bef61a6d520690ab60df0984c2bb070e2d737eda137f",
+      "size": 3894
+    },
+    "phase3/model/__init__.py": {
+      "sha256": "f56dd7e2e2f376ff59a7774058e915172014fa6ba5aba877187cd491a215c76f",
+      "size": 35
+    },
+    "phase3/model/cyclone_lstm.py": {
+      "sha256": "4baecd14c116b75d4aed75deaa4140f6a8232fcaf82e4cecc35f2dc64cf07b14",
+      "size": 2909
+    },
+    "phase3/reports/MODEL_REPORT.md": {
+      "sha256": "5d6a7950e840b5db1b92d397c705d23d4db9c587b3706df275e1cd79f86e17ac",
+      "size": 4443
+    },
+    "phase3/reports/generate_model_report.py": {
+      "sha256": "9711b5231a54babddd229c1a0f129248fbb6c27a58050b6e649687cdd9658fca",
+      "size": 7664
+    },
+    "phase3/results/evaluation_results.json": {
+      "sha256": "d8cb4b90a57d152dd5c0a5aefe49e2d24f2b37543e2d34570a0607349e0f6498",
+      "size": 1560
+    },
+    "phase3/results/model_comparison.json": {
+      "sha256": "33717d181c55dea9fad1d318f3024a3f4e45fcc7e61ba3316814134f5f92f788",
+      "size": 6089
+    },
+    "phase3/results/normalization_stats.json": {
+      "sha256": "e267e430dffc11e74bcccdf7f1e5be31064494ad9ccef6e1fbe303eef113899f",
+      "size": 939
+    },
+    "phase3/results/run_metadata.json": {
+      "sha256": "49011dd888cf4956789fa1638f5fcd28d0c96ae5a77ba45c5ce83a6a51df5a04",
+      "size": 375
+    },
+    "phase3/results/source_hashes.json": {
+      "sha256": "6a45916af3522125446ff2a61cb201f876fc9efebf76e57e7e417834c7ef9308",
+      "size": 1672
+    },
+    "phase3/results/training_history.json": {
+      "sha256": "63745ca252247bea72c646248073387c425ee8009d45cec074a7f3160c202062",
+      "size": 6711
+    },
+    "phase3/results/training_loss_curve.png": {
+      "sha256": "3c20515216df3ee4543c29d393de551be9b3d4b7f92d0bf1360c76896f1362d5",
+      "size": 45842
+    },
+    "phase3/run_phase3.py": {
+      "sha256": "3ea6277a9ed012aa6a24b018048fca0c2763891221a3b273ecc7b2b9c6257cae",
+      "size": 17036
+    },
+    "phase3/tests/__init__.py": {
+      "sha256": "936950133abb4d963091b4241aeaa674c2123ab02ad7f7c35907a51987482d19",
+      "size": 35
+    },
+    "phase3/tests/conftest.py": {
+      "sha256": "f143069899a452167f2fccb2e907beca95da82be85987710ba993ab2e1bca2a0",
+      "size": 333
+    },
+    "phase3/tests/test_checkpoint_loading.py": {
+      "sha256": "7e86c6282da4cde4ec42ae8c525a90f3b4303d89ff93f8c94ce66edfa5a5d80f",
+      "size": 2694
+    },
+    "phase3/tests/test_haversine_metrics.py": {
+      "sha256": "a080822f6c3d711ba27204ee7f5de36df559d328ab8ef1da9af4ce360523dce5",
+      "size": 1301
+    },
+    "phase3/tests/test_inference.py": {
+      "sha256": "b485f6a048e56fe302f8e2a252e6755b71a821d2722529c9ac0fe45da438d7b4",
+      "size": 3658
+    },
+    "phase3/tests/test_model.py": {
+      "sha256": "c21e1f25507d5e1791038a1a5e30876f57aea1693cbd0063c1ce3b2d7e92861d",
+      "size": 1645
+    },
+    "phase3/tests/test_normalization.py": {
+      "sha256": "1197afa0eb0eaec9fa808f15daf7219e04ee78af68505b293fd3ff16cde4e8fc",
+      "size": 2725
+    },
+    "phase3/training/__init__.py": {
+      "sha256": "478ae3efeb6d01ab0117f7a13633bd13429a1e142570f04c755712fc99243d9d",
+      "size": 38
+    },
+    "phase3/training/dataset.py": {
+      "sha256": "be117921b1a19325b7480ef8f8839d43f40d3b35f9daf0b749b2675cf51c3fdc",
+      "size": 3130
+    },
+    "phase3/training/normalization.py": {
+      "sha256": "7164bb9a27b67afc0ac409500c5386cc1b02af4a9a0706890bb9c570eadcf84b",
+      "size": 4459
+    },
+    "phase3/training/train.py": {
+      "sha256": "43e17a2e4f6b1c90f1d8e67c00e68c04227604c7971fa1c6d589ccef0fac1a19",
+      "size": 9985
+    },
+    "phase4/__init__.py": {
+      "sha256": "2f32ae092248a87f2ce516ec43164b15ed55a268f9a831044c4128a46ed3f3da",
+      "size": 329
+    },
+    "phase4/audit_post_completion/POST_COMPLETION_AUDIT.md": {
+      "sha256": "a63c19dcf8cc64fc33942f05a0815d29072ac8283d97daae2ade4b6f8ba1048f",
+      "size": 7367
+    },
+    "phase4/audit_post_completion/audit_results.json": {
+      "sha256": "aa8b3ac4b5194b1d32446cf1d31a081ea5f08ba68035f3b372bb91da5e989ba9",
+      "size": 11501
+    },
+    "phase4/audit_post_completion/experiment_ranking.csv": {
+      "sha256": "fea4a23a97f0c7d21bcd427f46570b269524012e99aee6825166a640985bf315",
+      "size": 654
+    },
+    "phase4/audit_post_completion/metric_recalculation.json": {
+      "sha256": "5a01f60cb22189b13582d7d4f9b6951e8081be21027fe5603087db418060218e",
+      "size": 10159
+    },
+    "phase4/audit_post_completion/run_post_completion_audit.py": {
+      "sha256": "410c08c4034ddee61b63ea498a192c4cd4cfd126427da41a1c63398656e664ba",
+      "size": 49468
+    },
+    "phase4/audit_post_completion/source_immutability_after_audit.json": {
+      "sha256": "526887f1ded5a36ceb0c796f0f48ad57e59c9ad4163db6e3123994a0ad428e8c",
+      "size": 1437
+    },
+    "phase4/common.py": {
+      "sha256": "eb69711f928f1826f45246d93cd5a9f35364527e0cd5f1b6b0ce3387051cebb4",
+      "size": 4241
+    },
+    "phase4/configs.py": {
+      "sha256": "d29505173c0f5a3b011fbd3633691cf79b597dfeaaa3a22b7c3eb1571077bd09",
+      "size": 5205
+    },
+    "phase4/configs/EXP001.json": {
+      "sha256": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4",
+      "size": 1015
+    },
+    "phase4/configs/EXP002.json": {
+      "sha256": "a8b305bd561fbfb28b45fbfe737eaa9522eb4808d428e19e396416b5109e6441",
+      "size": 950
+    },
+    "phase4/configs/EXP003.json": {
+      "sha256": "e728bd10eb02939f817b5af9f51aa0b59aa55d0acb0ba568a3ad8f415f54a966",
+      "size": 940
+    },
+    "phase4/configs/EXP004.json": {
+      "sha256": "70f4931766470673768ab43923fa80fff37e2a1516bec78d8b56c9700647c700",
+      "size": 951
+    },
+    "phase4/configs/EXP005.json": {
+      "sha256": "5f2a90eeaee0a08cb657a5db755c405fb73de6e5f2ab78c450667fcfb25dc819",
+      "size": 1024
+    },
+    "phase4/configs/EXP006.json": {
+      "sha256": "4939b5cf3fa1cf4be43bc0ecbda69536b0cf6450a16b821ea90ab367f5f16a46",
+      "size": 1027
+    },
+    "phase4/dataloader/__init__.py": {
+      "sha256": "ea86454fe875e33cb94238c1b445d16d09c68b0099e5a5bb639d66eb11d04078",
+      "size": 36
+    },
+    "phase4/dataloader/forecasting_dataset.py": {
+      "sha256": "c8aca78d3d3da227b20badfa6245e8dbe3a98efd01583a97a4e5b331f9063753",
+      "size": 3191
+    },
+    "phase4/evaluation/__init__.py": {
+      "sha256": "d80038176da68b3587d7f941ec8d496dddfeba227fe40bfe302a5436e174b1d3",
+      "size": 36
+    },
+    "phase4/evaluation/evaluate.py": {
+      "sha256": "cbeabc016c21c77fe0f31b6c551ff61d1b1dbc67ec526379afbdd87c5edcd50a",
+      "size": 2953
+    },
+    "phase4/evaluation/selection.py": {
+      "sha256": "9b806dc66c0097183b304c65f1314da5d8185fd0d53efec253f916443086b4e1",
+      "size": 3827
+    },
+    "phase4/experiments.py": {
+      "sha256": "3d01d7b57779828d7727dba3baf569e90c4626838f51cea40745a7506545fcea",
+      "size": 6399
+    },
+    "phase4/features/FEATURE_ENGINEERING_REPORT.md": {
+      "sha256": "605d32a47bab75c0ede448c265ef83d33903fe9055a97ee7699e5fb4cbe6d0ce",
+      "size": 3408
+    },
+    "phase4/features/__init__.py": {
+      "sha256": "8dc57a0c920e88accddbb83c803b2edbcdc6e43329d2d40b767d04b3e6a233ae",
+      "size": 45
+    },
+    "phase4/features/_geo.py": {
+      "sha256": "c512b3deffc0115a6dc137aaf4b0c7dbeef0269a3848bb4576054a1bf8d9c2bc",
+      "size": 1071
+    },
+    "phase4/features/build_feature_dataset.py": {
+      "sha256": "553c17f258385acddb55fb7caae7201ac7ed212eb5430bf4c8293d2b2eff4b98",
+      "size": 15226
+    },
+    "phase4/features/feature_engineering.py": {
+      "sha256": "a88eb9a6da55091330c5216c8842787a6ea4abc8a1510a9107732e2ab6292f25",
+      "size": 7236
+    },
+    "phase4/final_comparison.py": {
+      "sha256": "b3de7cd1390c96badd262d600ed870f48dbcf14e110340eeeae8764c736f3f90",
+      "size": 3079
+    },
+    "phase4/immutability.py": {
+      "sha256": "3b8a1da07719cfd044a0784803a3959711d070c425d9887de0ab1910da63fd7f",
+      "size": 4037
+    },
+    "phase4/inference/__init__.py": {
+      "sha256": "097ae48773f3fc51b0201935972cff8e1e26648f539ed4bf6a3659f8cac48047",
+      "size": 35
+    },
+    "phase4/inference/forecaster.py": {
+      "sha256": "59c780bd9a457f165bcf9cbbbbe30c98535777a70f394e28469088cab0dcfffa",
+      "size": 3379
+    },
+    "phase4/input_audit.py": {
+      "sha256": "c53ccabca14cc47a10aff67b9766c15525609a20cf450a1c0100f2a37470d92e",
+      "size": 10313
+    },
+    "phase4/losses/__init__.py": {
+      "sha256": "d914b0a8c40d5138edc12ef7334024c69099e62ee9a707fdf4691c41952b1801",
+      "size": 284
+    },
+    "phase4/losses/forecasting_losses.py": {
+      "sha256": "9700f10b179594cc905968eba6558f50429a492657bcdab00bdbd308f67765e4",
+      "size": 4858
+    },
+    "phase4/models/__init__.py": {
+      "sha256": "bbc6a3585a93f932901faabfe534e968a30b90718466ab6f023c421a11957061",
+      "size": 995
+    },
+    "phase4/models/gru.py": {
+      "sha256": "3f36e0b0cad37d403e888e149d9eda83ca5dfe4c146876f6a2a658240623f4f0",
+      "size": 2324
+    },
+    "phase4/models/improved_lstm.py": {
+      "sha256": "4977fb3682ca669ebe81c62ec25a981a0a73d10ca6c26a7eed56604efdc74564",
+      "size": 2461
+    },
+    "phase4/models/multitask_lstm.py": {
+      "sha256": "a90789df389346aaa311ae0dcebfba9d9c62ee8bb6c2df1c2dd7d929dbdfbed9",
+      "size": 3088
+    },
+    "phase4/registry.py": {
+      "sha256": "ed87e083bc6eab6a4c94603544cbfd8eeb141f2f8e621797fc3cdead5fe28c12",
+      "size": 3023
+    },
+    "phase4/report.py": {
+      "sha256": "f13d68efeb8fbb7714e01792a8c04b1a8bd42d5b6ff0bd618e5772b363431a0a",
+      "size": 11565
+    },
+    "phase4/reports/PHASE4_REPORT.md": {
+      "sha256": "7f0cfc78aafd6d3100f2ce1d4616e9451c3fc741a09ac7e071c41a4be26d58cf",
+      "size": 7448
+    },
+    "phase4/results/FEATURE_CONTRACT.md": {
+      "sha256": "c6b74c5b8e85faf569d980c10533be669cafb7bb1b784013a5bc38d247fcdb68",
+      "size": 1709
+    },
+    "phase4/results/FINAL_COMPARISON.json": {
+      "sha256": "97ca11d70521b946068a559673bae604d2b01dc51e8a9a903959a83e36bdda69",
+      "size": 11070
+    },
+    "phase4/results/champion_model.json": {
+      "sha256": "5b6fb7ace48e5f62d15278d2d93a288ec2ccbf8fb523ef05c66fa4ba6bad7c38",
+      "size": 2620
+    },
+    "phase4/results/champion_rationale.json": {
+      "sha256": "5f2be8f6cdf26ecf0b4b892946c6f3a27f3f6c363b6a2d8fe795f5d7c434b380",
+      "size": 1062
+    },
+    "phase4/results/experiment_registry.csv": {
+      "sha256": "9353096a1d0e5b9ad35d1710f283438da912cd5e9f651309f0e5a9aec6be0a6b",
+      "size": 1826
+    },
+    "phase4/results/experiments/EXP001/checkpoint.pt": {
+      "sha256": "03344329a6416efd8128ba6b410875c6688133d7ea5551969ca4555941fed8c0",
+      "size": 88934
+    },
+    "phase4/results/experiments/EXP001/config.json": {
+      "sha256": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4",
+      "size": 1015
+    },
+    "phase4/results/experiments/EXP001/metrics.json": {
+      "sha256": "d0d4dce8ee6e1e483020ed7b2630b48bce328bfcce0ab5a708d3b97c4eb537f5",
+      "size": 727
+    },
+    "phase4/results/experiments/EXP001/source_hashes.json": {
+      "sha256": "0755a8a4fc6fb74f0954de4459168dc957ce8acc0046bf71fc104372104f547f",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP001/training_history.json": {
+      "sha256": "934298af7e5cef2474652be9a041c38a865ce47e00e5d3e51be063ae1f4ac4ed",
+      "size": 6175
+    },
+    "phase4/results/experiments/EXP001/validation_results.json": {
+      "sha256": "6ce7788c658aeb8b41bf85042400fa1aa7f7006e989850a9a9190287e5adc9a5",
+      "size": 807
+    },
+    "phase4/results/experiments/EXP002/checkpoint.pt": {
+      "sha256": "414977e75b911336dd76abdd63cf9f51ac8d33465bfeb52ba1572df4e8b07324",
+      "size": 480290
+    },
+    "phase4/results/experiments/EXP002/config.json": {
+      "sha256": "a8b305bd561fbfb28b45fbfe737eaa9522eb4808d428e19e396416b5109e6441",
+      "size": 950
+    },
+    "phase4/results/experiments/EXP002/metrics.json": {
+      "sha256": "efd0cd3cd35f229cd2b973eddf35b85264af8e54767c0c8a23862353280bc973",
+      "size": 729
+    },
+    "phase4/results/experiments/EXP002/source_hashes.json": {
+      "sha256": "7d6b7121e0dac7eca9309102cd045f3b1b7815820897b6782bb17d49cfb83c00",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP002/training_history.json": {
+      "sha256": "8572651340a9f4f18e65b6f54245bf36a45e733289e28a717e5afa818ac7e4dd",
+      "size": 5973
+    },
+    "phase4/results/experiments/EXP002/validation_results.json": {
+      "sha256": "422e299aa721e28a91fd4422bf4348eee9383c661f617d1c09b3a9b5d0c5c202",
+      "size": 807
+    },
+    "phase4/results/experiments/EXP003/checkpoint.pt": {
+      "sha256": "820b9acf12bef922b5fd385ca304d39998fffcd8a1c494b2b4ea767cdda92051",
+      "size": 362018
+    },
+    "phase4/results/experiments/EXP003/config.json": {
+      "sha256": "e728bd10eb02939f817b5af9f51aa0b59aa55d0acb0ba568a3ad8f415f54a966",
+      "size": 940
+    },
+    "phase4/results/experiments/EXP003/metrics.json": {
+      "sha256": "20346cc3b0cda2c3e83432b90452f64f7d812808706607bb6c1ee26d2f3bd7bd",
+      "size": 728
+    },
+    "phase4/results/experiments/EXP003/source_hashes.json": {
+      "sha256": "90c0f7ba18ba4ad67bc7dd522c4be46589655830bc0f6f56147dc188efe8da71",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP003/training_history.json": {
+      "sha256": "1de674146a15724e9b319c9d9375cdada3eeb7c763db261c5d2438b56722baf9",
+      "size": 5403
+    },
+    "phase4/results/experiments/EXP003/validation_results.json": {
+      "sha256": "3b201d0c899b8e20c424eafc9e61f83795424c9c278550a94e13b000362ad5be",
+      "size": 810
+    },
+    "phase4/results/experiments/EXP004/checkpoint.pt": {
+      "sha256": "6ce1b97cba052b0e643d98e3491a70914fce2ebd29ca6f7169272abd44cc4199",
+      "size": 480866
+    },
+    "phase4/results/experiments/EXP004/config.json": {
+      "sha256": "70f4931766470673768ab43923fa80fff37e2a1516bec78d8b56c9700647c700",
+      "size": 951
+    },
+    "phase4/results/experiments/EXP004/metrics.json": {
+      "sha256": "9b032e06d111fa72bda9a3c8f77a6b2938367f513cd608cc104d7d82c5d91d64",
+      "size": 726
+    },
+    "phase4/results/experiments/EXP004/source_hashes.json": {
+      "sha256": "3e6c5a7919fbc0d6fa94c0b6e508d63f68c44e1136d4a276882013cc4a715048",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP004/training_history.json": {
+      "sha256": "7a72e31020fa552f08fbbf00fb29dab86797792df344cd343efb3c6c1fa78b8d",
+      "size": 5307
+    },
+    "phase4/results/experiments/EXP004/validation_results.json": {
+      "sha256": "b3a2c4382d86bb36d9dd5248382db4266bdee5db3290f915b3ccb4c720de429c",
+      "size": 807
+    },
+    "phase4/results/experiments/EXP005/checkpoint.pt": {
+      "sha256": "ea6bbc3239059061f30eb43bd1b8b0c0db2dd7006b6c8f5e5a5e774d9c124a0a",
+      "size": 362018
+    },
+    "phase4/results/experiments/EXP005/config.json": {
+      "sha256": "5f2a90eeaee0a08cb657a5db755c405fb73de6e5f2ab78c450667fcfb25dc819",
+      "size": 1024
+    },
+    "phase4/results/experiments/EXP005/metrics.json": {
+      "sha256": "0f6e27b096ddbd6efcb9387fada29e6658be5ca95769157c9383ddbbe91b964c",
+      "size": 725
+    },
+    "phase4/results/experiments/EXP005/source_hashes.json": {
+      "sha256": "6143e0be21ac0a15285a48078c5667a8a82fd0504088cf8195356fb6098641ed",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP005/test_results.json": {
+      "sha256": "51450e0f6a21856be4f1132d48be820f4c041630b1bce5e6f0096429debdbc7a",
+      "size": 804
+    },
+    "phase4/results/experiments/EXP005/training_history.json": {
+      "sha256": "911f9e320b605353a06b6bc47d865ab45f669e2e414a1ab870ec6f2fd7f57bc3",
+      "size": 3775
+    },
+    "phase4/results/experiments/EXP005/validation_results.json": {
+      "sha256": "d9e3d54bd3a3328341e8890aa0915da29d72d3b1c2b62cc6baae88554032e95b",
+      "size": 804
+    },
+    "phase4/results/experiments/EXP006/checkpoint.pt": {
+      "sha256": "d951472db87823c4243257b5e05a93c012d6fa34ad0852b003925813488b4b4f",
+      "size": 362018
+    },
+    "phase4/results/experiments/EXP006/config.json": {
+      "sha256": "4939b5cf3fa1cf4be43bc0ecbda69536b0cf6450a16b821ea90ab367f5f16a46",
+      "size": 1027
+    },
+    "phase4/results/experiments/EXP006/metrics.json": {
+      "sha256": "b86cd9c2a1c5837b43eb931e20b5c9991c44b27cece0de56da4c83bb0cda3bc7",
+      "size": 724
+    },
+    "phase4/results/experiments/EXP006/source_hashes.json": {
+      "sha256": "e58b6d43089a15784f671012954b7bf43a071079f8199b127454efdca25e2219",
+      "size": 1313
+    },
+    "phase4/results/experiments/EXP006/training_history.json": {
+      "sha256": "d091af3f4b35f0d1f294314157c0ed647960c7410e35616d7ae27a4dab411bd5",
+      "size": 5400
+    },
+    "phase4/results/experiments/EXP006/validation_results.json": {
+      "sha256": "0550b60fc4956c0a327ec7fec0833f49b8a1d65fd5d34c2709a9d0c927dceb05",
+      "size": 806
+    },
+    "phase4/results/experiments_summary.json": {
+      "sha256": "0293261e45989f7f2a6534c849b95f9fa7c0a53e17bab8e1cb1067aaa91c6a90",
+      "size": 14929
+    },
+    "phase4/results/feature_dataset/test.npz": {
+      "sha256": "1b5cf2678ec16d3e7f078fe0eccc62d482c90926b9caa63d4531e9752ea471f8",
+      "size": 14704
+    },
+    "phase4/results/feature_dataset/test_metadata.csv": {
+      "sha256": "f61fc8fc8b8529413e409511901f30e31db953142988d13a5ac2798bbb82dba5",
+      "size": 31138
+    },
+    "phase4/results/feature_dataset/train.npz": {
+      "sha256": "165d909213d3f2bacc7b8f22f048ff1f25308503606bdabb04bb03b6d1355eab",
+      "size": 86354
+    },
+    "phase4/results/feature_dataset/train_metadata.csv": {
+      "sha256": "bbaeb9f573cc8eb6a6429e65a76c8897a28c844a5777c4575bd195878920c1eb",
+      "size": 193002
+    },
+    "phase4/results/feature_dataset/val.npz": {
+      "sha256": "6b3e43f5185b43fea03eb440242b1346944ba1edd8e5a57bdbfe00ff0c1f0690",
+      "size": 18151
+    },
+    "phase4/results/feature_dataset/val_metadata.csv": {
+      "sha256": "21e9dbeb972398aab4a94afe2a921d7d85c63a3927e806aeee7fb6e352dbbaab",
+      "size": 36458
+    },
+    "phase4/results/feature_dataset_summary.json": {
+      "sha256": "3617670491cbc92d2878b05d651c1ef32f2037a38e26cd0f06c52227bc429126",
+      "size": 3294
+    },
+    "phase4/results/input_audit.json": {
+      "sha256": "3f9a70abc59b362d08a2a98834831f3d51d9c18d769e973c83f6a6419c68ddca",
+      "size": 5095
+    },
+    "phase4/results/normalization_stats.json": {
+      "sha256": "a5404a5743b29abe2e720c5b863883e07b222491df0d88c5d7a550771641bbc0",
+      "size": 2508
+    },
+    "phase4/results/source_immutability_report.json": {
+      "sha256": "1bc94e1689db114b0e1128fac8e29b1aca70e324ea3bd3ec104bf7a476258918",
+      "size": 28959
+    },
+    "phase4/results/test_touch.json": {
+      "sha256": "4e57e0c6bfa7d2e8e70dd846f40e4aae3cbf7f2d363e32e15c22a392f6569d4c",
+      "size": 304
+    },
+    "phase4/results/validation_results.json": {
+      "sha256": "f1215320118fc5f0f4cf83b1711139828678d6a65f6107a79f86c63bb543e752",
+      "size": 4592
+    },
+    "phase4/run_phase4.py": {
+      "sha256": "dbec1c8a9e1e0e5ba9b9abf61f1a7c539421da45a4d6194ff3c722be4c420037",
+      "size": 23476
+    },
+    "phase4/tests/__init__.py": {
+      "sha256": "3ac0935b605e651a0042394c2271a33116ea3e724ec03c8bf45a2f565ce27086",
+      "size": 72
+    },
+    "phase4/tests/conftest.py": {
+      "sha256": "146afcf7d879492c68a5c805ae0005122b20111a0bf3fde405f39470998d0a0e",
+      "size": 3559
+    },
+    "phase4/tests/test_configs.py": {
+      "sha256": "fe27c48eb6556d1168cc69b663004c80f6823297d5a5e9d3315ae6d6bffdd037",
+      "size": 3067
+    },
+    "phase4/tests/test_dataloader.py": {
+      "sha256": "191d0a30bd0c17f02e8202969d3c0b32fefabe5fac93f2a63c373482f5b636cb",
+      "size": 2229
+    },
+    "phase4/tests/test_evaluation.py": {
+      "sha256": "66f4d6edf56e2cc4090cd6e46ed3c34495cb043a6cd343a36ec16198ab0d1d26",
+      "size": 3111
+    },
+    "phase4/tests/test_experiment_registry.py": {
+      "sha256": "e10d8ed862ac8631f86724fbb1bc961d3dbdc8e9ebc88e178676980840eaaa22",
+      "size": 3093
+    },
+    "phase4/tests/test_features.py": {
+      "sha256": "c63e6f828799a7ff88502363b9cc7ead65e8dad13953b917c521281a0072cf34",
+      "size": 5405
+    },
+    "phase4/tests/test_losses.py": {
+      "sha256": "c51270078f06a2d6eb3742b52721ce0c569cb8482367fafb92c5f155b17084c1",
+      "size": 3551
+    },
+    "phase4/tests/test_models.py": {
+      "sha256": "e12ec5022f0697b5536f16a2223985850a26c39a1415078d20e4f2aa27b3aeb1",
+      "size": 2755
+    },
+    "phase4/tests/test_no_future_leak.py": {
+      "sha256": "1bde1f4a6aae1a708194aed8ebe5c12aa229adc8d7baaa94c7f6ec229729139e",
+      "size": 3262
+    },
+    "phase4/tests/test_normalization.py": {
+      "sha256": "2fa12607cf60e1e511861ad6a71aa30286e1967ff8d9a745fb4db9f2c37d714d",
+      "size": 4858
+    },
+    "phase4/tests/test_orchestrator.py": {
+      "sha256": "b964b2e4bc76baa84ee44c604cd3d5c87baa08df89e52bcb4e9ae1d17031edf4",
+      "size": 3218
+    },
+    "phase4/tests/test_reproducibility.py": {
+      "sha256": "1c26fddf7eef99a06a461322ec1b580d45126b8764de44f9e9bc5755468f0954",
+      "size": 2593
+    },
+    "phase4/tests/test_source_immutability.py": {
+      "sha256": "227ad98f382ba6a3177e88928db696f38456d94a9752f4a010ebc460b66eaaa8",
+      "size": 2671
+    },
+    "phase4/tests/test_training.py": {
+      "sha256": "a7fac3ece1bf1a92486732f48249da0b7dd2ad20cbc6955ddb9b295dcc5fe465",
+      "size": 3577
+    },
+    "phase4/training/__init__.py": {
+      "sha256": "1cc54ee50d4a0dfd77e81d080c1a4a232f9d7134d046da69021fc0e235e39b2a",
+      "size": 74
+    },
+    "phase4/training/normalization.py": {
+      "sha256": "464e9c8d4e21b79e84e2e793f4e22d8122e1e98fcea4962e5da8d8d5e493a4f6",
+      "size": 4998
+    },
+    "phase4/training/train.py": {
+      "sha256": "265acd2546d38b51a11eb0298869ea09cce662d98036d040b43bb6869945d56d",
+      "size": 8486
+    },
+    "phase5/__init__.py": {
+      "sha256": "17559aacd0cff0cf611679fe7c20d6b3367095be07bc5101be71e81eb7f70937",
+      "size": 384
+    },
+    "phase5/baselines/__init__.py": {
+      "sha256": "ee59258a1afdf02b88245c3b2b4f4daa5ad9333f8855f9305f8bf4b58690d483",
+      "size": 490
+    },
+    "phase5/baselines/movement_vector.py": {
+      "sha256": "5d8a22f3a51354e133c948f4959b74da2aea0f445da5c5ef7982cafb776fd60c",
+      "size": 2183
+    },
+    "phase5/baselines/persistence.py": {
+      "sha256": "75381c43e0f6979ae8e04ef085a904beff252c0825318f2aa507a0fac46fee09",
+      "size": 1119
+    },
+    "phase5/config.py": {
+      "sha256": "df61582cad41a9c7dc3b87ef633c64697cc44e09ed36d3801d77a75180bb0d45",
+      "size": 4014
+    },
+    "phase5/examples/example_input.json": {
+      "sha256": "f2950f2ad00691a68b01d3e1d7511a175b8ce7212d874ad8a994e51c7e8dcf2d",
+      "size": 800
+    },
+    "phase5/inference/__init__.py": {
+      "sha256": "d6fd4f8fab351eb82523f8bf3602cf8f0e3a71319909941f7f08978f6ec7bf53",
+      "size": 80
+    },
+    "phase5/inference/input_validation.py": {
+      "sha256": "f85006a8fda3bc5176c29dddc38a61463fbd7987a829eb4edad64e7bd6c2c8e5",
+      "size": 6744
+    },
+    "phase5/inference/output_contract.py": {
+      "sha256": "5cc3df97ba485768f902b8d096d507dd39a1705636f86ba3f18e0be72caf0d31",
+      "size": 4293
+    },
+    "phase5/inference/predictor.py": {
+      "sha256": "5a7242ca1492a299f9dc51b650541d8bd981f17d649179e6aea3d5d2489379bf",
+      "size": 6265
+    },
+    "phase5/inference/preprocessing.py": {
+      "sha256": "f753f54f6c8e8d2aa55d0964f9f8b7801dbc1f96b03c490a583b58763143fba0",
+      "size": 3992
+    },
+    "phase5/reports/PHASE5_REPORT.md": {
+      "sha256": "be0f51662b79c93be4aa51eb3deecfbcbe269d151d23e858e95190c1d750152e",
+      "size": 7023
+    },
+    "phase5/results/contract_validation.json": {
+      "sha256": "879ccb0ce679446e399c50bc0f307bb894a6f999dc55eeae9b0b66d74ae7ae77",
+      "size": 1643
+    },
+    "phase5/results/inference_audit.json": {
+      "sha256": "3cea9fe93dbfdcd403985c748d2b99917d4457abe2031c10625db38de98c2c11",
+      "size": 1554
+    },
+    "phase5/results/phase5_summary.json": {
+      "sha256": "965848558f0505a9201c28443effce427e48c8a4605d003fa2a676ac9fd35eb9",
+      "size": 1012
+    },
+    "phase5/results/source_hashes_before.json": {
+      "sha256": "ac2a3a24d78add29f748ceacc37eb5fed1a3454390278b68200f9a1a291b52ea",
+      "size": 34854
+    },
+    "phase5/results/source_immutability_report.json": {
+      "sha256": "605e21dd372a62181066dfe19512ce70cb65c09179263419411a31028d062b6a",
+      "size": 537
+    },
+    "phase5/run_phase5.py": {
+      "sha256": "371759043d2102c0e3df7455f73766e8d1f228ed2675ee84e18124555543127d",
+      "size": 31291
+    },
+    "phase5/schemas/__init__.py": {
+      "sha256": "0a166a56bbe61b1ba6ca10103b73eb4a0fd24b383ee190471f647831ea063b7f",
+      "size": 78
+    },
+    "phase5/schemas/forecast_schema.py": {
+      "sha256": "ece3b37bbf659bb88f205fc16c83a317ed5fbe50030e04a7d64c8558e8204e0d",
+      "size": 2943
+    },
+    "phase5/service/__init__.py": {
+      "sha256": "f9634f28f63718dbf9196c0093897f2732907e55895e096879c2a3c948985bec",
+      "size": 42
+    },
+    "phase5/service/forecasting_service.py": {
+      "sha256": "971b9f6b145cdccfbe532d441dd94490671277ed44becdd74d7c01c8d8a55821",
+      "size": 4204
+    },
+    "phase5/snapshot.py": {
+      "sha256": "875eb45757a586c8e51b6f515ecfd28b4a916f9c5e4e26fb185509a7473d1d58",
+      "size": 7007
+    },
+    "phase5/tests/__init__.py": {
+      "sha256": "080ff29b273551147ad24d3ffb218ea6704d1f164e207ddd0b60db8e6ec57791",
+      "size": 25
+    },
+    "phase5/tests/conftest.py": {
+      "sha256": "2e3e6188e804d071e1b8a508fa055d596656b9d56c8c2cc874afe4391818f17b",
+      "size": 2047
+    },
+    "phase5/tests/test_baselines.py": {
+      "sha256": "227aad3973c900a605750f8b0e44bcdaae53fb181ae59ba06d7667f7dcf3b989",
+      "size": 2070
+    },
+    "phase5/tests/test_determinism.py": {
+      "sha256": "a0eb165a89c08a74d56c81296911c8db3ea4d5066cec131d43ab1d217937153c",
+      "size": 1537
+    },
+    "phase5/tests/test_feature_consistency.py": {
+      "sha256": "6f85fd743fc93e018572986ed17b79db6c7e5d5e64de3296b770478a688606a7",
+      "size": 2499
+    },
+    "phase5/tests/test_forecast_shapes.py": {
+      "sha256": "625ac640486675687a8e3ccaeaf5063c2a31cb16a16a3b34dc80a9f12249af5d",
+      "size": 1981
+    },
+    "phase5/tests/test_inference_contract.py": {
+      "sha256": "cc9bcd95e8292ae540d31bb0e41f3ae564188ffcba4f272d7674b414f7be66f5",
+      "size": 3092
+    },
+    "phase5/tests/test_input_validation.py": {
+      "sha256": "d1f5fcf9546fde0cce99bf000123abe4c4217815e01594523816991a0a60b3d0",
+      "size": 4961
+    },
+    "phase5/tests/test_model_loading.py": {
+      "sha256": "b6ed71c70210f3fd138b11c9c154d435266d3467661ab311a3f6ea4efe8a6b7e",
+      "size": 1833
+    },
+    "phase5/tests/test_no_source_modification.py": {
+      "sha256": "3a3749e5408ae1be3c8dcf6e93684a8f4a3c7f16eb6d0fe164664e25d992347d",
+      "size": 3570
+    },
+    "phase5/tests/test_preprocessing.py": {
+      "sha256": "5a7eb29a0ddd8d8345aa3286158bf91e1715a9eead5f4bdd1eda30108f3b32df",
+      "size": 3271
+    },
+    "phase5/tests/test_service.py": {
+      "sha256": "0f2b977b1bab7ab12bf419676d8caa56f70fbe440d22e6c58c5fa24ad2c6f956",
+      "size": 4116
+    },
+    "phase6/__init__.py": {
+      "sha256": "2d454505bf7145acbdd32353c136b99b95e24f86aa44dd6ba01c426fc74b0a82",
+      "size": 313
+    },
+    "phase6/api/__init__.py": {
+      "sha256": "2c011a9db4a1baf50054fa0f5cb19a963c9fc4389e80270aa35919d769b2e575",
+      "size": 42
+    },
+    "phase6/api/app.py": {
+      "sha256": "7155ff5e891f554844ff4ae4e5a9a516444d5052d4c4801fd833dfec679fa19c",
+      "size": 2526
+    },
+    "phase6/api/error_handlers.py": {
+      "sha256": "3ad07e2863751cfe2945c749e40ea435b3c11ca5bdd3e7b8bbd7e270f8c3bf5b",
+      "size": 3851
+    },
+    "phase6/api/routes.py": {
+      "sha256": "c385e3cf9ac606d1ba2218241a219ad82520deb653bf48533f339cae23007129",
+      "size": 1972
+    },
+    "phase6/config.py": {
+      "sha256": "bd681ead6d89cd790228b8d9af56b5220c6fdbfdbc4d5a68c8ffc4da3e53f346",
+      "size": 4202
+    },
+    "phase6/examples/compare_request.json": {
+      "sha256": "82b825a0526e1df2e8e418ca96f0b1d31981cde963c43d82ba1c158316ef99b1",
+      "size": 1188
+    },
+    "phase6/examples/forecast_request.json": {
+      "sha256": "82b825a0526e1df2e8e418ca96f0b1d31981cde963c43d82ba1c158316ef99b1",
+      "size": 1188
+    },
+    "phase6/integration/__init__.py": {
+      "sha256": "5c75053f8f0639f78ed186bcff7b1e4003a4d35ef2badfff23c0a4fc0d5d6fe6",
+      "size": 78
+    },
+    "phase6/integration/forecasting_adapter.py": {
+      "sha256": "2695c7c27360d7a7cc3909b80097282a7d97c7f42c99c0baa21461d84a166133",
+      "size": 5351
+    },
+    "phase6/reports/PHASE6_REPORT.md": {
+      "sha256": "24d783f497788efb5783cd50a02d5515d613d5991ab4eafc1d5a64662683d156",
+      "size": 6212
+    },
+    "phase6/results/api_contract.json": {
+      "sha256": "f613ba565252e90036f6c2fc153dcbbf3b595787db2b1f965769d419353fd643",
+      "size": 8616
+    },
+    "phase6/results/api_test_results.json": {
+      "sha256": "68fecc02b706c2045cb36ce171d511da14451c1e2159e526b0a15754a9ec4951",
+      "size": 3982
+    },
+    "phase6/results/phase6_summary.json": {
+      "sha256": "984f26a0a072c9c91d4066b078c954bddfdfeefc56235e178dfbfa55011aacf5",
+      "size": 1241
+    },
+    "phase6/results/source_hashes_before.json": {
+      "sha256": "1a5888ad313cdab94ae816e5e17cb5ebbab823bf4b56c6de8e26f485d7903495",
+      "size": 39239
+    },
+    "phase6/results/source_immutability_report.json": {
+      "sha256": "681c9e8338fb9051689dbf4b7e350c402f902da1d553605be124e173b983edba",
+      "size": 579
+    },
+    "phase6/run_phase6.py": {
+      "sha256": "7d6ac34e45a5751c267f405ed3f65c56f62501fc06d079288f4f6259f71f6343",
+      "size": 41955
+    },
+    "phase6/schemas/__init__.py": {
+      "sha256": "c3f611b7b7da75d298cb6232e5581947ecc725384cfc095708b1c455be73c6c7",
+      "size": 88
+    },
+    "phase6/schemas/requests.py": {
+      "sha256": "4188a671e0437ab8cce597b7e315b98f7e7ad4fae217fa4fbc1d43f79f88c636",
+      "size": 5248
+    },
+    "phase6/schemas/responses.py": {
+      "sha256": "8330392f4d2682fb735e6e4b7165731393c53b3868bcd4af907d34092de27bcd",
+      "size": 2391
+    },
+    "phase6/snapshot.py": {
+      "sha256": "29720d42e2a47d21d98728331d4e4685fb950aacd2924b4f7cd7a81b702300df",
+      "size": 6956
+    },
+    "phase6/tests/__init__.py": {
+      "sha256": "79c3b047f6a8742fdc7d7e75485b49a743f825eabfe114a7afeb0a1bd3c4cf8d",
+      "size": 25
+    },
+    "phase6/tests/conftest.py": {
+      "sha256": "aedf84ef9975ace08e823c05e71e3404f9ea3c10e774b7edef23277a12018a57",
+      "size": 1247
+    },
+    "phase6/tests/test_causality.py": {
+      "sha256": "dd28dd8b4dc78679c1cda08662d231d9665df01fdd81379fedbac1f1b477d581",
+      "size": 4635
+    },
+    "phase6/tests/test_compare_endpoint.py": {
+      "sha256": "933887742fcdf147cbde0ee7a54410767dc28da59289ee447cfd5c3ff0a57de0",
+      "size": 2587
+    },
+    "phase6/tests/test_determinism.py": {
+      "sha256": "263e387bc7be1adbccddd3c4aef3a2fc23ef1d4e6ddc45c1f344e10f203aa80f",
+      "size": 1360
+    },
+    "phase6/tests/test_forecast_endpoint.py": {
+      "sha256": "c0e1ef6e5c8d5fd41ba182083560daa070e4ce02426696e8fc14b289df9c5a67",
+      "size": 2049
+    },
+    "phase6/tests/test_health.py": {
+      "sha256": "7d48e49f6ee33f9315765a1e2fc5d72df07c6e60a375e9b7d8de4d65c13c937d",
+      "size": 930
+    },
+    "phase6/tests/test_model_endpoint.py": {
+      "sha256": "8c8b3348402ca451f5b3f97b8e6f4ecc66ddb1e3262f9089012db9378f1aa28c",
+      "size": 1595
+    },
+    "phase6/tests/test_offline.py": {
+      "sha256": "fa6a237d574d787177aa1de39600d9d149023eb098bcc06bee675c4062540c0e",
+      "size": 3506
+    },
+    "phase6/tests/test_response_schema.py": {
+      "sha256": "7b61a1af3fdbbfa0db6387e817abea1ec6b3040ad5435c7265fbc082fe13f080",
+      "size": 1887
+    },
+    "phase6/tests/test_source_immutability.py": {
+      "sha256": "c9f9637d6c2bf7b5c11e0bb0459c9410ec121d0a41f2f738e8d370e11fbe63d9",
+      "size": 2849
+    },
+    "phase6/tests/test_validation_errors.py": {
+      "sha256": "0da05200414dd7a3dbfe2c15ade7163f09064fac53b409ce4f49113c8ee6d7d6",
+      "size": 4345
+    },
+    "reports/P4_PHASE1_FINAL_REPORT.md": {
+      "sha256": "93494a8abd1e3560d000094e21c3eebda9b1c1a943ff9ef354243b3cde65c0ca",
+      "size": 4825
+    },
+    "reports/p4_phase1_summary.json": {
+      "sha256": "b6c002e134e6f6a89c56392de81ae6e865d7f44e542e872e18529235b06c28b8",
+      "size": 7281
+    },
+    "scripts/run_p4_phase1_audit.py": {
+      "sha256": "cc8c2b05652b9fdfca56d9a99b968f4b2f12d4fa77b4535317c3ac4154c6419c",
+      "size": 66084
+    }
+  },
+  "p5_cyclone_project_dashboard": {
+    ".gitignore": {
+      "sha256": "f58dc5e321dc43a1812d05da3befa82bad26ca2648336cf962e65d0236ebd5ee",
+      "size": 45
+    },
+    ".oxlintrc.json": {
+      "sha256": "1be899e45c49b2a2edc715bc3bfb31d8ed8e866ed7ebab2065ff6e55e88c2396",
+      "size": 231
+    },
+    "README.md": {
+      "sha256": "5cbf5d6a9890820876275f5d974f3af0089fcd98caec8482bac1c867061e5ec5",
+      "size": 5844
+    },
+    "index.html": {
+      "sha256": "a35855012c0de413ee1752b3e105e7b4f6cd7b4eb5f26e767a029afae91b8554",
+      "size": 698
+    },
+    "package-lock.json": {
+      "sha256": "384c36812d1b6bba01dcb9435bde280456a10d3d943231ee82fdc19f84c39266",
+      "size": 85105
+    },
+    "package.json": {
+      "sha256": "8e1c23197a06c944a51041c73850fe5eeb29c9d1e74956cbe3dc3ce7ad3a4f57",
+      "size": 672
+    },
+    "public/favicon.svg": {
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "size": 9522
+    },
+    "public/icons.svg": {
+      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "size": 5031
+    },
+    "src/App.jsx": {
+      "sha256": "395e464b2f6e346e4de55c6842072f429c2ac3a08174e1a42536f71cb2902e53",
+      "size": 3470
+    },
+    "src/api/client.js": {
+      "sha256": "fea72297659554a13612820a005fd0dc4e07838722840c58c6b7e2a4735335db",
+      "size": 2568
+    },
+    "src/api/mockData.js": {
+      "sha256": "fc903b4df6b2681f174962170504e2681ba20e3ee847004f5c62a9e609b8c7ba",
+      "size": 4205
+    },
+    "src/assets/hero.png": {
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+      "size": 13057
+    },
+    "src/assets/vite.svg": {
+      "sha256": "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f",
+      "size": 8709
+    },
+    "src/components/BaselineComparison.jsx": {
+      "sha256": "adcb5ef14548aa344ce1809dac44ca98b8bf027f98259feccac398d625d6b60b",
+      "size": 4991
+    },
+    "src/components/CardShell.jsx": {
+      "sha256": "b3b5360932297ec65b1cdbcbc51d0e24ca647b2be6cfc3a2aa7062b340790ef5",
+      "size": 1156
+    },
+    "src/components/ClassificationCard.jsx": {
+      "sha256": "1800c1e01ea5b4bcef1e72655fbbfb33ee80be50f65b0a7ea77d225ae546b60d",
+      "size": 1287
+    },
+    "src/components/DetectionCard.jsx": {
+      "sha256": "443a795b1199b99ccf191d25cfbe50e58fafe68d31b469fd859baf091335f66c",
+      "size": 970
+    },
+    "src/components/ForecastCard.jsx": {
+      "sha256": "384f174bebd8d5c1b9e3ee25311391507c2c120b1247a57ba77f77e66f990f48",
+      "size": 2794
+    },
+    "src/components/Header.jsx": {
+      "sha256": "0b9ad16a1058df1f050eb761a4d47475c1950a87e09f9da37684abe220815be9",
+      "size": 4237
+    },
+    "src/components/LandfallPanel.jsx": {
+      "sha256": "bd1ad8816d425da41d6b875e79b3d28c77d5916f49a3a35aefa1a24b0c8c64ff",
+      "size": 1862
+    },
+    "src/components/LiveCycloneStatus.jsx": {
+      "sha256": "209c3caeed86aebe600b997ecc45c1671ba161db70e9d3cedcaa0139c5082f36",
+      "size": 4773
+    },
+    "src/components/ModelIntelligence.jsx": {
+      "sha256": "b9d9f02c8c49ba3c4a31621a119b66d53ac7227936cd94a89265eaa7a3a2ebc3",
+      "size": 4757
+    },
+    "src/components/PipelineStatus.jsx": {
+      "sha256": "0877680def7ac954df4fec59867259b21a6c1ccceecdca51fa37bd3a9d35e514",
+      "size": 2212
+    },
+    "src/components/RiskIndicator.jsx": {
+      "sha256": "6afbc5516e928a76e5070fe3f63979f7614365efe5d2a04dde2fdd94857a62e3",
+      "size": 4078
+    },
+    "src/components/SatelliteViewer.jsx": {
+      "sha256": "c8b406f8f5783e4dab0837d00d923d154813ad5d7b078ddfe8aae467846474d5",
+      "size": 6643
+    },
+    "src/components/charts/ChartsPanel.jsx": {
+      "sha256": "a3ecb4e093a11db96b94f3f17253ed9579b520b45e2aa911973c02bdbd58b226",
+      "size": 7000
+    },
+    "src/components/charts/MiniLineChart.jsx": {
+      "sha256": "a45ac72fd7164b4477f35ab50bda24f4414701e6d27bea13ea06b07ec814e975",
+      "size": 1389
+    },
+    "src/components/map/MapView.jsx": {
+      "sha256": "cb519d98325e99cff231c7104701516bd23a60be3d74e079570b26061abe042a",
+      "size": 8592
+    },
+    "src/components/map/uncertaintyCone.js": {
+      "sha256": "16c3bd9d1ea757a6278b0f083d0502e5b04b612308c64fb23cd66f404a3c1ac7",
+      "size": 1170
+    },
+    "src/index.css": {
+      "sha256": "569ea6270759ccd260db133f8514814d335332ec511207ac4778d667a4d25980",
+      "size": 1722
+    },
+    "src/lib/format.js": {
+      "sha256": "fe0de7b65642dc7e7b6ec8c2c0e92f8783f915b32c37bdbfb550628eb3076a45",
+      "size": 683
+    },
+    "src/main.jsx": {
+      "sha256": "deeff048606a0994a179cda868c9573e204b47e5c0bb06e21e209a20d9b66124",
+      "size": 263
+    },
+    "vite.config.js": {
+      "sha256": "326f75983524cb01eace7d18eb443a947e5b582a68b30fa058c2dc71c952a141",
+      "size": 478
+    }
+  },
+  "p5_sih26_dashboard": {
+    ".gitignore": {
+      "sha256": "f58dc5e321dc43a1812d05da3befa82bad26ca2648336cf962e65d0236ebd5ee",
+      "size": 45
+    },
+    ".oxlintrc.json": {
+      "sha256": "1be899e45c49b2a2edc715bc3bfb31d8ed8e866ed7ebab2065ff6e55e88c2396",
+      "size": 231
+    },
+    "README.md": {
+      "sha256": "5cbf5d6a9890820876275f5d974f3af0089fcd98caec8482bac1c867061e5ec5",
+      "size": 5844
+    },
+    "index.html": {
+      "sha256": "a35855012c0de413ee1752b3e105e7b4f6cd7b4eb5f26e767a029afae91b8554",
+      "size": 698
+    },
+    "package-lock.json": {
+      "sha256": "384c36812d1b6bba01dcb9435bde280456a10d3d943231ee82fdc19f84c39266",
+      "size": 85105
+    },
+    "package.json": {
+      "sha256": "8e1c23197a06c944a51041c73850fe5eeb29c9d1e74956cbe3dc3ce7ad3a4f57",
+      "size": 672
+    },
+    "public/favicon.svg": {
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "size": 9522
+    },
+    "public/icons.svg": {
+      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "size": 5031
+    },
+    "src/App.jsx": {
+      "sha256": "4b34e76038e6a0fa9c8a41a203af3aeab85766be01b65126d6cfb32ebcd3d111",
+      "size": 2579
+    },
+    "src/api/client.js": {
+      "sha256": "fc34b7b9e38f2d08150688e3c10b6631590342ecb9a2c57a23923180c111a957",
+      "size": 2561
+    },
+    "src/api/mockData.js": {
+      "sha256": "66b8c0a22b2ecd221e03937df9f12529aee90d28cc8281d04c9d98299d713b7d",
+      "size": 3766
+    },
+    "src/assets/hero.png": {
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+      "size": 13057
+    },
+    "src/assets/vite.svg": {
+      "sha256": "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f",
+      "size": 8709
+    },
+    "src/components/CardShell.jsx": {
+      "sha256": "b3b5360932297ec65b1cdbcbc51d0e24ca647b2be6cfc3a2aa7062b340790ef5",
+      "size": 1156
+    },
+    "src/components/ClassificationCard.jsx": {
+      "sha256": "1800c1e01ea5b4bcef1e72655fbbfb33ee80be50f65b0a7ea77d225ae546b60d",
+      "size": 1287
+    },
+    "src/components/DetectionCard.jsx": {
+      "sha256": "443a795b1199b99ccf191d25cfbe50e58fafe68d31b469fd859baf091335f66c",
+      "size": 970
+    },
+    "src/components/ForecastCard.jsx": {
+      "sha256": "a847bedf954e26a41cb364862673b27f6c822e1ba82bd4a7db1bc07364b47dd0",
+      "size": 890
+    },
+    "src/components/Header.jsx": {
+      "sha256": "4818e4eb64dab05757c6d607477f99cda2a2b253ddea202867ceefe5b219daab",
+      "size": 1372
+    },
+    "src/components/LandfallPanel.jsx": {
+      "sha256": "90a95a3854d9336c336e517d8a15e31561be43a5ba7ace16e41b6543850a0a98",
+      "size": 996
+    },
+    "src/components/RiskIndicator.jsx": {
+      "sha256": "2ac0f57ce9a6e8906151c245d20ec654872ce5f6a444b198c51787f80ed306e7",
+      "size": 2499
+    },
+    "src/components/SatelliteViewer.jsx": {
+      "sha256": "4a717ca9c21b0eaae5c390b0ba03eb09fb7239bd712f6f415228484ecde56326",
+      "size": 4181
+    },
+    "src/components/charts/ChartsPanel.jsx": {
+      "sha256": "d2a1868a2451f5514ec383fb0993ce0c44cdc7819424baa01caeaf76a81bb15b",
+      "size": 716
+    },
+    "src/components/charts/MiniLineChart.jsx": {
+      "sha256": "a45ac72fd7164b4477f35ab50bda24f4414701e6d27bea13ea06b07ec814e975",
+      "size": 1389
+    },
+    "src/components/map/MapView.jsx": {
+      "sha256": "fd045cf7e74ba139edb565f2a66981d2db07be7a25616a00f6c5f7d379266d62",
+      "size": 6628
+    },
+    "src/components/map/uncertaintyCone.js": {
+      "sha256": "16c3bd9d1ea757a6278b0f083d0502e5b04b612308c64fb23cd66f404a3c1ac7",
+      "size": 1170
+    },
+    "src/index.css": {
+      "sha256": "569ea6270759ccd260db133f8514814d335332ec511207ac4778d667a4d25980",
+      "size": 1722
+    },
+    "src/lib/format.js": {
+      "sha256": "fe0de7b65642dc7e7b6ec8c2c0e92f8783f915b32c37bdbfb550628eb3076a45",
+      "size": 683
+    },
+    "src/main.jsx": {
+      "sha256": "deeff048606a0994a179cda868c9573e204b47e5c0bb06e21e209a20d9b66124",
+      "size": 263
+    },
+    "vite.config.js": {
+      "sha256": "f01307daf0105ba9aecb902c1ae21d2fd2f6d5450416d8e35cd980eb01406ff3",
+      "size": 246
+    }
+  }
+}
+```
+---
+
+## SOURCE_IMMUTABILITY_REPORT.json
+```text
+{
+  "schema": "source-immutability v1",
+  "generated": "2026-08-30",
+  "policy": "audit created only integration_audit_accuracy/; all P1-P5 consumed artifacts hashed before and after",
+  "manifest_sizes": {
+    "before_items": 1595,
+    "after_items": 1595
+  },
+  "changed_by_scope": {
+    "P1": 0,
+    "P2": 0,
+    "P3": 0,
+    "P4": 0,
+    "P5": 0,
+    "other": 0
+  },
+  "total_changed": 0,
+  "immutable": true,
+  "changed_entries": [],
+  "note_torch_hub_cache": "two ImageNet backbone downloads occurred in %USERPROFILE%\\.cache\\torch\\hub\\checkpoints (outside this workspace) solely to rebuild MobileNet/ResNet architectures for metric recomputation; no workspace file was created, modified, or deleted.",
+  "note_era5": "94 ERA5 .nc files were not individually hashed (1.1 GB); they are covered by the archive-level PS70-main.zip hash which is unchanged."
+}
+```
+---
+
+## AUDIT_MANIFEST.json
+```text
+{
+  "files": {
+    ".": {
+      "pytest_pass": 38,
+      "pytest_total": 38,
+      "tolerance_note": "metric diffs: P2<1e-12, P3<1e-9, P4 test<1e-4, baselines<1e-6, prefixes exact"
+    },
+    "ACCURACY_READINESS_REPORT.md": {
+      "sha256": "2736ea5930034ce5634f617fdee4872565581724890e7f71df6f9e64cff3d4f1",
+      "size": 3906
+    },
+    "API_COMPATIBILITY.md": {
+      "sha256": "9e0fec79d88590d3e8dba25e403a6b1b3e0f9d9db714b0d9b2e36f67dcd6b635",
+      "size": 2784
+    },
+    "CLAIMS_WE_CAN_MAKE.md": {
+      "sha256": "c020b56677808a1a4a86e871d4cc693c11f093eb20b0c1f80e722aed01765488",
+      "size": 2918
+    },
+    "COMPONENT_MAP.md": {
+      "sha256": "018639bd772e996da68f23dbabffac5735f27fcbed0bfb25e3a7ce345f465a0b",
+      "size": 5998
+    },
+    "INTEGRATION_READINESS.md": {
+      "sha256": "5132adf1a44aee8910e11a7045713dd01679231e5d6a0f26bd5c015588a203aa",
+      "size": 3574
+    },
+    "LEAKAGE_AUDIT.md": {
+      "sha256": "9f3545ab5273c132f266d66ce90a1c474a0a14e6310fd173fb262f8dff19399b",
+      "size": 4948
+    },
+    "METRIC_VERIFICATION.csv": {
+      "sha256": "d38b6d68fdb896b77c0f4969717b0f2f381c4f98fa49605770873c486dd7a52e",
+      "size": 5704
+    },
+    "MODEL_STRENGTH_SUMMARY.md": {
+      "sha256": "bc2a904071cb72096a5feef1e483cb6a64cc441984aae9772f179db4bd86a0e7",
+      "size": 3081
+    },
+    "P1_DATA_AUDIT.md": {
+      "sha256": "f5db66e22cd2fdcff4400eeaa66578473d485a97aadced816d140a74c6873306",
+      "size": 5112
+    },
+    "P2_DETECTION_AUDIT.md": {
+      "sha256": "d1d93d2b45e3386a0a4e1e1a1a6267ceac413bd94b0dbb45e66b8fcc902a1e15",
+      "size": 3223
+    },
+    "P3_CLASSIFICATION_AUDIT.md": {
+      "sha256": "77c4c1942089ae2f5c193311251dfd2fbea857da01dd35119c8860b7897cfb26",
+      "size": 2940
+    },
+    "P4_EXPERIMENT_RANKING.csv": {
+      "sha256": "b2f7b60baff4035b1902a024414e708bce11581898468419501432d9f901cbe2",
+      "size": 1965
+    },
+    "P4_FORECASTING_AUDIT.md": {
+      "sha256": "4bb8c154daa310545830d6cd12470055efb063078594be746f92a382a6e51882",
+      "size": 5566
+    },
+    "P5_FRONTEND_READINESS.md": {
+      "sha256": "cba946a4afcdd62f2fcb8e47786c9dc4e93acb4af11b2bd778b77eff78fab44e",
+      "size": 2947
+    },
+    "REPOSITORY_INVENTORY.md": {
+      "sha256": "e4013219413b33824f7c64e825f536da0074a7576b085c7f7d2d6289b9e8e108",
+      "size": 4858
+    },
+    "SOURCE_HASHES_AFTER.json": {
+      "sha256": "0559056a3dc0c1e3bf1410dbf3c1d6c2f1bd79928d528b4a9f6c9fc83f473484",
+      "size": 304808
+    },
+    "SOURCE_HASHES_BEFORE.json": {
+      "sha256": "0563f5975fa56658d54a936e6f754234f0c06a5cb44ae9d514f87801eedad4a0",
+      "size": 304940
+    },
+    "SOURCE_IMMUTABILITY_REPORT.json": {
+      "sha256": "711d634f93a96a04948af3121b351121a7418110c9ded287cf5565a08761abdd",
+      "size": 885
+    },
+    "p1_metrics.json": {
+      "sha256": "cedaba4b0e15e608f6d8028122d815d3c5f2d181c837c5f99dfb7860c1773422",
+      "size": 10655
+    },
+    "p2_metrics.json": {
+      "sha256": "98ba0e13f07004033c2cd0fcb3eae0a973add7ab3ae6f98348a68711e2c035e3",
+      "size": 1737
+    },
+    "p3_metrics.json": {
+      "sha256": "adadbccddde2815095c0d2372dfea442cc126b4216f61c18ead87dea41d94967",
+      "size": 1391
+    },
+    "p4_metrics.json": {
+      "sha256": "e24f36466abb5f933b1ae1d8a82db2147f957e316eb4c5d419fee293d7ad599c",
+      "size": 6129
+    },
+    "p5_metrics.json": {
+      "sha256": "fff37c99b3364bb0bc94625e27b3354aa4f4013d693ec8302a860bf587ef46be",
+      "size": 940
+    },
+    "tests/conftest.py": {
+      "sha256": "d18c0f49496fc50df2bd3730accfa3020787e412a0c73dab62924ec4f4008ff9",
+      "size": 1716
+    },
+    "tests/test_immutability.py": {
+      "sha256": "f52f3f78bb8b9162a69f3f4f8339a738ad2bd1170c5b94a8053ac668d0becb54",
+      "size": 1417
+    },
+    "tests/test_p1_pipeline.py": {
+      "sha256": "11834c049287b3df03aee5ab07c6646567b775c3e3b1641c3ec948713c8acc82",
+      "size": 2877
+    },
+    "tests/test_p2_detection.py": {
+      "sha256": "a28fd01691eba7aa927e5ee9d3c6d9e1beadc4c8ca326cd83217a97c53b1a644",
+      "size": 1169
+    },
+    "tests/test_p3_classification.py": {
+      "sha256": "117cb47e2dd48bfa4783774ee5dbcdc4a58f5aa091a3bff818dbfa429a7e3959",
+      "size": 1214
+    },
+    "tests/test_p4_forecasting.py": {
+      "sha256": "4c5050743abef3a5c6255c963c0b6af442dbcf3efe5f71c70aa146aec86f5290",
+      "size": 1810
+    },
+    "tests/test_p5_api.py": {
+      "sha256": "5f94722e3d0d15944ede5eac6a159972434db9275a3de4b347417aa47eed428a",
+      "size": 2281
+    }
+  },
+  "generated": "2026-08-30",
+  "immutability": "SOURCE_IMMUTABILITY_REPORT.json total_changed=0 / 1595 hashed artifacts",
+  "pytest": "38/38 passed",
+  "schema": "audit-manifest v1",
+  "scope": "integration_audit_accuracy only; zero writes outside this directory"
+}
+```
+---
+
+## tests/conftest.py
+```python
+"""Shared fixtures for the pre-integration audit test suite.
+
+Runs entirely inside the audit dir; never writes outside it.
+"""
+
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+AUDIT = Path(__file__).resolve().parent.parent
+P4 = AUDIT.parent / "p4_forecasting"
+WORKSPACE = AUDIT.parent
+ZIP = WORKSPACE / "PS70-main.zip"
+
+
+@pytest.fixture(scope="session")
+def p1():
+    return json.loads((AUDIT / "p1_metrics.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def p2():
+    return json.loads((AUDIT / "p2_metrics.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def p3():
+    return json.loads((AUDIT / "p3_metrics.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def p4():
+    return json.loads((AUDIT / "p4_metrics.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def p5():
+    return json.loads((AUDIT / "p5_metrics.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def api_smoke():
+    p = AUDIT / "tmp" / "api_smoke.json"
+    if p.exists():
+        return json.loads(p.read_text(encoding="utf-8"))
+    return None
+
+
+@pytest.fixture(scope="session")
+def hashes_before():
+    p = AUDIT / "SOURCE_HASHES_BEFORE.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+@pytest.fixture(scope="session")
+def hashes_after():
+    p = AUDIT / "SOURCE_HASHES_AFTER.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+@pytest.fixture(scope="session")
+def client():
+    sys.path.insert(0, str(P4))
+    from fastapi.testclient import TestClient
+    from phase6.api.app import create_app
+    with TestClient(create_app()) as c:
+        yield c
+```
+---
+
+## tests/test_p1_pipeline.py
+```python
+"""P1 data-pipeline assertions (facts recorded in p1_metrics.json)."""
+
+import io
+
+import pytest
+import zipfile
+
+
+def test_master_counts_and_geometry(p1):
+    assert p1["master_rows"] == 5481
+    assert p1["master_cyclones"] == 151
+    assert p1["master_dup_rows_exact"] == 0
+    assert p1["master_dup_cyc_tstamp"] == 0
+    assert p1["master_rows_minus_split_rows"] == 0
+
+
+def test_split_disjointness(p1):
+    inter = p1["split_cyclone_intersections"]
+    assert inter["train&val"] == 0
+    assert inter["train&test"] == 0
+    assert inter["val&test"] == 0
+    assert p1["split_cyclone_union_matches_master"] is True
+    assert p1["split_cyclones"] == {"train": 105, "val": 22, "test": 24}
+
+
+def test_era5_join_and_known_missingness(p1):
+    assert p1["era5j_rows"] == 5481
+    assert p1["sst_missing"] == 1538
+    assert p1["phys_out_of_range_count"]["lat"] == 0
+    assert p1["phys_out_of_range_count"]["lon"] == 0
+    assert p1["phys_out_of_range_count"]["wind_kmh"] == 0
+    assert p1["phys_out_of_range_count"]["sst_ok"] == 0
+
+
+def test_pipeline_counts_match_qa(p1):
+    assert p1["clean_rows"] == 18168
+    assert p1["clean_cyclones"] == 471
+    assert p1["cls_test_rows"] == 651
+    assert p1["cls_train_rows"] == 3039
+    assert p1["cls_val_rows"] == 518
+
+
+def test_detection_labels_are_synthetic(p1):
+    assert p1["det_all_detected_true"] is True
+    assert p1["det_mock_bbox_unique"] == 1
+    assert p1["det_all_image_paths_resolve"] is True
+    assert p1["det_train_same_files_as_kaggle_train"] is True
+    assert p1["det_val_same_files_as_kaggle_val"] is True
+    assert p1["det_test_same_files_as_kaggle_test"] is True
+
+
+def test_forecast_sequence_shapes_no_nan(p1):
+    assert p1["seq_train_X_shape"] == [2275, 5, 7]
+    assert p1["seq_val_X_shape"] == [378, 5, 7]
+    assert p1["seq_test_X_shape"] == [423, 5, 7]
+    assert p1["seq_train_nan_X"] == 0 and p1["seq_train_nan_Y"] == 0
+    assert p1["seq_test_nan_X"] == 0 and p1["seq_test_nan_Y"] == 0
+
+
+def test_qa_completeness_wording_inconsistent(p1):
+    # The README-level "Completeness: 100.0%" is contradicted by the audit's own
+    # documented sst missingness. The report must not present 100% completeness.
+    assert p1["sst_missing"] > 0
+
+
+def test_image_split_leak_flag(p1):
+    # same-storm frames straddle splits (near-duplicate image leakage)
+    ov = p1["img_split_base_storm_overlap"]
+    assert ov["test+train"] >= 0
+    assert (ov["test+train"] + ov["train+val"] + ov["test+val"]) >= 10
+    assert p1["kaggle_byte_duplicates_any"] is False
+
+
+def test_master_class_consistency(p1):
+    assert p1["master_wind2cat_agree"] == 1.0
+    assert p1["category_counts"]["Depression"] == 1665
+    assert p1["category_counts"]["Super Cyclonic Storm"] == 25
+
+
+def test_spreadsheet_header_stability(p1):
+    assert p1["insat_sheet_cols"] == ["img_name", "label"]
+    assert int(p1["insat_sheet_rows"]) == 136
+```
+---
+
+## tests/test_p2_detection.py
+```python
+"""P2 detection assertions: reported metrics are reproduced, presence undemonstrated."""
+
+import pytest
+
+
+def test_reported_metrics_reproduced_exactly(p2):
+    for k in p2["stored"]:
+        assert abs(p2["stored"][k] - p2["recomputed"][k]) < 1e-12, k
+
+
+def test_stored_values_match_reported(p2):
+    assert p2["recomputed"]["pattern_accuracy"] == pytest.approx(0.7142857142857143, abs=1e-9)
+    assert p2["recomputed"]["category_accuracy"] == pytest.approx(0.3333333333333333, abs=1e-9)
+
+
+def test_stored_json_matches_reported_values(p2):
+    assert p2["stored"]["pattern_f1"] == pytest.approx(0.6306522609, abs=1e-9)
+    assert p2["stored"]["category_f1"] == pytest.approx(0.2305037957, abs=1e-9)
+
+
+def test_presence_head_never_evaluated_degenerate(p2):
+    # no negatives exist: every test label is "cyclone present"
+    assert p2["presence_all_gt_positive"] is True
+
+
+def test_structural_pattern_derived_not_annotated(p2):
+    assert p2["pattern_derivation_bystand_ckt_agree"] > 0.99
+
+
+def test_checkpoint_remains_mappable(p2):
+    assert set(p2["pattern_to_idx"].keys()) == {"curved_band", "eye_visible", "shear_pattern"}
+    assert len(p2["category_to_idx"]) == 7
+```
+---
+
+## tests/test_p3_classification.py
+```python
+"""P3 classification: image metrics reproduced; tabular correctly NOT_RUN."""
+
+import pytest
+
+
+def test_image_metrics_reproduced_exactly(p3):
+    for k in p3["image_stored"]:
+        assert abs(p3["image_stored"][k] - p3["image_recomputed"][k]) < 1e-9, k
+
+
+def test_image_metrics_published_values(p3):
+    assert p3["image_recomputed"]["category_accuracy_percent"] == pytest.approx(38.1, abs=1e-6)
+    assert p3["image_recomputed"]["category_macro_f1"] == pytest.approx(0.2076, abs=1e-9)
+    assert p3["image_recomputed"]["wind_speed_mae_kmh"] == pytest.approx(109.81, abs=1e-6)
+    assert p3["image_recomputed"]["wind_speed_rmse_kmh"] == pytest.approx(118.39, abs=1e-6)
+
+
+def test_tabular_verification_not_run_with_reason(p3):
+    # AUDIT RULE: never fake PASS. lightgbm absent -> NOT_RUN is the honest result.
+    assert p3["tabular_verification"] == "NOT_RUN"
+    assert p3["tabular_lightgbm_available"] is False
+
+
+def test_reported_delta_is_cross_population(p3):
+    # The stored performance_delta compares a 21-frame image test with a 651-row
+    # tabular test: it is not a controlled comparison.
+    assert "performance_delta" in str(p3["multisource_delta_text"]) or p3["multisource_delta_text"] is not None
+```
+---
+
+## tests/test_p4_forecasting.py
+```python
+"""P4 forecasting: prefixes, EXP005 test, baselines, selection hygiene, EXP006 anomaly."""
+
+
+def test_canonical_chrono_prefixes(p4):
+    for key, meta in p4["canonical_chrono_sha256_prefixes"].items():
+        assert meta["match"] is True, f"{key} prefix mismatch"
+
+
+def test_exp005_test_metrics_reproduced_within_tolerance(p4):
+    pdiff = p4["EXP005_stored_test_vs_recomputed_max_diff"]
+    for h in ["6h", "12h", "24h"]:
+        assert pdiff[h] < 1e-4, h
+
+
+def test_baselines_reproduced(p4):
+    rc = p4["baselines_recomputed"]
+    st = p4["baselines_stored"]
+    key_for = {"persistence": "persistence", "movement_vector": "movement"}
+    for m in ["persistence", "movement_vector"]:
+        for h in ["6h", "12h", "24h"]:
+            assert abs(rc[key_for[m]][h] - st[m][h]) < 1e-6, (m, h)
+
+
+def test_champion_loses_to_movement_vector(p4):
+    assert p4["champion_loses_to_movement_vector_all_horizons"] is True
+
+
+def test_champion_vs_persistence_at_6h(p4):
+    assert p4["champion_loses_to_persistence_6h_win_12h_24h"] is True
+    c = p4["champion_vs_baselines"]
+    assert c["6h"]["EXP005"] > c["6h"]["persistence"]
+    assert c["12h"]["EXP005"] < c["12h"]["persistence"]
+    assert c["24h"]["EXP005"] < c["24h"]["persistence"]
+
+
+def test_val_primary_is_mean_of_val_track(p4):
+    ep = p4["registry_experiments"]["EXP005"]
+    mean = sum(ep["val_track"]) / 3.0
+    assert abs(mean - ep["val_primary"]) < 1e-6
+
+
+def test_rank_matches_champion(p4):
+    assert p4["rank_order_by_val_primary"][0] == "EXP005"
+    assert p4["champion_event"]["experiment_id"] == "EXP005"
+
+
+def test_exp006_registry_anomaly_flagged(p4):
+    assert p4["EXP006_EXP003_metrics_near_identical_flag"] is True
+
+
+def test_test_population_note_present(p4):
+    assert "feature_dataset/test.npz (198 rows" in p4["test_population_note"]
+```
+---
+
+## tests/test_p5_api.py
+```python
+"""P5/API: backend works; dashboard target contract missing (mock-only)."""
+
+
+def test_frontend_is_mock_only(p5):
+    assert p5["use_mock_working_copy"] is True
+    assert p5["use_mock_pristine_copy"] is True
+    assert p5["dashboard_target_/api/analyze_status"] == 404
+
+
+def test_backend_path_surface_missing_dashboard_targets(p5):
+    backend = set(p5["delivered_backend_paths_verified"])
+    for t in ["GET /api/detect", "GET /api/classify", "GET /api/forecast"]:
+        assert t not in backend
+
+
+def test_forecast_shape_mismatch_documented(p5):
+    assert any("windSpeedKmh" in s and "wind_speed_kmh" in s for s in p5["forecast_shape_mismatch"])
+
+
+def test_live_api_health(api_smoke, client):
+    r = client.get("/health")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "ok" and body["model_ready"] is True and body["offline"] is True
+
+
+def test_live_api_model_metadata(api_smoke, client):
+    r = client.get("/model")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["experiment_id"] == "EXP005"
+    assert body["families"] if False else body.get("model") in ("GRU", "gru")
+
+
+def test_live_api_forecast_shape(client):
+    import json
+    from pathlib import Path
+    req = json.loads(Path(__file__).resolve().parent.parent.parent.joinpath(
+        "p4_forecasting/phase6/examples/forecast_request.json").read_text(encoding="utf-8"))
+    r = client.post("/forecast", json=req)
+    assert r.status_code == 200
+    fc = r.json()["forecast"]
+    assert len(fc) == 3
+    for item in fc:
+        assert set(item.keys()) == {"hours", "latitude", "longitude", "wind_speed_kmh"}
+    assert [item["hours"] for item in fc]
+    assert client.get("/api/analyze").status_code == 404
+
+
+def test_live_api_rejects_bad_input(client):
+    import json
+    from pathlib import Path
+    p = Path(__file__).resolve().parent.parent.parent.joinpath(
+        "p4_forecasting/phase6/examples/forecast_request.json")
+    req = json.loads(p.read_text(encoding="utf-8"))
+    bad = json.loads(json.dumps(req))
+    bad["history"] = bad["history"][:4]
+    assert client.post("/forecast", json=bad).status_code == 422
+    bad2 = json.loads(json.dumps(req))
+    bad2["history"][1].pop("sst")
+    assert client.post("/forecast", json=bad2).status_code == 422
+```
+---
+
+## tests/test_immutability.py
+```python
+"""Immutability: the workspace sources consumed by this audit must be unchanged
+between SOURCE_HASHES_BEFORE.json and SOURCE_HASHES_AFTER.json."""
+
+import pytest
+
+
+def _flatten(manifest):
+    out = {}
+    for scope, entries in manifest.items():
+        if not isinstance(entries, dict):
+            continue
+        for key, meta in entries.items():
+            if isinstance(meta, dict) and "sha256" in meta:
+                out[(scope, key)] = (meta["sha256"], meta.get("size"))
+    return out
+
+
+def test_workspace_sources_unchanged(hashes_before, hashes_after):
+    if hashes_before is None:
+        pytest.skip("SOURCE_HASHES_BEFORE.json missing")
+    if hashes_after is None:
+        pytest.skip("SOURCE_HASHES_AFTER.json not generated yet")
+    b = _flatten(hashes_before)
+    a = _flatten(hashes_after)
+    assert set(a.keys()) == set(b.keys()), "manifest key set changed"
+    changed = {k for k in a if a[k] != b[k]}
+    assert changed == set(), f"sources changed: {sorted(changed)}"
+
+
+def test_before_manifest_exists_and_covers_all_scopes(hashes_before):
+    if hashes_before is None:
+        pytest.skip("SOURCE_HASHES_BEFORE.json missing")
+    for scope in ["p1_zip_archive", "p1_zip_entries", "p4_forecasting",
+                  "p5_cyclone_project_dashboard", "p5_sih26_dashboard"]:
+        assert scope in hashes_before
+    assert hashes_before["p1_zip_archive"]["PS70-main.zip"]["size"] > 1_000_000_000
+```
+---

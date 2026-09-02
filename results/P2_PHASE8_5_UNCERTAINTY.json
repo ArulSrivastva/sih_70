@@ -1,0 +1,31 @@
+{
+  "audit_name": "P2_PHASE8_5_UNCERTAINTY",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "test_sample_size_N": 30,
+  "bootstrap_iterations": 10000,
+  "E0_uncertainty": {
+    "acc_mean": 0.4336033333333333,
+    "acc_ci_95": [
+      0.26666666666666666,
+      0.6
+    ],
+    "f1_mean": 0.4198079213012172,
+    "f1_ci_95": [
+      0.25339366515837103,
+      0.5982142857142857
+    ]
+  },
+  "E2_uncertainty": {
+    "acc_mean": 0.5668799999999999,
+    "acc_ci_95": [
+      0.4,
+      0.7333333333333333
+    ],
+    "f1_mean": 0.41720730525234256,
+    "f1_ci_95": [
+      0.2857142857142857,
+      0.5833333333333334
+    ]
+  },
+  "scientific_conclusion": "With N=30, the 95% confidence interval for category accuracy spans [26.7%, 60.0%] for E0 and [40.0%, 73.3%] for E2. While point estimates show clear gains over the 33.3% baseline, conclusions carry statistical uncertainty appropriate for small test cohorts."
+}

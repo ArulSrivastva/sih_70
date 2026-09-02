@@ -1,0 +1,11 @@
+{
+  "audit_name": "P2_PHASE7_DUPLICATE_AUDIT",
+  "timestamp": "2026-09-01T11:50:00Z",
+  "total_crops": 138,
+  "unique_sha256_hashes": 138,
+  "exact_duplicates": 0,
+  "cross_split_duplicates": 0,
+  "synthetic_replications": 0,
+  "unique_satellite_acquisitions": 138,
+  "verdict": "PASS_ZERO_DUPLICATE_CONTAMINATION"
+}

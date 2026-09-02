@@ -1,0 +1,11 @@
+{
+  "audit_name": "P2_PHASE9_PREEXISTING_DATA_AUDIT",
+  "timestamp": "2026-09-01T13:00:00Z",
+  "total_genuine_scenes": 138,
+  "unique_cyclone_systems": 18,
+  "channel": "TIR-1 (10.8 um)",
+  "satellite_sensor": "INSAT-3D Imager L1C SGP",
+  "raw_granule_source": "MOSDAC / ISRO Archive",
+  "geolocation_source": "IBTrACS / IMD Best Track",
+  "status": "PASS_VERIFIED"
+}

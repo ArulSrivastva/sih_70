@@ -1,0 +1,127 @@
+{
+  "dataset": {
+    "name": "canonical_chronological_clean",
+    "policy": "CLEAN-only chronological (no non-causal/interpolated cells)",
+    "train_cyclones": 57,
+    "train_sequences": 1212,
+    "validation_cyclones": 13,
+    "validation_sequences": 231,
+    "test_cyclones": 10,
+    "test_sequences": 198,
+    "feature_order": [
+      "lat",
+      "lon",
+      "wind_speed",
+      "pressure",
+      "sst",
+      "wind_u",
+      "wind_v"
+    ],
+    "target_order": [
+      "lat",
+      "lon",
+      "wind_speed"
+    ],
+    "horizons_hours": [
+      6,
+      12,
+      24
+    ],
+    "sst_unit": "degrees Celsius (as delivered; not converted)"
+  },
+  "primary_split": "test",
+  "persistence": {
+    "6h": {
+      "track_error_km_mean": 64.68608366488854,
+      "track_error_km_median": 63.76304512511514,
+      "track_error_km_std": 34.849382909519534,
+      "wind_mae": 3.1222219467163086,
+      "wind_rmse": 5.860171794891357
+    },
+    "12h": {
+      "track_error_km_mean": 123.93622341086457,
+      "track_error_km_median": 124.99545691120343,
+      "track_error_km_std": 62.33370346488704,
+      "wind_mae": 6.459090232849121,
+      "wind_rmse": 10.302885055541992
+    },
+    "24h": {
+      "track_error_km_mean": 227.32704718077517,
+      "track_error_km_median": 220.2105513824401,
+      "track_error_km_std": 115.5475258134384,
+      "wind_mae": 13.217677116394043,
+      "wind_rmse": 19.6561279296875
+    }
+  },
+  "movement_vector": {
+    "6h": {
+      "track_error_km_mean": 38.05125581673144,
+      "track_error_km_median": 32.82539173511178,
+      "track_error_km_std": 28.62548724364466,
+      "wind_mae": 3.1222219467163086,
+      "wind_rmse": 5.860171794891357
+    },
+    "12h": {
+      "track_error_km_mean": 80.50450892597567,
+      "track_error_km_median": 64.54132503439507,
+      "track_error_km_std": 56.93732438431913,
+      "wind_mae": 6.459090232849121,
+      "wind_rmse": 10.302885055541992
+    },
+    "24h": {
+      "track_error_km_mean": 180.66053963358797,
+      "track_error_km_median": 164.99530268828084,
+      "track_error_km_std": 120.28418667340067,
+      "wind_mae": 13.217677116394043,
+      "wind_rmse": 19.6561279296875
+    }
+  },
+  "validation_results": {
+    "persistence": {
+      "6h": {
+        "track_error_km_mean": 68.48043740260084,
+        "track_error_km_median": 64.0331760422695,
+        "track_error_km_std": 33.04357660510754,
+        "wind_mae": 6.644155979156494,
+        "wind_rmse": 10.331818580627441
+      },
+      "12h": {
+        "track_error_km_mean": 136.5009652410198,
+        "track_error_km_median": 127.95297592832527,
+        "track_error_km_std": 66.20725598434022,
+        "wind_mae": 13.627705574035645,
+        "wind_rmse": 19.178218841552734
+      },
+      "24h": {
+        "track_error_km_mean": 282.1323521207802,
+        "track_error_km_median": 262.6884638636457,
+        "track_error_km_std": 144.93001639177638,
+        "wind_mae": 27.5,
+        "wind_rmse": 37.863037109375
+      }
+    },
+    "movement_vector": {
+      "6h": {
+        "track_error_km_mean": 28.228712172982746,
+        "track_error_km_median": 24.110356111975058,
+        "track_error_km_std": 19.632449739954865,
+        "wind_mae": 6.644155979156494,
+        "wind_rmse": 10.331818580627441
+      },
+      "12h": {
+        "track_error_km_mean": 62.58554252987115,
+        "track_error_km_median": 55.0252089555132,
+        "track_error_km_std": 42.88139155341045,
+        "wind_mae": 13.627705574035645,
+        "wind_rmse": 19.178218841552734
+      },
+      "24h": {
+        "track_error_km_mean": 139.74529170119487,
+        "track_error_km_median": 112.4429101010978,
+        "track_error_km_std": 103.17387243076578,
+        "wind_mae": 27.5,
+        "wind_rmse": 37.863037109375
+      }
+    }
+  }
+}

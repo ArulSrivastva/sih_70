@@ -1,0 +1,64 @@
+{
+  "overall": {
+    "6h": {
+      "catboost_mean": 34.27,
+      "catboost_median": 28.33,
+      "mv_mean": 38.05,
+      "mv_median": 32.83,
+      "improvement_km": 3.78,
+      "improvement_pct": 9.94,
+      "cat_better_count": 111,
+      "mv_better_count": 87,
+      "cat_tied_count": 0
+    },
+    "12h": {
+      "catboost_mean": 71.79,
+      "catboost_median": 65.56,
+      "mv_mean": 80.5,
+      "mv_median": 64.54,
+      "improvement_km": 8.72,
+      "improvement_pct": 10.83,
+      "cat_better_count": 112,
+      "mv_better_count": 86,
+      "cat_tied_count": 0
+    },
+    "24h": {
+      "catboost_mean": 154.84,
+      "catboost_median": 133.66,
+      "mv_mean": 180.66,
+      "mv_median": 164.99,
+      "improvement_km": 25.82,
+      "improvement_pct": 14.29,
+      "cat_better_count": 116,
+      "mv_better_count": 82,
+      "cat_tied_count": 0
+    }
+  },
+  "strata_24h_improving": [
+    "24h",
+    "weak_<=46_24h",
+    "moderate_46-74_24h",
+    "strong_74-102_24h",
+    "medium_24h",
+    "fast_24h",
+    "straight_<17_24h",
+    "turning_>=17_24h",
+    "sst_available_24h",
+    "western_AS_24h",
+    "central_AS_BB_24h",
+    "eastern_BB_24h",
+    "low_lat_<10_24h",
+    "mid_lat_10-15_24h",
+    "midhigh_lat_15-20_24h",
+    "high_lat_>=20_24h"
+  ],
+  "total_strata_24h": 17,
+  "strongest": {
+    "stratum": "fast_24h",
+    "improvement_km": 58.18
+  },
+  "weakest": {
+    "stratum": "slow_24h",
+    "improvement_km": -1.88
+  }
+}

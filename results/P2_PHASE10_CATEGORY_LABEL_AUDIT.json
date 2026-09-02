@@ -1,0 +1,8 @@
+{
+  "audit_name": "P2_PHASE10_CATEGORY_LABEL_AUDIT",
+  "timestamp": "2026-09-01T18:25:00Z",
+  "source": "Authoritative IBTrACS / IMD Best Track maximum sustained wind speeds",
+  "missing_vmax_count": 0,
+  "ambiguous_labels_count": 0,
+  "category_status": "AUTHORITATIVE_VERIFIED"
+}

@@ -1,0 +1,2166 @@
+{
+  "n_files": 426,
+  "policy": "SHA256 of every project file except bytecode/index caches, node_modules, dist, and PS70-main.zip (hashed separately, incl. per-member hashes of the P2/P3 artifacts + reference frame). Buckets mirror phase6/snapshot.py: p1/phase1..phase6/allowed_integration/frontend/outside.",
+  "project_root": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project",
+  "recorded_at": "2026-08-30T11:57:16.300392+00:00",
+  "schema": "integration_qa v1",
+  "tree": {
+    "AUDIT_P1_DELIVERY.md": {
+      "bucket": "outside",
+      "sha256": "671223fd201a8bdba39637f8400bbb5665325843391b8408f5b37195c66cc28a",
+      "size": 23850
+    },
+    "DATASET_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "286723ade5f229f5fc88e9d59951cbbf39c6a9a07c3f18dc2b20bffd71e7bd7d",
+      "size": 6495
+    },
+    "cyclone-dashboard/.gitignore": {
+      "bucket": "frontend",
+      "sha256": "f58dc5e321dc43a1812d05da3befa82bad26ca2648336cf962e65d0236ebd5ee",
+      "size": 45
+    },
+    "cyclone-dashboard/.oxlintrc.json": {
+      "bucket": "frontend",
+      "sha256": "1be899e45c49b2a2edc715bc3bfb31d8ed8e866ed7ebab2065ff6e55e88c2396",
+      "size": 231
+    },
+    "cyclone-dashboard/README.md": {
+      "bucket": "frontend",
+      "sha256": "5cbf5d6a9890820876275f5d974f3af0089fcd98caec8482bac1c867061e5ec5",
+      "size": 5844
+    },
+    "cyclone-dashboard/index.html": {
+      "bucket": "frontend",
+      "sha256": "a35855012c0de413ee1752b3e105e7b4f6cd7b4eb5f26e767a029afae91b8554",
+      "size": 698
+    },
+    "cyclone-dashboard/package-lock.json": {
+      "bucket": "frontend",
+      "sha256": "384c36812d1b6bba01dcb9435bde280456a10d3d943231ee82fdc19f84c39266",
+      "size": 85105
+    },
+    "cyclone-dashboard/package.json": {
+      "bucket": "frontend",
+      "sha256": "8e1c23197a06c944a51041c73850fe5eeb29c9d1e74956cbe3dc3ce7ad3a4f57",
+      "size": 672
+    },
+    "cyclone-dashboard/public/favicon.svg": {
+      "bucket": "frontend",
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66",
+      "size": 9522
+    },
+    "cyclone-dashboard/public/icons.svg": {
+      "bucket": "frontend",
+      "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a",
+      "size": 5031
+    },
+    "cyclone-dashboard/src/App.jsx": {
+      "bucket": "frontend",
+      "sha256": "395e464b2f6e346e4de55c6842072f429c2ac3a08174e1a42536f71cb2902e53",
+      "size": 3470
+    },
+    "cyclone-dashboard/src/api/client.js": {
+      "bucket": "frontend",
+      "sha256": "ae0f6e1af072d09ce24e4ff4e5ea7617d87442482dd371acfb21e43784cd29d6",
+      "size": 4007
+    },
+    "cyclone-dashboard/src/api/mockData.js": {
+      "bucket": "frontend",
+      "sha256": "fc903b4df6b2681f174962170504e2681ba20e3ee847004f5c62a9e609b8c7ba",
+      "size": 4205
+    },
+    "cyclone-dashboard/src/assets/hero.png": {
+      "bucket": "frontend",
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c",
+      "size": 13057
+    },
+    "cyclone-dashboard/src/assets/vite.svg": {
+      "bucket": "frontend",
+      "sha256": "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f",
+      "size": 8709
+    },
+    "cyclone-dashboard/src/components/BaselineComparison.jsx": {
+      "bucket": "frontend",
+      "sha256": "adcb5ef14548aa344ce1809dac44ca98b8bf027f98259feccac398d625d6b60b",
+      "size": 4991
+    },
+    "cyclone-dashboard/src/components/CardShell.jsx": {
+      "bucket": "frontend",
+      "sha256": "b3b5360932297ec65b1cdbcbc51d0e24ca647b2be6cfc3a2aa7062b340790ef5",
+      "size": 1156
+    },
+    "cyclone-dashboard/src/components/ClassificationCard.jsx": {
+      "bucket": "frontend",
+      "sha256": "1800c1e01ea5b4bcef1e72655fbbfb33ee80be50f65b0a7ea77d225ae546b60d",
+      "size": 1287
+    },
+    "cyclone-dashboard/src/components/DetectionCard.jsx": {
+      "bucket": "frontend",
+      "sha256": "443a795b1199b99ccf191d25cfbe50e58fafe68d31b469fd859baf091335f66c",
+      "size": 970
+    },
+    "cyclone-dashboard/src/components/ForecastCard.jsx": {
+      "bucket": "frontend",
+      "sha256": "384f174bebd8d5c1b9e3ee25311391507c2c120b1247a57ba77f77e66f990f48",
+      "size": 2794
+    },
+    "cyclone-dashboard/src/components/Header.jsx": {
+      "bucket": "frontend",
+      "sha256": "0b9ad16a1058df1f050eb761a4d47475c1950a87e09f9da37684abe220815be9",
+      "size": 4237
+    },
+    "cyclone-dashboard/src/components/LandfallPanel.jsx": {
+      "bucket": "frontend",
+      "sha256": "bd1ad8816d425da41d6b875e79b3d28c77d5916f49a3a35aefa1a24b0c8c64ff",
+      "size": 1862
+    },
+    "cyclone-dashboard/src/components/LiveCycloneStatus.jsx": {
+      "bucket": "frontend",
+      "sha256": "209c3caeed86aebe600b997ecc45c1671ba161db70e9d3cedcaa0139c5082f36",
+      "size": 4773
+    },
+    "cyclone-dashboard/src/components/ModelIntelligence.jsx": {
+      "bucket": "frontend",
+      "sha256": "b9d9f02c8c49ba3c4a31621a119b66d53ac7227936cd94a89265eaa7a3a2ebc3",
+      "size": 4757
+    },
+    "cyclone-dashboard/src/components/PipelineStatus.jsx": {
+      "bucket": "frontend",
+      "sha256": "0877680def7ac954df4fec59867259b21a6c1ccceecdca51fa37bd3a9d35e514",
+      "size": 2212
+    },
+    "cyclone-dashboard/src/components/RiskIndicator.jsx": {
+      "bucket": "frontend",
+      "sha256": "6afbc5516e928a76e5070fe3f63979f7614365efe5d2a04dde2fdd94857a62e3",
+      "size": 4078
+    },
+    "cyclone-dashboard/src/components/SatelliteViewer.jsx": {
+      "bucket": "frontend",
+      "sha256": "c8b406f8f5783e4dab0837d00d923d154813ad5d7b078ddfe8aae467846474d5",
+      "size": 6643
+    },
+    "cyclone-dashboard/src/components/charts/ChartsPanel.jsx": {
+      "bucket": "frontend",
+      "sha256": "a3ecb4e093a11db96b94f3f17253ed9579b520b45e2aa911973c02bdbd58b226",
+      "size": 7000
+    },
+    "cyclone-dashboard/src/components/charts/MiniLineChart.jsx": {
+      "bucket": "frontend",
+      "sha256": "a45ac72fd7164b4477f35ab50bda24f4414701e6d27bea13ea06b07ec814e975",
+      "size": 1389
+    },
+    "cyclone-dashboard/src/components/map/MapView.jsx": {
+      "bucket": "frontend",
+      "sha256": "cb519d98325e99cff231c7104701516bd23a60be3d74e079570b26061abe042a",
+      "size": 8592
+    },
+    "cyclone-dashboard/src/components/map/uncertaintyCone.js": {
+      "bucket": "frontend",
+      "sha256": "16c3bd9d1ea757a6278b0f083d0502e5b04b612308c64fb23cd66f404a3c1ac7",
+      "size": 1170
+    },
+    "cyclone-dashboard/src/index.css": {
+      "bucket": "frontend",
+      "sha256": "569ea6270759ccd260db133f8514814d335332ec511207ac4778d667a4d25980",
+      "size": 1722
+    },
+    "cyclone-dashboard/src/lib/format.js": {
+      "bucket": "frontend",
+      "sha256": "fe0de7b65642dc7e7b6ec8c2c0e92f8783f915b32c37bdbfb550628eb3076a45",
+      "size": 683
+    },
+    "cyclone-dashboard/src/main.jsx": {
+      "bucket": "frontend",
+      "sha256": "deeff048606a0994a179cda868c9573e204b47e5c0bb06e21e209a20d9b66124",
+      "size": 263
+    },
+    "cyclone-dashboard/vite.config.js": {
+      "bucket": "frontend",
+      "sha256": "44cd438192cdd974973bc3d2168248dde84ce93e601532ab4aac1974a4f0fd50",
+      "size": 669
+    },
+    "data/processed/DATA_QUALITY_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "f04e002e0bd13a8562d820b93c61652769bba4a66a1a37128dd606172189e50f",
+      "size": 5852
+    },
+    "data/processed/P4_DATA_HANDOFF_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "0b64d028d2e1cb569a98e581be11fbae61abcb4bed6fefb36d0a712f474d814f",
+      "size": 22018
+    },
+    "data/processed/P4_HANDOFF_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "d9ad9727275ad322c8d0d028056ee047e7592d533a7af9df8d3f0f482e67aad7",
+      "size": 16513
+    },
+    "data/processed/SEQUENCE_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "b48a79dcd63a68d108ce60225202889a94db9fd5c19312fb65731722cc03f218",
+      "size": 6754
+    },
+    "data/processed/example_cyclone_tracks.png": {
+      "bucket": "outside",
+      "sha256": "ffc70b3672b4ddf3594c0ca786e3777a06b35b68a7763f7f316d421ade799b82",
+      "size": 137377
+    },
+    "data/processed/ibtracs_forecasting_base.csv": {
+      "bucket": "outside",
+      "sha256": "6450d8d6116b082d2ca4c2c1931c669d4629b461e380d44f5dd7ab78edc9cb1b",
+      "size": 1364933
+    },
+    "data/processed/normalization_stats.json": {
+      "bucket": "outside",
+      "sha256": "8b2c3b71255778a7116c3a9dee291f1629a274bc675af935ed85ef98dacac080",
+      "size": 1555
+    },
+    "data/processed/sequence_visualizations/example_input_target.png": {
+      "bucket": "outside",
+      "sha256": "ce9833a15a4bfb808b642ee0eb9d16dfa8e6a1d1ccab2b71b9a77583f724353a",
+      "size": 92264
+    },
+    "data/processed/sequence_visualizations/split_distribution.png": {
+      "bucket": "outside",
+      "sha256": "845810fcc171770ff7421326b3647635439d8d0fc49a5306792f1ac48a9d30fa",
+      "size": 67355
+    },
+    "data/processed/sequences/X_test.npy": {
+      "bucket": "outside",
+      "sha256": "3111cc64a1cae9155e32997cb0aa9437c6f76a1e768ab9989c70d5932e31d220",
+      "size": 300260
+    },
+    "data/processed/sequences/X_train.npy": {
+      "bucket": "outside",
+      "sha256": "8521660e35ad0c0e57a4a69ada9979c402b5d97b9ead5caa283cc9f0d917c4ef",
+      "size": 1807976
+    },
+    "data/processed/sequences/X_val.npy": {
+      "bucket": "outside",
+      "sha256": "1c04a15754c899f651612f952d24e5016a5868e54f7100aee4d992dcb8f50aaf",
+      "size": 394004
+    },
+    "data/processed/sequences/test_metadata.csv": {
+      "bucket": "outside",
+      "sha256": "2619bccbe15cab6c9ec2ade485214992933571dba707ed5ccd06de5302fcbdb0",
+      "size": 141904
+    },
+    "data/processed/sequences/train_metadata.csv": {
+      "bucket": "outside",
+      "sha256": "f584fac96a8ced50f8a87ed541bd95889b3ce0dab4aa5689f40e50522ea7e2c8",
+      "size": 859864
+    },
+    "data/processed/sequences/val_metadata.csv": {
+      "bucket": "outside",
+      "sha256": "256ed00a19369a4ed970d52020ffb095484ed35abb4d3c8582f57f3ea34df71a",
+      "size": 186544
+    },
+    "data/processed/sequences/y_test.npy": {
+      "bucket": "outside",
+      "sha256": "e4f934a5eaa026d3864c00982908e0dffe84a33a64846c00c55725a8179096da",
+      "size": 43004
+    },
+    "data/processed/sequences/y_train.npy": {
+      "bucket": "outside",
+      "sha256": "255381d753caf6474878c78824905bbf3acbc83efcf146d3d0b9951f0cef898e",
+      "size": 258392
+    },
+    "data/processed/sequences/y_val.npy": {
+      "bucket": "outside",
+      "sha256": "7b6be7ec05308a07448cb97a6520a63a8dea226b5dadc629985d37b8b299f85a",
+      "size": 56396
+    },
+    "data/raw/ibtracs/ibtracs.NI.list.v04r01.csv": {
+      "bucket": "outside",
+      "sha256": "1e892624f97f5481cddf6b8e9e65be2925fa0a3336f399f5b9fd87fbb463fb78",
+      "size": 27877743
+    },
+    "integration_audit/API_FRONTEND_INVENTORY.md": {
+      "bucket": "outside",
+      "sha256": "5755db7ded807ae9564e853de2d313ae94fb7bc8c0bfc808657a10b2f823abe1",
+      "size": 4548
+    },
+    "integration_audit/AUDIT_SUMMARY.md": {
+      "bucket": "outside",
+      "sha256": "22b2a2dd158e945406870268e281c31f6d56f3903b208e6949adbe708d6a044c",
+      "size": 4584
+    },
+    "integration_audit/CLEANUP_CANDIDATES.md": {
+      "bucket": "outside",
+      "sha256": "05cc1dc8efff387ccf361a832c77342901a3f4db5dbdeec584faa4d1153ebd77",
+      "size": 4974
+    },
+    "integration_audit/DATASET_INVENTORY.md": {
+      "bucket": "outside",
+      "sha256": "4cd59d155606e43ce10aef66700066b17ed4bd5a9e3e39730b8457d3efc0afa3",
+      "size": 6314
+    },
+    "integration_audit/DIRECTORY_INVENTORY.md": {
+      "bucket": "outside",
+      "sha256": "79d9f9fa29ff371e19361baae0aff7aeecef7ed677990da4a88208aae4752d90",
+      "size": 13458
+    },
+    "integration_audit/DUPLICATE_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "70a24043d7244e4f6cc00f97d333d1893647728e61177277183c91d10eafc146",
+      "size": 5422
+    },
+    "integration_audit/INTEGRATION_MAP.md": {
+      "bucket": "outside",
+      "sha256": "79dd21b8a19a62e4ba0988ae47f485d6c449a513d924518cb355d03e0aa836e7",
+      "size": 7018
+    },
+    "integration_audit/MODEL_INVENTORY.md": {
+      "bucket": "outside",
+      "sha256": "05548d4dfa64917495c3e6d947b86825f8ed51fb595b3ea0ab373cb7a5157cd8",
+      "size": 4500
+    },
+    "integration_audit/SOURCE_HASHES_AFTER.json": {
+      "bucket": "outside",
+      "sha256": "fa74cd9c135eb19a1ac95d6af12b5825f3f4bf8cf9f8c4b56f0b20c1ef9ef348",
+      "size": 74046
+    },
+    "integration_audit/SOURCE_HASHES_BEFORE.json": {
+      "bucket": "outside",
+      "sha256": "fa74cd9c135eb19a1ac95d6af12b5825f3f4bf8cf9f8c4b56f0b20c1ef9ef348",
+      "size": 74046
+    },
+    "integration_audit_accuracy/ACCURACY_READINESS_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "2736ea5930034ce5634f617fdee4872565581724890e7f71df6f9e64cff3d4f1",
+      "size": 3906
+    },
+    "integration_audit_accuracy/API_COMPATIBILITY.md": {
+      "bucket": "outside",
+      "sha256": "9e0fec79d88590d3e8dba25e403a6b1b3e0f9d9db714b0d9b2e36f67dcd6b635",
+      "size": 2784
+    },
+    "integration_audit_accuracy/AUDIT_ALL_IN_ONE.md": {
+      "bucket": "outside",
+      "sha256": "08e0948f6771cba1e575703d6ff4071ff5187f42f7e3a0635a12a62ba2515b2d",
+      "size": 712630
+    },
+    "integration_audit_accuracy/AUDIT_MANIFEST.json": {
+      "bucket": "outside",
+      "sha256": "10def1de232c4cc60c54c7208f063ff13a5fa69c87f4f7e281ccad620412c925",
+      "size": 5140
+    },
+    "integration_audit_accuracy/CLAIMS_WE_CAN_MAKE.md": {
+      "bucket": "outside",
+      "sha256": "c020b56677808a1a4a86e871d4cc693c11f093eb20b0c1f80e722aed01765488",
+      "size": 2918
+    },
+    "integration_audit_accuracy/COMPONENT_MAP.md": {
+      "bucket": "outside",
+      "sha256": "018639bd772e996da68f23dbabffac5735f27fcbed0bfb25e3a7ce345f465a0b",
+      "size": 5998
+    },
+    "integration_audit_accuracy/INTEGRATION_READINESS.md": {
+      "bucket": "outside",
+      "sha256": "5132adf1a44aee8910e11a7045713dd01679231e5d6a0f26bd5c015588a203aa",
+      "size": 3574
+    },
+    "integration_audit_accuracy/LEAKAGE_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "9f3545ab5273c132f266d66ce90a1c474a0a14e6310fd173fb262f8dff19399b",
+      "size": 4948
+    },
+    "integration_audit_accuracy/METRIC_VERIFICATION.csv": {
+      "bucket": "outside",
+      "sha256": "d38b6d68fdb896b77c0f4969717b0f2f381c4f98fa49605770873c486dd7a52e",
+      "size": 5704
+    },
+    "integration_audit_accuracy/MODEL_STRENGTH_SUMMARY.md": {
+      "bucket": "outside",
+      "sha256": "bc2a904071cb72096a5feef1e483cb6a64cc441984aae9772f179db4bd86a0e7",
+      "size": 3081
+    },
+    "integration_audit_accuracy/P1_DATA_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "f5db66e22cd2fdcff4400eeaa66578473d485a97aadced816d140a74c6873306",
+      "size": 5112
+    },
+    "integration_audit_accuracy/P2_DETECTION_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "d1d93d2b45e3386a0a4e1e1a1a6267ceac413bd94b0dbb45e66b8fcc902a1e15",
+      "size": 3223
+    },
+    "integration_audit_accuracy/P3_CLASSIFICATION_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "77c4c1942089ae2f5c193311251dfd2fbea857da01dd35119c8860b7897cfb26",
+      "size": 2940
+    },
+    "integration_audit_accuracy/P4_EXPERIMENT_RANKING.csv": {
+      "bucket": "outside",
+      "sha256": "b2f7b60baff4035b1902a024414e708bce11581898468419501432d9f901cbe2",
+      "size": 1965
+    },
+    "integration_audit_accuracy/P4_FORECASTING_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "4bb8c154daa310545830d6cd12470055efb063078594be746f92a382a6e51882",
+      "size": 5566
+    },
+    "integration_audit_accuracy/P5_FRONTEND_READINESS.md": {
+      "bucket": "outside",
+      "sha256": "cba946a4afcdd62f2fcb8e47786c9dc4e93acb4af11b2bd778b77eff78fab44e",
+      "size": 2947
+    },
+    "integration_audit_accuracy/REPOSITORY_INVENTORY.md": {
+      "bucket": "outside",
+      "sha256": "e4013219413b33824f7c64e825f536da0074a7576b085c7f7d2d6289b9e8e108",
+      "size": 4858
+    },
+    "integration_audit_accuracy/SOURCE_HASHES_AFTER.json": {
+      "bucket": "outside",
+      "sha256": "0559056a3dc0c1e3bf1410dbf3c1d6c2f1bd79928d528b4a9f6c9fc83f473484",
+      "size": 304808
+    },
+    "integration_audit_accuracy/SOURCE_HASHES_BEFORE.json": {
+      "bucket": "outside",
+      "sha256": "0563f5975fa56658d54a936e6f754234f0c06a5cb44ae9d514f87801eedad4a0",
+      "size": 304940
+    },
+    "integration_audit_accuracy/SOURCE_IMMUTABILITY_REPORT.json": {
+      "bucket": "outside",
+      "sha256": "711d634f93a96a04948af3121b351121a7418110c9ded287cf5565a08761abdd",
+      "size": 885
+    },
+    "integration_audit_accuracy/p1_metrics.json": {
+      "bucket": "outside",
+      "sha256": "cedaba4b0e15e608f6d8028122d815d3c5f2d181c837c5f99dfb7860c1773422",
+      "size": 10655
+    },
+    "integration_audit_accuracy/p2_metrics.json": {
+      "bucket": "outside",
+      "sha256": "98ba0e13f07004033c2cd0fcb3eae0a973add7ab3ae6f98348a68711e2c035e3",
+      "size": 1737
+    },
+    "integration_audit_accuracy/p3_metrics.json": {
+      "bucket": "outside",
+      "sha256": "adadbccddde2815095c0d2372dfea442cc126b4216f61c18ead87dea41d94967",
+      "size": 1391
+    },
+    "integration_audit_accuracy/p4_metrics.json": {
+      "bucket": "outside",
+      "sha256": "e24f36466abb5f933b1ae1d8a82db2147f957e316eb4c5d419fee293d7ad599c",
+      "size": 6129
+    },
+    "integration_audit_accuracy/p5_metrics.json": {
+      "bucket": "outside",
+      "sha256": "fff37c99b3364bb0bc94625e27b3354aa4f4013d693ec8302a860bf587ef46be",
+      "size": 940
+    },
+    "integration_audit_accuracy/tests/conftest.py": {
+      "bucket": "outside",
+      "sha256": "d18c0f49496fc50df2bd3730accfa3020787e412a0c73dab62924ec4f4008ff9",
+      "size": 1716
+    },
+    "integration_audit_accuracy/tests/test_immutability.py": {
+      "bucket": "outside",
+      "sha256": "f52f3f78bb8b9162a69f3f4f8339a738ad2bd1170c5b94a8053ac668d0becb54",
+      "size": 1417
+    },
+    "integration_audit_accuracy/tests/test_p1_pipeline.py": {
+      "bucket": "outside",
+      "sha256": "11834c049287b3df03aee5ab07c6646567b775c3e3b1641c3ec948713c8acc82",
+      "size": 2877
+    },
+    "integration_audit_accuracy/tests/test_p2_detection.py": {
+      "bucket": "outside",
+      "sha256": "a28fd01691eba7aa927e5ee9d3c6d9e1beadc4c8ca326cd83217a97c53b1a644",
+      "size": 1169
+    },
+    "integration_audit_accuracy/tests/test_p3_classification.py": {
+      "bucket": "outside",
+      "sha256": "117cb47e2dd48bfa4783774ee5dbcdc4a58f5aa091a3bff818dbfa429a7e3959",
+      "size": 1214
+    },
+    "integration_audit_accuracy/tests/test_p4_forecasting.py": {
+      "bucket": "outside",
+      "sha256": "4c5050743abef3a5c6255c963c0b6af442dbcf3efe5f71c70aa146aec86f5290",
+      "size": 1810
+    },
+    "integration_audit_accuracy/tests/test_p5_api.py": {
+      "bucket": "outside",
+      "sha256": "5f94722e3d0d15944ede5eac6a159972434db9275a3de4b347417aa47eed428a",
+      "size": 2281
+    },
+    "models/lstm_forecaster.pt": {
+      "bucket": "outside",
+      "sha256": "1483f4678aeba230dfd204cafe4bfe1ce8491e1361074f2a8da8de94af8a1e0e",
+      "size": 79768
+    },
+    "models/model_config.json": {
+      "bucket": "outside",
+      "sha256": "4a1e863af5a2b322ba1dec461f9c1db843ea48854d8c534e60f37bfc0bc486a3",
+      "size": 679
+    },
+    "models/preprocessing_config.json": {
+      "bucket": "outside",
+      "sha256": "baf522368e77abc94729c125895bfc11ff93c2da580e8de26cf9744618aa9b4f",
+      "size": 3263
+    },
+    "p4_forecasting/_source_p1/PS70-main/build_datasets.py": {
+      "bucket": "p1",
+      "sha256": "586ae286e39ece70e69461c66d379d30e87c81b8dcae1d57e03c2766f8b9be57",
+      "size": 13662
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/ibtracs_clean.csv": {
+      "bucket": "p1",
+      "sha256": "bcd4bf0e05b63aaffd458f10f694e692a1cceff78f7eba3eeb2f1c2193db2acb",
+      "size": 1487310
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/ibtracs_with_era5.csv": {
+      "bucket": "p1",
+      "sha256": "35b4ccea3e086f1008d1a8e1404dd9b8c114ba49aac8fc403fe75660d779605d",
+      "size": 709456
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/master_dataset.csv": {
+      "bucket": "p1",
+      "sha256": "003b8b944e856ff2763a40ce57288cda5d9497246ea73d71cce2af6d0f62c5b9",
+      "size": 738948
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/mosdac_needed_cyclones.csv": {
+      "bucket": "p1",
+      "sha256": "d425c8adf40d9f6788a1fbae04acdc00b9e06ee7698dc85f43f6745dd4352502",
+      "size": 3697
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/mosdac_priority1_named.csv": {
+      "bucket": "p1",
+      "sha256": "8c9988b0d18d60dbda0d5484972e0e3a432c7ef9d69ca0aa0f797d66738deaa1",
+      "size": 1392
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/mosdac_priority2_unnamed.csv": {
+      "bucket": "p1",
+      "sha256": "3c190d5743be21dde9b333357d190be9271a2cfe7b80a5054102b5bb2c454e3b",
+      "size": 2641
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/test.csv": {
+      "bucket": "p1",
+      "sha256": "e59fccce9ab187d7bc8b185a687fb1138f6e18e47e33980dbe2719c6c88462e4",
+      "size": 110840
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/test_cyclones.csv": {
+      "bucket": "p1",
+      "sha256": "096fcf2ecee4f2ee6d32a476359bbe811180870d18feef72f81a5eba0f88fd59",
+      "size": 347
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/train.csv": {
+      "bucket": "p1",
+      "sha256": "4e8b4724f42b4f66f0380b7b650807d616a6bb93d073325fececf4ef53b29a59",
+      "size": 527509
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/train_cyclones.csv": {
+      "bucket": "p1",
+      "sha256": "c4feb714f31756a059ec489ba3a9f1b5cde66f69bfe9c1432e9612511f460040",
+      "size": 1481
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/validation.csv": {
+      "bucket": "p1",
+      "sha256": "41f0dc8bc798c87a79ef428362a2a83c5470a1bb2aefba0e8af49b67dbf663c1",
+      "size": 100863
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/metadata/validation_cyclones.csv": {
+      "bucket": "p1",
+      "sha256": "82b5678b94327f2ee062263fdcad802c3eb9dcdbfe9e483dcfca3dbf1a225ccc",
+      "size": 319
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/README.md": {
+      "bucket": "p1",
+      "sha256": "0f943f7e52d5f11cd3cde30d533578c3d63152c5a74b312db8255cc52032707d",
+      "size": 2283
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/test_sequences.npz": {
+      "bucket": "p1",
+      "sha256": "882535a1a8886c45ad094878a5a184c860acf1c61a3ecc29133caa576be7eb04",
+      "size": 15074
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/test_sequences_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "f2a1526556dc2e176ab5787784f33cb9ff72dd7ae3a0a9dc5bd0c57df1d7ec16",
+      "size": 57724
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/train_sequences.npz": {
+      "bucket": "p1",
+      "sha256": "1a65f93f2f698d5956fb1b23c74a80780046f151bc44012122be97d85f1053f9",
+      "size": 69267
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/train_sequences_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "54cee046c6c764ffc7e079cfccddff9da26665f78ef63e83530632d2745b0539",
+      "size": 306770
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/val_sequences.npz": {
+      "bucket": "p1",
+      "sha256": "d0e4fd91d207cd1d43aeccf32edee49c8de7e75d8a7079c5335377a45f1a1073",
+      "size": 13677
+    },
+    "p4_forecasting/_source_p1/PS70-main/data/processed/forecasting/val_sequences_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "b182592a68f93c375fd3a3d28012643052cff4e1e75bb548047242bf28f4086e",
+      "size": 52265
+    },
+    "p4_forecasting/_source_p1/PS70-main/download_era5.py": {
+      "bucket": "p1",
+      "sha256": "be1cbda61ae4f73319a1cf2f484b008c1375d00b8f2b3155d54bd95ae690ca27",
+      "size": 4374
+    },
+    "p4_forecasting/_source_p1/PS70-main/extract_era5_at_points.py": {
+      "bucket": "p1",
+      "sha256": "127ad459bd6be1b073bfd5d3d314cdfe19b98ae7aed082d259643627948ec22f",
+      "size": 5722
+    },
+    "p4_forecasting/_source_p1/PS70-main/get_ibtracs.py": {
+      "bucket": "p1",
+      "sha256": "c59cef058bfe84d5c327fe99af352f3fd354045da8967b196a94fa757afce5c5",
+      "size": 9006
+    },
+    "p4_forecasting/audit/LEAKAGE_AUDIT.md": {
+      "bucket": "phase1",
+      "sha256": "9b7da616b56db5e21901a9911d2ee28432730d31b901946d91e7e32287cdef3b",
+      "size": 1726
+    },
+    "p4_forecasting/audit/NPZ_AUDIT_REPORT.md": {
+      "bucket": "phase1",
+      "sha256": "fcbf2d967058c576eb80b9566c5679fb4f29255244c04ce518e58aa4b7097d08",
+      "size": 1662
+    },
+    "p4_forecasting/audit/P4_FILE_INVENTORY.md": {
+      "bucket": "phase1",
+      "sha256": "4f9d025b3968b1154fdfe3c87d7f509f4f927d9db223615e72dc22a85091bf68",
+      "size": 16858
+    },
+    "p4_forecasting/audit/PHYSICAL_SANITY_REPORT.md": {
+      "bucket": "phase1",
+      "sha256": "62ecf233f49207e17d1cebdf2a39c6fd255f211fb2378d9ad1f8bc4bfcfba311",
+      "size": 1691
+    },
+    "p4_forecasting/audit/SPLIT_LEAKAGE_AUDIT.md": {
+      "bucket": "phase1",
+      "sha256": "bee5ddafc6d87adc489fd62fd54ccbe41c3b456502be27d760cb0191dd43a51c",
+      "size": 740
+    },
+    "p4_forecasting/audit/TEMPORAL_AUDIT.md": {
+      "bucket": "phase1",
+      "sha256": "ffc5bcb9660f21aa3da49000e921d2b50d6895b72e76eacae890d07f4f85cf2c",
+      "size": 2489
+    },
+    "p4_forecasting/audit/TEMPORAL_SPLIT_QUALITY.md": {
+      "bucket": "phase1",
+      "sha256": "4ce5dcd940030f7369a6e0b19b01846fa65ef80fad30f58240d465412e1be074",
+      "size": 1141
+    },
+    "p4_forecasting/audit/leakage_results.csv": {
+      "bucket": "phase1",
+      "sha256": "7115ff6f07638ce48efd124646f2f815149e09e2f07f8ceae50a7c69b070ba1a",
+      "size": 418210
+    },
+    "p4_forecasting/canonical/P4_DATA_CONTRACT.md": {
+      "bucket": "p1",
+      "sha256": "f641afe5584606074e32bdd0569608804f4422063746ad2e2f21912b36abafbf",
+      "size": 3205
+    },
+    "p4_forecasting/canonical/sample_quality.csv": {
+      "bucket": "p1",
+      "sha256": "239dbb035e016242c9cea842e7f6aa335b007aa4bd2f111210634268dc9c631a",
+      "size": 325097
+    },
+    "p4_forecasting/canonical/test.npz": {
+      "bucket": "p1",
+      "sha256": "a90beea0394c9e63b4b093351f5aef9084b5d47d62d2dfb512f73369929400f7",
+      "size": 15067
+    },
+    "p4_forecasting/canonical/test_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "6ca2bb49e483b956f29a07fe89bf0e1bb0673af0cab0f73f87377315d5340021",
+      "size": 85486
+    },
+    "p4_forecasting/canonical/train.npz": {
+      "bucket": "p1",
+      "sha256": "4f3b289d1b7fad1c02bf273349bb669f63210762cb66a1224812a22df10e44e4",
+      "size": 69668
+    },
+    "p4_forecasting/canonical/train_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "1f985a452c72569bd1df7e6263306b26a7c24aaee05275953f7bde38233aac4b",
+      "size": 459159
+    },
+    "p4_forecasting/canonical/val.npz": {
+      "bucket": "p1",
+      "sha256": "16f753c8ba33f2c9a90a890e447009ec483152ed7b71c83812451d2d97039c85",
+      "size": 13621
+    },
+    "p4_forecasting/canonical/val_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "56a3de0568032a8a213851abac1d90a961182dd4eb16d2c59f23b940e60be102",
+      "size": 78446
+    },
+    "p4_forecasting/canonical_chrono/split_manifest.csv": {
+      "bucket": "p1",
+      "sha256": "a9269478b880d8ec663943c7b4d15e5725369110ca2ec3af8fd11e1c34c3c748",
+      "size": 6208
+    },
+    "p4_forecasting/canonical_chrono/test.npz": {
+      "bucket": "p1",
+      "sha256": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+      "size": 13204
+    },
+    "p4_forecasting/canonical_chrono/test_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "870172f9d041c78ff13fda314e9b0a8da8b3e99f5d6d179af9561666676657bc",
+      "size": 54659
+    },
+    "p4_forecasting/canonical_chrono/train.npz": {
+      "bucket": "p1",
+      "sha256": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+      "size": 70748
+    },
+    "p4_forecasting/canonical_chrono/train_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "75d17b23aaa039d135780846a949cd5b6daf36f005c583059b15e07915c4de2d",
+      "size": 307261
+    },
+    "p4_forecasting/canonical_chrono/val.npz": {
+      "bucket": "p1",
+      "sha256": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+      "size": 14443
+    },
+    "p4_forecasting/canonical_chrono/val_metadata.csv": {
+      "bucket": "p1",
+      "sha256": "40b19edc759aaf1b260e4d82f38b9bdced50c8789302470c29fd1a2eeccd99ea",
+      "size": 56783
+    },
+    "p4_forecasting/integration_api/__init__.py": {
+      "bucket": "allowed_integration",
+      "sha256": "ec3c98a666b167b0086d4b9d3c01dec03a986423ac4abd7a7b798cee4eb414f7",
+      "size": 801
+    },
+    "p4_forecasting/integration_api/analyzer.py": {
+      "bucket": "allowed_integration",
+      "sha256": "f45e3543673c1a373f9f1a6916130ac4c6ca7f41bbdff8a63c1cdf738525bfa8",
+      "size": 15520
+    },
+    "p4_forecasting/integration_api/app.py": {
+      "bucket": "allowed_integration",
+      "sha256": "1aa88e6c51f77b50f929c1c5f2f26939c7512b8d5c43ea5565713598c92ddce1",
+      "size": 1011
+    },
+    "p4_forecasting/integration_api/config.py": {
+      "bucket": "allowed_integration",
+      "sha256": "1e794e4dc3723901f0f7f09b3d3bf8fb1f09925e47f2b466ffc70de719d3ca4d",
+      "size": 4777
+    },
+    "p4_forecasting/integration_api/p2_detector.py": {
+      "bucket": "allowed_integration",
+      "sha256": "ddf5cf149634d0460af50342751e440c7e17d21b2f86de3221d04a7ea6b3f22d",
+      "size": 4901
+    },
+    "p4_forecasting/integration_api/p3_classifier.py": {
+      "bucket": "allowed_integration",
+      "sha256": "c884364126164a143f41c516bc8b0e6d6617669f008952459279f8303e145e18",
+      "size": 5080
+    },
+    "p4_forecasting/integration_api/routes.py": {
+      "bucket": "allowed_integration",
+      "sha256": "5253961fd78f868161af78805c09889a398034394acbaf9f55354f80759a5037",
+      "size": 2196
+    },
+    "p4_forecasting/integration_api/schemas.py": {
+      "bucket": "allowed_integration",
+      "sha256": "256ce23aea7a75e41ceee3946fd2d1554384b55e040b7e1eb6cb4186ad700430",
+      "size": 4041
+    },
+    "p4_forecasting/integration_api/tests/__init__.py": {
+      "bucket": "allowed_integration",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "p4_forecasting/integration_api/tests/conftest.py": {
+      "bucket": "allowed_integration",
+      "sha256": "7059004761bff269befe07cff5dcb137a68bd181f7b9cc07537ebf5c35d7b4b2",
+      "size": 1522
+    },
+    "p4_forecasting/integration_api/tests/test_analyze_contract.py": {
+      "bucket": "allowed_integration",
+      "sha256": "6f0ae5f3a509bdc60d5498aef1dad5dedd165c7adc6ed8e0e77ea9681d6e6a90",
+      "size": 5830
+    },
+    "p4_forecasting/integration_api/tests/test_health.py": {
+      "bucket": "allowed_integration",
+      "sha256": "9c91503ae7f2c5bb9edd7c5dd23990acce80ded3e2382ec988d1e289f7343493",
+      "size": 1284
+    },
+    "p4_forecasting/integration_api/tests/test_modes.py": {
+      "bucket": "allowed_integration",
+      "sha256": "8a9eb6b6b32f18bd7a04c86d1b6ee8fe2fde9138f48522a491210672e970b6f6",
+      "size": 1923
+    },
+    "p4_forecasting/integration_api/tests/test_offline.py": {
+      "bucket": "allowed_integration",
+      "sha256": "4f62ba7b45007185038c9a33f8e11911cb94b9e85ace04f6e739a700e8e770cf",
+      "size": 727
+    },
+    "p4_forecasting/integration_api/tests/test_validation.py": {
+      "bucket": "allowed_integration",
+      "sha256": "03331d3efcf707618288e857bcb16b9c1c4736eb4247122571cc59d887725aec",
+      "size": 1886
+    },
+    "p4_forecasting/integration_api/zip_store.py": {
+      "bucket": "allowed_integration",
+      "sha256": "a5790973711dd6b425df58bfbc997681051e6e98b1fb58a39943250c5815b84c",
+      "size": 4297
+    },
+    "p4_forecasting/logs/p1_source_hashes.json": {
+      "bucket": "phase1",
+      "sha256": "87cd3261a90bd604cac2bf58317729840a4695dd4fcb59ec006db6424cd8815f",
+      "size": 13849
+    },
+    "p4_forecasting/logs/run_20260829_132135.log": {
+      "bucket": "phase1",
+      "sha256": "e3dfded3ef96373e0175db04989a9ffab954b6587a0f2846bde84c5f0fd47ce3",
+      "size": 528
+    },
+    "p4_forecasting/logs/run_20260829_132147.log": {
+      "bucket": "phase1",
+      "sha256": "8cd3dba4920d59d3af7a304df80a2d8f18920694b62aa0af541b485499e422e4",
+      "size": 799
+    },
+    "p4_forecasting/logs/run_20260829_132203.log": {
+      "bucket": "phase1",
+      "sha256": "a5644575b610de9367d9262cf38b9af9921cb5124318f5c9b63d2e8d69750c82",
+      "size": 1083
+    },
+    "p4_forecasting/logs/run_20260829_132251.log": {
+      "bucket": "phase1",
+      "sha256": "c1bf19190c46265f760d8ba1d67ac1a87a154fd78edf4daaa397dab7a928ce1b",
+      "size": 1541
+    },
+    "p4_forecasting/logs/run_20260829_132328.log": {
+      "bucket": "phase1",
+      "sha256": "980273fac321baf9b13b93107530f26d12cd9e9357110adb4851a1006f09ad62",
+      "size": 2706
+    },
+    "p4_forecasting/logs/run_20260829_132404.log": {
+      "bucket": "phase1",
+      "sha256": "4f4e4461a13611bb011f90a1ebbc2079f9fee667414307b115ca55423362c881",
+      "size": 2610
+    },
+    "p4_forecasting/logs/run_20260829_132529.log": {
+      "bucket": "phase1",
+      "sha256": "74fce5be5ce42949559e93fa51d3d91ecb3cf2a4a3ba4f433ed769256dccd59f",
+      "size": 2610
+    },
+    "p4_forecasting/phase2/__init__.py": {
+      "bucket": "phase2",
+      "sha256": "2cf9f91a3a66dfbbd48f00173f203ff642dfa35c8116d698b6b3561e436159f2",
+      "size": 88
+    },
+    "p4_forecasting/phase2/baselines/__init__.py": {
+      "bucket": "phase2",
+      "sha256": "215091402021a43448f2b97908271398af6c97c94ccf49ff9a048f50389db978",
+      "size": 39
+    },
+    "p4_forecasting/phase2/baselines/movement_vector.py": {
+      "bucket": "phase2",
+      "sha256": "8338b91c97dedc9b9312bd1d1135ace01cd015bccec3964a355bfd8016c5f406",
+      "size": 2882
+    },
+    "p4_forecasting/phase2/baselines/persistence.py": {
+      "bucket": "phase2",
+      "sha256": "6c9e6a39d8959886e15de12869e5b9a4b0ccaa731ca4a7561b7ea8795aa28d77",
+      "size": 1344
+    },
+    "p4_forecasting/phase2/dataloader/__init__.py": {
+      "bucket": "phase2",
+      "sha256": "d73b9c67ce872a0f8d65ff91e26d9424ff6714ca81dd809affa0eee4002db0db",
+      "size": 40
+    },
+    "p4_forecasting/phase2/dataloader/build_clean_dataset.py": {
+      "bucket": "phase2",
+      "sha256": "9b73d0e7cd883d69c0b59a627daf85d32ffc361a46252c3954deb8f4250762e2",
+      "size": 5028
+    },
+    "p4_forecasting/phase2/dataloader/build_dataloaders.py": {
+      "bucket": "phase2",
+      "sha256": "94c34934165fd35222afd1e05923216c0ca39799e112278831a5b5711f4c094c",
+      "size": 1894
+    },
+    "p4_forecasting/phase2/dataloader/forecasting_dataset.py": {
+      "bucket": "phase2",
+      "sha256": "f72a70278177d997f4ded98f0b42d0e19c34c4d1d5551ec71b40639e4392508f",
+      "size": 4408
+    },
+    "p4_forecasting/phase2/evaluation/__init__.py": {
+      "bucket": "phase2",
+      "sha256": "776329e75c6e9654eeef908467168ff31776bbee54ad95c7bb49bcb1806124b1",
+      "size": 40
+    },
+    "p4_forecasting/phase2/evaluation/evaluate_baselines.py": {
+      "bucket": "phase2",
+      "sha256": "14ca057b9d282455d9117ee90a8a9c096dde5a3fe30103f79e5c76417abecbd9",
+      "size": 3060
+    },
+    "p4_forecasting/phase2/evaluation/geo_metrics.py": {
+      "bucket": "phase2",
+      "sha256": "d2f0a2cddd59517a33b5ad2475408699d05c0724aff9e14e910ce503cda13915",
+      "size": 1517
+    },
+    "p4_forecasting/phase2/evaluation/metrics.py": {
+      "bucket": "phase2",
+      "sha256": "7d1f6d04f51a2f92e132db96b581b7b9e1a3ae275bc9332fdf9f601bdfe25578",
+      "size": 2860
+    },
+    "p4_forecasting/phase2/reports/BASELINE_REPORT.md": {
+      "bucket": "phase2",
+      "sha256": "9ac6e5e1c359eda231635391d39a51beccde76956d0a951917e7d091e38bd437",
+      "size": 2439
+    },
+    "p4_forecasting/phase2/results/baseline_results.json": {
+      "bucket": "phase2",
+      "sha256": "d939675311ab95c6adf1c225083251b2912e3164da12ebb6be5f303c2f3598b3",
+      "size": 3881
+    },
+    "p4_forecasting/phase2/results/canonical_chronological_clean/test.npz": {
+      "bucket": "phase2",
+      "sha256": "b8a28425887e02a18998da9a74e3916f27b4aa570523b7b38f68bf64a9b9762c",
+      "size": 7459
+    },
+    "p4_forecasting/phase2/results/canonical_chronological_clean/test_metadata.csv": {
+      "bucket": "phase2",
+      "sha256": "188a8a430fbf99815db580e3c14a358e56d823bebd002554201369dd8a1ccd74",
+      "size": 29357
+    },
+    "p4_forecasting/phase2/results/canonical_chronological_clean/train.npz": {
+      "bucket": "phase2",
+      "sha256": "ddd0b149dc333728f4db45a3cedbb4724f085f132440394a8265f0ca74b3b451",
+      "size": 41975
+    },
+    "p4_forecasting/phase2/results/canonical_chronological_clean/train_metadata.csv": {
+      "bucket": "phase2",
+      "sha256": "d6e50c00daa008c53037ce575eb588856099bdfcc2c041408acafebeff0a87d3",
+      "size": 180271
+    },
+    "p4_forecasting/phase2/results/canonical_chronological_clean/val.npz": {
+      "bucket": "phase2",
+      "sha256": "7a8c237de655d7c5cf49e6e69783e89d63c9785c6275da14b37c8c5c0975418a",
+      "size": 9282
+    },
+    "p4_forecasting/phase2/results/canonical_chronological_clean/val_metadata.csv": {
+      "bucket": "phase2",
+      "sha256": "ee491dbc93144d97399c4f56d403bb35f81a59c512e6113e3298b98b88940b16",
+      "size": 34598
+    },
+    "p4_forecasting/phase2/run_phase2.py": {
+      "bucket": "phase2",
+      "sha256": "30ca98a326d4a4f6b09db589a443dace8341010e658b358ea28705bb488dc3d7",
+      "size": 12895
+    },
+    "p4_forecasting/phase2/tests/__init__.py": {
+      "bucket": "phase2",
+      "sha256": "16dd447b6c2753940508454865e65215bbdbaaffc299a9d015f640fcff1105b8",
+      "size": 35
+    },
+    "p4_forecasting/phase2/tests/test_baselines.py": {
+      "bucket": "phase2",
+      "sha256": "b7a320cd3fe1679f47f67c5f696455844dc9703b957abd614037139fd58a4547",
+      "size": 4420
+    },
+    "p4_forecasting/phase2/tests/test_dataloader.py": {
+      "bucket": "phase2",
+      "sha256": "e0271da000d36704315f003d14a1f8600cef8a51006cbd9bc2493371babaf967",
+      "size": 6060
+    },
+    "p4_forecasting/phase3/__init__.py": {
+      "bucket": "phase3",
+      "sha256": "b8e2516275162c48427da2ac93df8d021444c1d3daf966b52d736ef52f1b9223",
+      "size": 81
+    },
+    "p4_forecasting/phase3/checkpoints/best_lstm.pt": {
+      "bucket": "phase3",
+      "sha256": "163cdbec4daab49c5bcc5d6945bc6c50b4a7cb89f56eda3b88c4e1902a720a0f",
+      "size": 79708
+    },
+    "p4_forecasting/phase3/checkpoints/model_config.json": {
+      "bucket": "phase3",
+      "sha256": "14c2180f65eaf02b11c30fbcb6492ca271e225050f0fc8999b1ac7da673524fe",
+      "size": 533
+    },
+    "p4_forecasting/phase3/evaluation/__init__.py": {
+      "bucket": "phase3",
+      "sha256": "ed34decb5fc5f641ee766c600e1cf898529878c83c3023c6a7f8da414cfa5b7a",
+      "size": 40
+    },
+    "p4_forecasting/phase3/evaluation/compare_baselines.py": {
+      "bucket": "phase3",
+      "sha256": "1794a339e8636a9ee776ae09269c4e7e555bda110ba1759b59512a64e87ade84",
+      "size": 2773
+    },
+    "p4_forecasting/phase3/evaluation/evaluate_model.py": {
+      "bucket": "phase3",
+      "sha256": "a1331415dcef70f6f2faca42ff4dcaf49152ad376b85f9b404703ff32195552f",
+      "size": 3239
+    },
+    "p4_forecasting/phase3/inference/__init__.py": {
+      "bucket": "phase3",
+      "sha256": "347e7a996959aa94d2a2fb13941479ffa5efdd90bc484e544919bc26813104b0",
+      "size": 39
+    },
+    "p4_forecasting/phase3/inference/forecaster.py": {
+      "bucket": "phase3",
+      "sha256": "dfe6c4cd9665fc46eda5bef61a6d520690ab60df0984c2bb070e2d737eda137f",
+      "size": 3894
+    },
+    "p4_forecasting/phase3/model/__init__.py": {
+      "bucket": "phase3",
+      "sha256": "f56dd7e2e2f376ff59a7774058e915172014fa6ba5aba877187cd491a215c76f",
+      "size": 35
+    },
+    "p4_forecasting/phase3/model/cyclone_lstm.py": {
+      "bucket": "phase3",
+      "sha256": "4baecd14c116b75d4aed75deaa4140f6a8232fcaf82e4cecc35f2dc64cf07b14",
+      "size": 2909
+    },
+    "p4_forecasting/phase3/reports/MODEL_REPORT.md": {
+      "bucket": "phase3",
+      "sha256": "5d6a7950e840b5db1b92d397c705d23d4db9c587b3706df275e1cd79f86e17ac",
+      "size": 4443
+    },
+    "p4_forecasting/phase3/reports/generate_model_report.py": {
+      "bucket": "phase3",
+      "sha256": "9711b5231a54babddd229c1a0f129248fbb6c27a58050b6e649687cdd9658fca",
+      "size": 7664
+    },
+    "p4_forecasting/phase3/results/evaluation_results.json": {
+      "bucket": "phase3",
+      "sha256": "d8cb4b90a57d152dd5c0a5aefe49e2d24f2b37543e2d34570a0607349e0f6498",
+      "size": 1560
+    },
+    "p4_forecasting/phase3/results/model_comparison.json": {
+      "bucket": "phase3",
+      "sha256": "33717d181c55dea9fad1d318f3024a3f4e45fcc7e61ba3316814134f5f92f788",
+      "size": 6089
+    },
+    "p4_forecasting/phase3/results/normalization_stats.json": {
+      "bucket": "phase3",
+      "sha256": "e267e430dffc11e74bcccdf7f1e5be31064494ad9ccef6e1fbe303eef113899f",
+      "size": 939
+    },
+    "p4_forecasting/phase3/results/run_metadata.json": {
+      "bucket": "phase3",
+      "sha256": "49011dd888cf4956789fa1638f5fcd28d0c96ae5a77ba45c5ce83a6a51df5a04",
+      "size": 375
+    },
+    "p4_forecasting/phase3/results/source_hashes.json": {
+      "bucket": "phase3",
+      "sha256": "6a45916af3522125446ff2a61cb201f876fc9efebf76e57e7e417834c7ef9308",
+      "size": 1672
+    },
+    "p4_forecasting/phase3/results/training_history.json": {
+      "bucket": "phase3",
+      "sha256": "63745ca252247bea72c646248073387c425ee8009d45cec074a7f3160c202062",
+      "size": 6711
+    },
+    "p4_forecasting/phase3/results/training_loss_curve.png": {
+      "bucket": "phase3",
+      "sha256": "3c20515216df3ee4543c29d393de551be9b3d4b7f92d0bf1360c76896f1362d5",
+      "size": 45842
+    },
+    "p4_forecasting/phase3/run_phase3.py": {
+      "bucket": "phase3",
+      "sha256": "3ea6277a9ed012aa6a24b018048fca0c2763891221a3b273ecc7b2b9c6257cae",
+      "size": 17036
+    },
+    "p4_forecasting/phase3/tests/__init__.py": {
+      "bucket": "phase3",
+      "sha256": "936950133abb4d963091b4241aeaa674c2123ab02ad7f7c35907a51987482d19",
+      "size": 35
+    },
+    "p4_forecasting/phase3/tests/conftest.py": {
+      "bucket": "phase3",
+      "sha256": "f143069899a452167f2fccb2e907beca95da82be85987710ba993ab2e1bca2a0",
+      "size": 333
+    },
+    "p4_forecasting/phase3/tests/test_checkpoint_loading.py": {
+      "bucket": "phase3",
+      "sha256": "7e86c6282da4cde4ec42ae8c525a90f3b4303d89ff93f8c94ce66edfa5a5d80f",
+      "size": 2694
+    },
+    "p4_forecasting/phase3/tests/test_haversine_metrics.py": {
+      "bucket": "phase3",
+      "sha256": "a080822f6c3d711ba27204ee7f5de36df559d328ab8ef1da9af4ce360523dce5",
+      "size": 1301
+    },
+    "p4_forecasting/phase3/tests/test_inference.py": {
+      "bucket": "phase3",
+      "sha256": "b485f6a048e56fe302f8e2a252e6755b71a821d2722529c9ac0fe45da438d7b4",
+      "size": 3658
+    },
+    "p4_forecasting/phase3/tests/test_model.py": {
+      "bucket": "phase3",
+      "sha256": "c21e1f25507d5e1791038a1a5e30876f57aea1693cbd0063c1ce3b2d7e92861d",
+      "size": 1645
+    },
+    "p4_forecasting/phase3/tests/test_normalization.py": {
+      "bucket": "phase3",
+      "sha256": "1197afa0eb0eaec9fa808f15daf7219e04ee78af68505b293fd3ff16cde4e8fc",
+      "size": 2725
+    },
+    "p4_forecasting/phase3/training/__init__.py": {
+      "bucket": "phase3",
+      "sha256": "478ae3efeb6d01ab0117f7a13633bd13429a1e142570f04c755712fc99243d9d",
+      "size": 38
+    },
+    "p4_forecasting/phase3/training/dataset.py": {
+      "bucket": "phase3",
+      "sha256": "be117921b1a19325b7480ef8f8839d43f40d3b35f9daf0b749b2675cf51c3fdc",
+      "size": 3130
+    },
+    "p4_forecasting/phase3/training/normalization.py": {
+      "bucket": "phase3",
+      "sha256": "7164bb9a27b67afc0ac409500c5386cc1b02af4a9a0706890bb9c570eadcf84b",
+      "size": 4459
+    },
+    "p4_forecasting/phase3/training/train.py": {
+      "bucket": "phase3",
+      "sha256": "43e17a2e4f6b1c90f1d8e67c00e68c04227604c7971fa1c6d589ccef0fac1a19",
+      "size": 9985
+    },
+    "p4_forecasting/phase4/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "2f32ae092248a87f2ce516ec43164b15ed55a268f9a831044c4128a46ed3f3da",
+      "size": 329
+    },
+    "p4_forecasting/phase4/audit_post_completion/POST_COMPLETION_AUDIT.md": {
+      "bucket": "phase4",
+      "sha256": "a63c19dcf8cc64fc33942f05a0815d29072ac8283d97daae2ade4b6f8ba1048f",
+      "size": 7367
+    },
+    "p4_forecasting/phase4/audit_post_completion/audit_results.json": {
+      "bucket": "phase4",
+      "sha256": "aa8b3ac4b5194b1d32446cf1d31a081ea5f08ba68035f3b372bb91da5e989ba9",
+      "size": 11501
+    },
+    "p4_forecasting/phase4/audit_post_completion/experiment_ranking.csv": {
+      "bucket": "phase4",
+      "sha256": "fea4a23a97f0c7d21bcd427f46570b269524012e99aee6825166a640985bf315",
+      "size": 654
+    },
+    "p4_forecasting/phase4/audit_post_completion/metric_recalculation.json": {
+      "bucket": "phase4",
+      "sha256": "5a01f60cb22189b13582d7d4f9b6951e8081be21027fe5603087db418060218e",
+      "size": 10159
+    },
+    "p4_forecasting/phase4/audit_post_completion/run_post_completion_audit.py": {
+      "bucket": "phase4",
+      "sha256": "410c08c4034ddee61b63ea498a192c4cd4cfd126427da41a1c63398656e664ba",
+      "size": 49468
+    },
+    "p4_forecasting/phase4/audit_post_completion/source_immutability_after_audit.json": {
+      "bucket": "phase4",
+      "sha256": "526887f1ded5a36ceb0c796f0f48ad57e59c9ad4163db6e3123994a0ad428e8c",
+      "size": 1437
+    },
+    "p4_forecasting/phase4/common.py": {
+      "bucket": "phase4",
+      "sha256": "eb69711f928f1826f45246d93cd5a9f35364527e0cd5f1b6b0ce3387051cebb4",
+      "size": 4241
+    },
+    "p4_forecasting/phase4/configs.py": {
+      "bucket": "phase4",
+      "sha256": "d29505173c0f5a3b011fbd3633691cf79b597dfeaaa3a22b7c3eb1571077bd09",
+      "size": 5205
+    },
+    "p4_forecasting/phase4/configs/EXP001.json": {
+      "bucket": "phase4",
+      "sha256": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4",
+      "size": 1015
+    },
+    "p4_forecasting/phase4/configs/EXP002.json": {
+      "bucket": "phase4",
+      "sha256": "a8b305bd561fbfb28b45fbfe737eaa9522eb4808d428e19e396416b5109e6441",
+      "size": 950
+    },
+    "p4_forecasting/phase4/configs/EXP003.json": {
+      "bucket": "phase4",
+      "sha256": "e728bd10eb02939f817b5af9f51aa0b59aa55d0acb0ba568a3ad8f415f54a966",
+      "size": 940
+    },
+    "p4_forecasting/phase4/configs/EXP004.json": {
+      "bucket": "phase4",
+      "sha256": "70f4931766470673768ab43923fa80fff37e2a1516bec78d8b56c9700647c700",
+      "size": 951
+    },
+    "p4_forecasting/phase4/configs/EXP005.json": {
+      "bucket": "phase4",
+      "sha256": "5f2a90eeaee0a08cb657a5db755c405fb73de6e5f2ab78c450667fcfb25dc819",
+      "size": 1024
+    },
+    "p4_forecasting/phase4/configs/EXP006.json": {
+      "bucket": "phase4",
+      "sha256": "4939b5cf3fa1cf4be43bc0ecbda69536b0cf6450a16b821ea90ab367f5f16a46",
+      "size": 1027
+    },
+    "p4_forecasting/phase4/dataloader/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "ea86454fe875e33cb94238c1b445d16d09c68b0099e5a5bb639d66eb11d04078",
+      "size": 36
+    },
+    "p4_forecasting/phase4/dataloader/forecasting_dataset.py": {
+      "bucket": "phase4",
+      "sha256": "c8aca78d3d3da227b20badfa6245e8dbe3a98efd01583a97a4e5b331f9063753",
+      "size": 3191
+    },
+    "p4_forecasting/phase4/evaluation/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "d80038176da68b3587d7f941ec8d496dddfeba227fe40bfe302a5436e174b1d3",
+      "size": 36
+    },
+    "p4_forecasting/phase4/evaluation/evaluate.py": {
+      "bucket": "phase4",
+      "sha256": "cbeabc016c21c77fe0f31b6c551ff61d1b1dbc67ec526379afbdd87c5edcd50a",
+      "size": 2953
+    },
+    "p4_forecasting/phase4/evaluation/selection.py": {
+      "bucket": "phase4",
+      "sha256": "9b806dc66c0097183b304c65f1314da5d8185fd0d53efec253f916443086b4e1",
+      "size": 3827
+    },
+    "p4_forecasting/phase4/experiments.py": {
+      "bucket": "phase4",
+      "sha256": "3d01d7b57779828d7727dba3baf569e90c4626838f51cea40745a7506545fcea",
+      "size": 6399
+    },
+    "p4_forecasting/phase4/features/FEATURE_ENGINEERING_REPORT.md": {
+      "bucket": "phase4",
+      "sha256": "605d32a47bab75c0ede448c265ef83d33903fe9055a97ee7699e5fb4cbe6d0ce",
+      "size": 3408
+    },
+    "p4_forecasting/phase4/features/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "8dc57a0c920e88accddbb83c803b2edbcdc6e43329d2d40b767d04b3e6a233ae",
+      "size": 45
+    },
+    "p4_forecasting/phase4/features/_geo.py": {
+      "bucket": "phase4",
+      "sha256": "c512b3deffc0115a6dc137aaf4b0c7dbeef0269a3848bb4576054a1bf8d9c2bc",
+      "size": 1071
+    },
+    "p4_forecasting/phase4/features/build_feature_dataset.py": {
+      "bucket": "phase4",
+      "sha256": "553c17f258385acddb55fb7caae7201ac7ed212eb5430bf4c8293d2b2eff4b98",
+      "size": 15226
+    },
+    "p4_forecasting/phase4/features/feature_engineering.py": {
+      "bucket": "phase4",
+      "sha256": "a88eb9a6da55091330c5216c8842787a6ea4abc8a1510a9107732e2ab6292f25",
+      "size": 7236
+    },
+    "p4_forecasting/phase4/final_comparison.py": {
+      "bucket": "phase4",
+      "sha256": "b3de7cd1390c96badd262d600ed870f48dbcf14e110340eeeae8764c736f3f90",
+      "size": 3079
+    },
+    "p4_forecasting/phase4/immutability.py": {
+      "bucket": "phase4",
+      "sha256": "3b8a1da07719cfd044a0784803a3959711d070c425d9887de0ab1910da63fd7f",
+      "size": 4037
+    },
+    "p4_forecasting/phase4/inference/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "097ae48773f3fc51b0201935972cff8e1e26648f539ed4bf6a3659f8cac48047",
+      "size": 35
+    },
+    "p4_forecasting/phase4/inference/forecaster.py": {
+      "bucket": "phase4",
+      "sha256": "59c780bd9a457f165bcf9cbbbbe30c98535777a70f394e28469088cab0dcfffa",
+      "size": 3379
+    },
+    "p4_forecasting/phase4/input_audit.py": {
+      "bucket": "phase4",
+      "sha256": "c53ccabca14cc47a10aff67b9766c15525609a20cf450a1c0100f2a37470d92e",
+      "size": 10313
+    },
+    "p4_forecasting/phase4/losses/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "d914b0a8c40d5138edc12ef7334024c69099e62ee9a707fdf4691c41952b1801",
+      "size": 284
+    },
+    "p4_forecasting/phase4/losses/forecasting_losses.py": {
+      "bucket": "phase4",
+      "sha256": "9700f10b179594cc905968eba6558f50429a492657bcdab00bdbd308f67765e4",
+      "size": 4858
+    },
+    "p4_forecasting/phase4/models/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "bbc6a3585a93f932901faabfe534e968a30b90718466ab6f023c421a11957061",
+      "size": 995
+    },
+    "p4_forecasting/phase4/models/gru.py": {
+      "bucket": "phase4",
+      "sha256": "3f36e0b0cad37d403e888e149d9eda83ca5dfe4c146876f6a2a658240623f4f0",
+      "size": 2324
+    },
+    "p4_forecasting/phase4/models/improved_lstm.py": {
+      "bucket": "phase4",
+      "sha256": "4977fb3682ca669ebe81c62ec25a981a0a73d10ca6c26a7eed56604efdc74564",
+      "size": 2461
+    },
+    "p4_forecasting/phase4/models/multitask_lstm.py": {
+      "bucket": "phase4",
+      "sha256": "a90789df389346aaa311ae0dcebfba9d9c62ee8bb6c2df1c2dd7d929dbdfbed9",
+      "size": 3088
+    },
+    "p4_forecasting/phase4/registry.py": {
+      "bucket": "phase4",
+      "sha256": "ed87e083bc6eab6a4c94603544cbfd8eeb141f2f8e621797fc3cdead5fe28c12",
+      "size": 3023
+    },
+    "p4_forecasting/phase4/report.py": {
+      "bucket": "phase4",
+      "sha256": "f13d68efeb8fbb7714e01792a8c04b1a8bd42d5b6ff0bd618e5772b363431a0a",
+      "size": 11565
+    },
+    "p4_forecasting/phase4/reports/PHASE4_REPORT.md": {
+      "bucket": "phase4",
+      "sha256": "7f0cfc78aafd6d3100f2ce1d4616e9451c3fc741a09ac7e071c41a4be26d58cf",
+      "size": 7448
+    },
+    "p4_forecasting/phase4/results/FEATURE_CONTRACT.md": {
+      "bucket": "phase4",
+      "sha256": "c6b74c5b8e85faf569d980c10533be669cafb7bb1b784013a5bc38d247fcdb68",
+      "size": 1709
+    },
+    "p4_forecasting/phase4/results/FINAL_COMPARISON.json": {
+      "bucket": "phase4",
+      "sha256": "97ca11d70521b946068a559673bae604d2b01dc51e8a9a903959a83e36bdda69",
+      "size": 11070
+    },
+    "p4_forecasting/phase4/results/champion_model.json": {
+      "bucket": "phase4",
+      "sha256": "5b6fb7ace48e5f62d15278d2d93a288ec2ccbf8fb523ef05c66fa4ba6bad7c38",
+      "size": 2620
+    },
+    "p4_forecasting/phase4/results/champion_rationale.json": {
+      "bucket": "phase4",
+      "sha256": "5f2be8f6cdf26ecf0b4b892946c6f3a27f3f6c363b6a2d8fe795f5d7c434b380",
+      "size": 1062
+    },
+    "p4_forecasting/phase4/results/experiment_registry.csv": {
+      "bucket": "phase4",
+      "sha256": "9353096a1d0e5b9ad35d1710f283438da912cd5e9f651309f0e5a9aec6be0a6b",
+      "size": 1826
+    },
+    "p4_forecasting/phase4/results/experiments/EXP001/checkpoint.pt": {
+      "bucket": "phase4",
+      "sha256": "03344329a6416efd8128ba6b410875c6688133d7ea5551969ca4555941fed8c0",
+      "size": 88934
+    },
+    "p4_forecasting/phase4/results/experiments/EXP001/config.json": {
+      "bucket": "phase4",
+      "sha256": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4",
+      "size": 1015
+    },
+    "p4_forecasting/phase4/results/experiments/EXP001/metrics.json": {
+      "bucket": "phase4",
+      "sha256": "d0d4dce8ee6e1e483020ed7b2630b48bce328bfcce0ab5a708d3b97c4eb537f5",
+      "size": 727
+    },
+    "p4_forecasting/phase4/results/experiments/EXP001/source_hashes.json": {
+      "bucket": "phase4",
+      "sha256": "0755a8a4fc6fb74f0954de4459168dc957ce8acc0046bf71fc104372104f547f",
+      "size": 1313
+    },
+    "p4_forecasting/phase4/results/experiments/EXP001/training_history.json": {
+      "bucket": "phase4",
+      "sha256": "934298af7e5cef2474652be9a041c38a865ce47e00e5d3e51be063ae1f4ac4ed",
+      "size": 6175
+    },
+    "p4_forecasting/phase4/results/experiments/EXP001/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "6ce7788c658aeb8b41bf85042400fa1aa7f7006e989850a9a9190287e5adc9a5",
+      "size": 807
+    },
+    "p4_forecasting/phase4/results/experiments/EXP002/checkpoint.pt": {
+      "bucket": "phase4",
+      "sha256": "414977e75b911336dd76abdd63cf9f51ac8d33465bfeb52ba1572df4e8b07324",
+      "size": 480290
+    },
+    "p4_forecasting/phase4/results/experiments/EXP002/config.json": {
+      "bucket": "phase4",
+      "sha256": "a8b305bd561fbfb28b45fbfe737eaa9522eb4808d428e19e396416b5109e6441",
+      "size": 950
+    },
+    "p4_forecasting/phase4/results/experiments/EXP002/metrics.json": {
+      "bucket": "phase4",
+      "sha256": "efd0cd3cd35f229cd2b973eddf35b85264af8e54767c0c8a23862353280bc973",
+      "size": 729
+    },
+    "p4_forecasting/phase4/results/experiments/EXP002/source_hashes.json": {
+      "bucket": "phase4",
+      "sha256": "7d6b7121e0dac7eca9309102cd045f3b1b7815820897b6782bb17d49cfb83c00",
+      "size": 1313
+    },
+    "p4_forecasting/phase4/results/experiments/EXP002/training_history.json": {
+      "bucket": "phase4",
+      "sha256": "8572651340a9f4f18e65b6f54245bf36a45e733289e28a717e5afa818ac7e4dd",
+      "size": 5973
+    },
+    "p4_forecasting/phase4/results/experiments/EXP002/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "422e299aa721e28a91fd4422bf4348eee9383c661f617d1c09b3a9b5d0c5c202",
+      "size": 807
+    },
+    "p4_forecasting/phase4/results/experiments/EXP003/checkpoint.pt": {
+      "bucket": "phase4",
+      "sha256": "820b9acf12bef922b5fd385ca304d39998fffcd8a1c494b2b4ea767cdda92051",
+      "size": 362018
+    },
+    "p4_forecasting/phase4/results/experiments/EXP003/config.json": {
+      "bucket": "phase4",
+      "sha256": "e728bd10eb02939f817b5af9f51aa0b59aa55d0acb0ba568a3ad8f415f54a966",
+      "size": 940
+    },
+    "p4_forecasting/phase4/results/experiments/EXP003/metrics.json": {
+      "bucket": "phase4",
+      "sha256": "20346cc3b0cda2c3e83432b90452f64f7d812808706607bb6c1ee26d2f3bd7bd",
+      "size": 728
+    },
+    "p4_forecasting/phase4/results/experiments/EXP003/source_hashes.json": {
+      "bucket": "phase4",
+      "sha256": "90c0f7ba18ba4ad67bc7dd522c4be46589655830bc0f6f56147dc188efe8da71",
+      "size": 1313
+    },
+    "p4_forecasting/phase4/results/experiments/EXP003/training_history.json": {
+      "bucket": "phase4",
+      "sha256": "1de674146a15724e9b319c9d9375cdada3eeb7c763db261c5d2438b56722baf9",
+      "size": 5403
+    },
+    "p4_forecasting/phase4/results/experiments/EXP003/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "3b201d0c899b8e20c424eafc9e61f83795424c9c278550a94e13b000362ad5be",
+      "size": 810
+    },
+    "p4_forecasting/phase4/results/experiments/EXP004/checkpoint.pt": {
+      "bucket": "phase4",
+      "sha256": "6ce1b97cba052b0e643d98e3491a70914fce2ebd29ca6f7169272abd44cc4199",
+      "size": 480866
+    },
+    "p4_forecasting/phase4/results/experiments/EXP004/config.json": {
+      "bucket": "phase4",
+      "sha256": "70f4931766470673768ab43923fa80fff37e2a1516bec78d8b56c9700647c700",
+      "size": 951
+    },
+    "p4_forecasting/phase4/results/experiments/EXP004/metrics.json": {
+      "bucket": "phase4",
+      "sha256": "9b032e06d111fa72bda9a3c8f77a6b2938367f513cd608cc104d7d82c5d91d64",
+      "size": 726
+    },
+    "p4_forecasting/phase4/results/experiments/EXP004/source_hashes.json": {
+      "bucket": "phase4",
+      "sha256": "3e6c5a7919fbc0d6fa94c0b6e508d63f68c44e1136d4a276882013cc4a715048",
+      "size": 1313
+    },
+    "p4_forecasting/phase4/results/experiments/EXP004/training_history.json": {
+      "bucket": "phase4",
+      "sha256": "7a72e31020fa552f08fbbf00fb29dab86797792df344cd343efb3c6c1fa78b8d",
+      "size": 5307
+    },
+    "p4_forecasting/phase4/results/experiments/EXP004/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "b3a2c4382d86bb36d9dd5248382db4266bdee5db3290f915b3ccb4c720de429c",
+      "size": 807
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/checkpoint.pt": {
+      "bucket": "phase4",
+      "sha256": "ea6bbc3239059061f30eb43bd1b8b0c0db2dd7006b6c8f5e5a5e774d9c124a0a",
+      "size": 362018
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/config.json": {
+      "bucket": "phase4",
+      "sha256": "5f2a90eeaee0a08cb657a5db755c405fb73de6e5f2ab78c450667fcfb25dc819",
+      "size": 1024
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/metrics.json": {
+      "bucket": "phase4",
+      "sha256": "0f6e27b096ddbd6efcb9387fada29e6658be5ca95769157c9383ddbbe91b964c",
+      "size": 725
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/source_hashes.json": {
+      "bucket": "phase4",
+      "sha256": "6143e0be21ac0a15285a48078c5667a8a82fd0504088cf8195356fb6098641ed",
+      "size": 1313
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/test_results.json": {
+      "bucket": "phase4",
+      "sha256": "51450e0f6a21856be4f1132d48be820f4c041630b1bce5e6f0096429debdbc7a",
+      "size": 804
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/training_history.json": {
+      "bucket": "phase4",
+      "sha256": "911f9e320b605353a06b6bc47d865ab45f669e2e414a1ab870ec6f2fd7f57bc3",
+      "size": 3775
+    },
+    "p4_forecasting/phase4/results/experiments/EXP005/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "d9e3d54bd3a3328341e8890aa0915da29d72d3b1c2b62cc6baae88554032e95b",
+      "size": 804
+    },
+    "p4_forecasting/phase4/results/experiments/EXP006/checkpoint.pt": {
+      "bucket": "phase4",
+      "sha256": "d951472db87823c4243257b5e05a93c012d6fa34ad0852b003925813488b4b4f",
+      "size": 362018
+    },
+    "p4_forecasting/phase4/results/experiments/EXP006/config.json": {
+      "bucket": "phase4",
+      "sha256": "4939b5cf3fa1cf4be43bc0ecbda69536b0cf6450a16b821ea90ab367f5f16a46",
+      "size": 1027
+    },
+    "p4_forecasting/phase4/results/experiments/EXP006/metrics.json": {
+      "bucket": "phase4",
+      "sha256": "b86cd9c2a1c5837b43eb931e20b5c9991c44b27cece0de56da4c83bb0cda3bc7",
+      "size": 724
+    },
+    "p4_forecasting/phase4/results/experiments/EXP006/source_hashes.json": {
+      "bucket": "phase4",
+      "sha256": "e58b6d43089a15784f671012954b7bf43a071079f8199b127454efdca25e2219",
+      "size": 1313
+    },
+    "p4_forecasting/phase4/results/experiments/EXP006/training_history.json": {
+      "bucket": "phase4",
+      "sha256": "d091af3f4b35f0d1f294314157c0ed647960c7410e35616d7ae27a4dab411bd5",
+      "size": 5400
+    },
+    "p4_forecasting/phase4/results/experiments/EXP006/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "0550b60fc4956c0a327ec7fec0833f49b8a1d65fd5d34c2709a9d0c927dceb05",
+      "size": 806
+    },
+    "p4_forecasting/phase4/results/experiments_summary.json": {
+      "bucket": "phase4",
+      "sha256": "0293261e45989f7f2a6534c849b95f9fa7c0a53e17bab8e1cb1067aaa91c6a90",
+      "size": 14929
+    },
+    "p4_forecasting/phase4/results/feature_dataset/test.npz": {
+      "bucket": "phase4",
+      "sha256": "1b5cf2678ec16d3e7f078fe0eccc62d482c90926b9caa63d4531e9752ea471f8",
+      "size": 14704
+    },
+    "p4_forecasting/phase4/results/feature_dataset/test_metadata.csv": {
+      "bucket": "phase4",
+      "sha256": "f61fc8fc8b8529413e409511901f30e31db953142988d13a5ac2798bbb82dba5",
+      "size": 31138
+    },
+    "p4_forecasting/phase4/results/feature_dataset/train.npz": {
+      "bucket": "phase4",
+      "sha256": "165d909213d3f2bacc7b8f22f048ff1f25308503606bdabb04bb03b6d1355eab",
+      "size": 86354
+    },
+    "p4_forecasting/phase4/results/feature_dataset/train_metadata.csv": {
+      "bucket": "phase4",
+      "sha256": "bbaeb9f573cc8eb6a6429e65a76c8897a28c844a5777c4575bd195878920c1eb",
+      "size": 193002
+    },
+    "p4_forecasting/phase4/results/feature_dataset/val.npz": {
+      "bucket": "phase4",
+      "sha256": "6b3e43f5185b43fea03eb440242b1346944ba1edd8e5a57bdbfe00ff0c1f0690",
+      "size": 18151
+    },
+    "p4_forecasting/phase4/results/feature_dataset/val_metadata.csv": {
+      "bucket": "phase4",
+      "sha256": "21e9dbeb972398aab4a94afe2a921d7d85c63a3927e806aeee7fb6e352dbbaab",
+      "size": 36458
+    },
+    "p4_forecasting/phase4/results/feature_dataset_summary.json": {
+      "bucket": "phase4",
+      "sha256": "3617670491cbc92d2878b05d651c1ef32f2037a38e26cd0f06c52227bc429126",
+      "size": 3294
+    },
+    "p4_forecasting/phase4/results/input_audit.json": {
+      "bucket": "phase4",
+      "sha256": "3f9a70abc59b362d08a2a98834831f3d51d9c18d769e973c83f6a6419c68ddca",
+      "size": 5095
+    },
+    "p4_forecasting/phase4/results/normalization_stats.json": {
+      "bucket": "phase4",
+      "sha256": "a5404a5743b29abe2e720c5b863883e07b222491df0d88c5d7a550771641bbc0",
+      "size": 2508
+    },
+    "p4_forecasting/phase4/results/source_immutability_report.json": {
+      "bucket": "phase4",
+      "sha256": "1bc94e1689db114b0e1128fac8e29b1aca70e324ea3bd3ec104bf7a476258918",
+      "size": 28959
+    },
+    "p4_forecasting/phase4/results/test_touch.json": {
+      "bucket": "phase4",
+      "sha256": "4e57e0c6bfa7d2e8e70dd846f40e4aae3cbf7f2d363e32e15c22a392f6569d4c",
+      "size": 304
+    },
+    "p4_forecasting/phase4/results/validation_results.json": {
+      "bucket": "phase4",
+      "sha256": "f1215320118fc5f0f4cf83b1711139828678d6a65f6107a79f86c63bb543e752",
+      "size": 4592
+    },
+    "p4_forecasting/phase4/run_phase4.py": {
+      "bucket": "phase4",
+      "sha256": "dbec1c8a9e1e0e5ba9b9abf61f1a7c539421da45a4d6194ff3c722be4c420037",
+      "size": 23476
+    },
+    "p4_forecasting/phase4/tests/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "3ac0935b605e651a0042394c2271a33116ea3e724ec03c8bf45a2f565ce27086",
+      "size": 72
+    },
+    "p4_forecasting/phase4/tests/conftest.py": {
+      "bucket": "phase4",
+      "sha256": "146afcf7d879492c68a5c805ae0005122b20111a0bf3fde405f39470998d0a0e",
+      "size": 3559
+    },
+    "p4_forecasting/phase4/tests/test_configs.py": {
+      "bucket": "phase4",
+      "sha256": "fe27c48eb6556d1168cc69b663004c80f6823297d5a5e9d3315ae6d6bffdd037",
+      "size": 3067
+    },
+    "p4_forecasting/phase4/tests/test_dataloader.py": {
+      "bucket": "phase4",
+      "sha256": "191d0a30bd0c17f02e8202969d3c0b32fefabe5fac93f2a63c373482f5b636cb",
+      "size": 2229
+    },
+    "p4_forecasting/phase4/tests/test_evaluation.py": {
+      "bucket": "phase4",
+      "sha256": "66f4d6edf56e2cc4090cd6e46ed3c34495cb043a6cd343a36ec16198ab0d1d26",
+      "size": 3111
+    },
+    "p4_forecasting/phase4/tests/test_experiment_registry.py": {
+      "bucket": "phase4",
+      "sha256": "e10d8ed862ac8631f86724fbb1bc961d3dbdc8e9ebc88e178676980840eaaa22",
+      "size": 3093
+    },
+    "p4_forecasting/phase4/tests/test_features.py": {
+      "bucket": "phase4",
+      "sha256": "c63e6f828799a7ff88502363b9cc7ead65e8dad13953b917c521281a0072cf34",
+      "size": 5405
+    },
+    "p4_forecasting/phase4/tests/test_losses.py": {
+      "bucket": "phase4",
+      "sha256": "c51270078f06a2d6eb3742b52721ce0c569cb8482367fafb92c5f155b17084c1",
+      "size": 3551
+    },
+    "p4_forecasting/phase4/tests/test_models.py": {
+      "bucket": "phase4",
+      "sha256": "e12ec5022f0697b5536f16a2223985850a26c39a1415078d20e4f2aa27b3aeb1",
+      "size": 2755
+    },
+    "p4_forecasting/phase4/tests/test_no_future_leak.py": {
+      "bucket": "phase4",
+      "sha256": "1bde1f4a6aae1a708194aed8ebe5c12aa229adc8d7baaa94c7f6ec229729139e",
+      "size": 3262
+    },
+    "p4_forecasting/phase4/tests/test_normalization.py": {
+      "bucket": "phase4",
+      "sha256": "2fa12607cf60e1e511861ad6a71aa30286e1967ff8d9a745fb4db9f2c37d714d",
+      "size": 4858
+    },
+    "p4_forecasting/phase4/tests/test_orchestrator.py": {
+      "bucket": "phase4",
+      "sha256": "b964b2e4bc76baa84ee44c604cd3d5c87baa08df89e52bcb4e9ae1d17031edf4",
+      "size": 3218
+    },
+    "p4_forecasting/phase4/tests/test_reproducibility.py": {
+      "bucket": "phase4",
+      "sha256": "1c26fddf7eef99a06a461322ec1b580d45126b8764de44f9e9bc5755468f0954",
+      "size": 2593
+    },
+    "p4_forecasting/phase4/tests/test_source_immutability.py": {
+      "bucket": "phase4",
+      "sha256": "227ad98f382ba6a3177e88928db696f38456d94a9752f4a010ebc460b66eaaa8",
+      "size": 2671
+    },
+    "p4_forecasting/phase4/tests/test_training.py": {
+      "bucket": "phase4",
+      "sha256": "a7fac3ece1bf1a92486732f48249da0b7dd2ad20cbc6955ddb9b295dcc5fe465",
+      "size": 3577
+    },
+    "p4_forecasting/phase4/training/__init__.py": {
+      "bucket": "phase4",
+      "sha256": "1cc54ee50d4a0dfd77e81d080c1a4a232f9d7134d046da69021fc0e235e39b2a",
+      "size": 74
+    },
+    "p4_forecasting/phase4/training/normalization.py": {
+      "bucket": "phase4",
+      "sha256": "464e9c8d4e21b79e84e2e793f4e22d8122e1e98fcea4962e5da8d8d5e493a4f6",
+      "size": 4998
+    },
+    "p4_forecasting/phase4/training/train.py": {
+      "bucket": "phase4",
+      "sha256": "265acd2546d38b51a11eb0298869ea09cce662d98036d040b43bb6869945d56d",
+      "size": 8486
+    },
+    "p4_forecasting/phase5/__init__.py": {
+      "bucket": "phase5",
+      "sha256": "17559aacd0cff0cf611679fe7c20d6b3367095be07bc5101be71e81eb7f70937",
+      "size": 384
+    },
+    "p4_forecasting/phase5/baselines/__init__.py": {
+      "bucket": "phase5",
+      "sha256": "ee59258a1afdf02b88245c3b2b4f4daa5ad9333f8855f9305f8bf4b58690d483",
+      "size": 490
+    },
+    "p4_forecasting/phase5/baselines/movement_vector.py": {
+      "bucket": "phase5",
+      "sha256": "5d8a22f3a51354e133c948f4959b74da2aea0f445da5c5ef7982cafb776fd60c",
+      "size": 2183
+    },
+    "p4_forecasting/phase5/baselines/persistence.py": {
+      "bucket": "phase5",
+      "sha256": "75381c43e0f6979ae8e04ef085a904beff252c0825318f2aa507a0fac46fee09",
+      "size": 1119
+    },
+    "p4_forecasting/phase5/config.py": {
+      "bucket": "phase5",
+      "sha256": "df61582cad41a9c7dc3b87ef633c64697cc44e09ed36d3801d77a75180bb0d45",
+      "size": 4014
+    },
+    "p4_forecasting/phase5/examples/example_input.json": {
+      "bucket": "phase5",
+      "sha256": "f2950f2ad00691a68b01d3e1d7511a175b8ce7212d874ad8a994e51c7e8dcf2d",
+      "size": 800
+    },
+    "p4_forecasting/phase5/inference/__init__.py": {
+      "bucket": "phase5",
+      "sha256": "d6fd4f8fab351eb82523f8bf3602cf8f0e3a71319909941f7f08978f6ec7bf53",
+      "size": 80
+    },
+    "p4_forecasting/phase5/inference/input_validation.py": {
+      "bucket": "phase5",
+      "sha256": "f85006a8fda3bc5176c29dddc38a61463fbd7987a829eb4edad64e7bd6c2c8e5",
+      "size": 6744
+    },
+    "p4_forecasting/phase5/inference/output_contract.py": {
+      "bucket": "phase5",
+      "sha256": "5cc3df97ba485768f902b8d096d507dd39a1705636f86ba3f18e0be72caf0d31",
+      "size": 4293
+    },
+    "p4_forecasting/phase5/inference/predictor.py": {
+      "bucket": "phase5",
+      "sha256": "5a7242ca1492a299f9dc51b650541d8bd981f17d649179e6aea3d5d2489379bf",
+      "size": 6265
+    },
+    "p4_forecasting/phase5/inference/preprocessing.py": {
+      "bucket": "phase5",
+      "sha256": "f753f54f6c8e8d2aa55d0964f9f8b7801dbc1f96b03c490a583b58763143fba0",
+      "size": 3992
+    },
+    "p4_forecasting/phase5/reports/PHASE5_REPORT.md": {
+      "bucket": "phase5",
+      "sha256": "be0f51662b79c93be4aa51eb3deecfbcbe269d151d23e858e95190c1d750152e",
+      "size": 7023
+    },
+    "p4_forecasting/phase5/results/contract_validation.json": {
+      "bucket": "phase5",
+      "sha256": "879ccb0ce679446e399c50bc0f307bb894a6f999dc55eeae9b0b66d74ae7ae77",
+      "size": 1643
+    },
+    "p4_forecasting/phase5/results/inference_audit.json": {
+      "bucket": "phase5",
+      "sha256": "3cea9fe93dbfdcd403985c748d2b99917d4457abe2031c10625db38de98c2c11",
+      "size": 1554
+    },
+    "p4_forecasting/phase5/results/phase5_summary.json": {
+      "bucket": "phase5",
+      "sha256": "965848558f0505a9201c28443effce427e48c8a4605d003fa2a676ac9fd35eb9",
+      "size": 1012
+    },
+    "p4_forecasting/phase5/results/source_hashes_before.json": {
+      "bucket": "phase5",
+      "sha256": "ac2a3a24d78add29f748ceacc37eb5fed1a3454390278b68200f9a1a291b52ea",
+      "size": 34854
+    },
+    "p4_forecasting/phase5/results/source_immutability_report.json": {
+      "bucket": "phase5",
+      "sha256": "605e21dd372a62181066dfe19512ce70cb65c09179263419411a31028d062b6a",
+      "size": 537
+    },
+    "p4_forecasting/phase5/run_phase5.py": {
+      "bucket": "phase5",
+      "sha256": "371759043d2102c0e3df7455f73766e8d1f228ed2675ee84e18124555543127d",
+      "size": 31291
+    },
+    "p4_forecasting/phase5/schemas/__init__.py": {
+      "bucket": "phase5",
+      "sha256": "0a166a56bbe61b1ba6ca10103b73eb4a0fd24b383ee190471f647831ea063b7f",
+      "size": 78
+    },
+    "p4_forecasting/phase5/schemas/forecast_schema.py": {
+      "bucket": "phase5",
+      "sha256": "ece3b37bbf659bb88f205fc16c83a317ed5fbe50030e04a7d64c8558e8204e0d",
+      "size": 2943
+    },
+    "p4_forecasting/phase5/service/__init__.py": {
+      "bucket": "phase5",
+      "sha256": "f9634f28f63718dbf9196c0093897f2732907e55895e096879c2a3c948985bec",
+      "size": 42
+    },
+    "p4_forecasting/phase5/service/forecasting_service.py": {
+      "bucket": "phase5",
+      "sha256": "971b9f6b145cdccfbe532d441dd94490671277ed44becdd74d7c01c8d8a55821",
+      "size": 4204
+    },
+    "p4_forecasting/phase5/snapshot.py": {
+      "bucket": "phase5",
+      "sha256": "875eb45757a586c8e51b6f515ecfd28b4a916f9c5e4e26fb185509a7473d1d58",
+      "size": 7007
+    },
+    "p4_forecasting/phase5/tests/__init__.py": {
+      "bucket": "phase5",
+      "sha256": "080ff29b273551147ad24d3ffb218ea6704d1f164e207ddd0b60db8e6ec57791",
+      "size": 25
+    },
+    "p4_forecasting/phase5/tests/conftest.py": {
+      "bucket": "phase5",
+      "sha256": "2e3e6188e804d071e1b8a508fa055d596656b9d56c8c2cc874afe4391818f17b",
+      "size": 2047
+    },
+    "p4_forecasting/phase5/tests/test_baselines.py": {
+      "bucket": "phase5",
+      "sha256": "227aad3973c900a605750f8b0e44bcdaae53fb181ae59ba06d7667f7dcf3b989",
+      "size": 2070
+    },
+    "p4_forecasting/phase5/tests/test_determinism.py": {
+      "bucket": "phase5",
+      "sha256": "a0eb165a89c08a74d56c81296911c8db3ea4d5066cec131d43ab1d217937153c",
+      "size": 1537
+    },
+    "p4_forecasting/phase5/tests/test_feature_consistency.py": {
+      "bucket": "phase5",
+      "sha256": "6f85fd743fc93e018572986ed17b79db6c7e5d5e64de3296b770478a688606a7",
+      "size": 2499
+    },
+    "p4_forecasting/phase5/tests/test_forecast_shapes.py": {
+      "bucket": "phase5",
+      "sha256": "625ac640486675687a8e3ccaeaf5063c2a31cb16a16a3b34dc80a9f12249af5d",
+      "size": 1981
+    },
+    "p4_forecasting/phase5/tests/test_inference_contract.py": {
+      "bucket": "phase5",
+      "sha256": "cc9bcd95e8292ae540d31bb0e41f3ae564188ffcba4f272d7674b414f7be66f5",
+      "size": 3092
+    },
+    "p4_forecasting/phase5/tests/test_input_validation.py": {
+      "bucket": "phase5",
+      "sha256": "d1f5fcf9546fde0cce99bf000123abe4c4217815e01594523816991a0a60b3d0",
+      "size": 4961
+    },
+    "p4_forecasting/phase5/tests/test_model_loading.py": {
+      "bucket": "phase5",
+      "sha256": "b6ed71c70210f3fd138b11c9c154d435266d3467661ab311a3f6ea4efe8a6b7e",
+      "size": 1833
+    },
+    "p4_forecasting/phase5/tests/test_no_source_modification.py": {
+      "bucket": "phase5",
+      "sha256": "3a3749e5408ae1be3c8dcf6e93684a8f4a3c7f16eb6d0fe164664e25d992347d",
+      "size": 3570
+    },
+    "p4_forecasting/phase5/tests/test_preprocessing.py": {
+      "bucket": "phase5",
+      "sha256": "5a7eb29a0ddd8d8345aa3286158bf91e1715a9eead5f4bdd1eda30108f3b32df",
+      "size": 3271
+    },
+    "p4_forecasting/phase5/tests/test_service.py": {
+      "bucket": "phase5",
+      "sha256": "0f2b977b1bab7ab12bf419676d8caa56f70fbe440d22e6c58c5fa24ad2c6f956",
+      "size": 4116
+    },
+    "p4_forecasting/phase6/__init__.py": {
+      "bucket": "phase6",
+      "sha256": "2d454505bf7145acbdd32353c136b99b95e24f86aa44dd6ba01c426fc74b0a82",
+      "size": 313
+    },
+    "p4_forecasting/phase6/api/__init__.py": {
+      "bucket": "phase6",
+      "sha256": "2c011a9db4a1baf50054fa0f5cb19a963c9fc4389e80270aa35919d769b2e575",
+      "size": 42
+    },
+    "p4_forecasting/phase6/api/app.py": {
+      "bucket": "phase6",
+      "sha256": "7155ff5e891f554844ff4ae4e5a9a516444d5052d4c4801fd833dfec679fa19c",
+      "size": 2526
+    },
+    "p4_forecasting/phase6/api/error_handlers.py": {
+      "bucket": "phase6",
+      "sha256": "3ad07e2863751cfe2945c749e40ea435b3c11ca5bdd3e7b8bbd7e270f8c3bf5b",
+      "size": 3851
+    },
+    "p4_forecasting/phase6/api/routes.py": {
+      "bucket": "phase6",
+      "sha256": "c385e3cf9ac606d1ba2218241a219ad82520deb653bf48533f339cae23007129",
+      "size": 1972
+    },
+    "p4_forecasting/phase6/config.py": {
+      "bucket": "phase6",
+      "sha256": "bd681ead6d89cd790228b8d9af56b5220c6fdbfdbc4d5a68c8ffc4da3e53f346",
+      "size": 4202
+    },
+    "p4_forecasting/phase6/examples/compare_request.json": {
+      "bucket": "phase6",
+      "sha256": "82b825a0526e1df2e8e418ca96f0b1d31981cde963c43d82ba1c158316ef99b1",
+      "size": 1188
+    },
+    "p4_forecasting/phase6/examples/forecast_request.json": {
+      "bucket": "phase6",
+      "sha256": "82b825a0526e1df2e8e418ca96f0b1d31981cde963c43d82ba1c158316ef99b1",
+      "size": 1188
+    },
+    "p4_forecasting/phase6/integration/__init__.py": {
+      "bucket": "phase6",
+      "sha256": "5c75053f8f0639f78ed186bcff7b1e4003a4d35ef2badfff23c0a4fc0d5d6fe6",
+      "size": 78
+    },
+    "p4_forecasting/phase6/integration/forecasting_adapter.py": {
+      "bucket": "phase6",
+      "sha256": "2695c7c27360d7a7cc3909b80097282a7d97c7f42c99c0baa21461d84a166133",
+      "size": 5351
+    },
+    "p4_forecasting/phase6/reports/PHASE6_REPORT.md": {
+      "bucket": "phase6",
+      "sha256": "24d783f497788efb5783cd50a02d5515d613d5991ab4eafc1d5a64662683d156",
+      "size": 6212
+    },
+    "p4_forecasting/phase6/results/api_contract.json": {
+      "bucket": "phase6",
+      "sha256": "f613ba565252e90036f6c2fc153dcbbf3b595787db2b1f965769d419353fd643",
+      "size": 8616
+    },
+    "p4_forecasting/phase6/results/api_test_results.json": {
+      "bucket": "phase6",
+      "sha256": "68fecc02b706c2045cb36ce171d511da14451c1e2159e526b0a15754a9ec4951",
+      "size": 3982
+    },
+    "p4_forecasting/phase6/results/phase6_summary.json": {
+      "bucket": "phase6",
+      "sha256": "984f26a0a072c9c91d4066b078c954bddfdfeefc56235e178dfbfa55011aacf5",
+      "size": 1241
+    },
+    "p4_forecasting/phase6/results/source_hashes_before.json": {
+      "bucket": "phase6",
+      "sha256": "1a5888ad313cdab94ae816e5e17cb5ebbab823bf4b56c6de8e26f485d7903495",
+      "size": 39239
+    },
+    "p4_forecasting/phase6/results/source_immutability_report.json": {
+      "bucket": "phase6",
+      "sha256": "681c9e8338fb9051689dbf4b7e350c402f902da1d553605be124e173b983edba",
+      "size": 579
+    },
+    "p4_forecasting/phase6/run_phase6.py": {
+      "bucket": "phase6",
+      "sha256": "7d6ac34e45a5751c267f405ed3f65c56f62501fc06d079288f4f6259f71f6343",
+      "size": 41955
+    },
+    "p4_forecasting/phase6/schemas/__init__.py": {
+      "bucket": "phase6",
+      "sha256": "c3f611b7b7da75d298cb6232e5581947ecc725384cfc095708b1c455be73c6c7",
+      "size": 88
+    },
+    "p4_forecasting/phase6/schemas/requests.py": {
+      "bucket": "phase6",
+      "sha256": "4188a671e0437ab8cce597b7e315b98f7e7ad4fae217fa4fbc1d43f79f88c636",
+      "size": 5248
+    },
+    "p4_forecasting/phase6/schemas/responses.py": {
+      "bucket": "phase6",
+      "sha256": "8330392f4d2682fb735e6e4b7165731393c53b3868bcd4af907d34092de27bcd",
+      "size": 2391
+    },
+    "p4_forecasting/phase6/snapshot.py": {
+      "bucket": "phase6",
+      "sha256": "29720d42e2a47d21d98728331d4e4685fb950aacd2924b4f7cd7a81b702300df",
+      "size": 6956
+    },
+    "p4_forecasting/phase6/tests/__init__.py": {
+      "bucket": "phase6",
+      "sha256": "79c3b047f6a8742fdc7d7e75485b49a743f825eabfe114a7afeb0a1bd3c4cf8d",
+      "size": 25
+    },
+    "p4_forecasting/phase6/tests/conftest.py": {
+      "bucket": "phase6",
+      "sha256": "aedf84ef9975ace08e823c05e71e3404f9ea3c10e774b7edef23277a12018a57",
+      "size": 1247
+    },
+    "p4_forecasting/phase6/tests/test_causality.py": {
+      "bucket": "phase6",
+      "sha256": "dd28dd8b4dc78679c1cda08662d231d9665df01fdd81379fedbac1f1b477d581",
+      "size": 4635
+    },
+    "p4_forecasting/phase6/tests/test_compare_endpoint.py": {
+      "bucket": "phase6",
+      "sha256": "933887742fcdf147cbde0ee7a54410767dc28da59289ee447cfd5c3ff0a57de0",
+      "size": 2587
+    },
+    "p4_forecasting/phase6/tests/test_determinism.py": {
+      "bucket": "phase6",
+      "sha256": "263e387bc7be1adbccddd3c4aef3a2fc23ef1d4e6ddc45c1f344e10f203aa80f",
+      "size": 1360
+    },
+    "p4_forecasting/phase6/tests/test_forecast_endpoint.py": {
+      "bucket": "phase6",
+      "sha256": "c0e1ef6e5c8d5fd41ba182083560daa070e4ce02426696e8fc14b289df9c5a67",
+      "size": 2049
+    },
+    "p4_forecasting/phase6/tests/test_health.py": {
+      "bucket": "phase6",
+      "sha256": "7d48e49f6ee33f9315765a1e2fc5d72df07c6e60a375e9b7d8de4d65c13c937d",
+      "size": 930
+    },
+    "p4_forecasting/phase6/tests/test_model_endpoint.py": {
+      "bucket": "phase6",
+      "sha256": "8c8b3348402ca451f5b3f97b8e6f4ecc66ddb1e3262f9089012db9378f1aa28c",
+      "size": 1595
+    },
+    "p4_forecasting/phase6/tests/test_offline.py": {
+      "bucket": "phase6",
+      "sha256": "fa6a237d574d787177aa1de39600d9d149023eb098bcc06bee675c4062540c0e",
+      "size": 3506
+    },
+    "p4_forecasting/phase6/tests/test_response_schema.py": {
+      "bucket": "phase6",
+      "sha256": "7b61a1af3fdbbfa0db6387e817abea1ec6b3040ad5435c7265fbc082fe13f080",
+      "size": 1887
+    },
+    "p4_forecasting/phase6/tests/test_source_immutability.py": {
+      "bucket": "phase6",
+      "sha256": "c9f9637d6c2bf7b5c11e0bb0459c9410ec121d0a41f2f738e8d370e11fbe63d9",
+      "size": 2849
+    },
+    "p4_forecasting/phase6/tests/test_validation_errors.py": {
+      "bucket": "phase6",
+      "sha256": "0da05200414dd7a3dbfe2c15ade7163f09064fac53b409ce4f49113c8ee6d7d6",
+      "size": 4345
+    },
+    "p4_forecasting/reports/P4_PHASE1_FINAL_REPORT.md": {
+      "bucket": "phase1",
+      "sha256": "93494a8abd1e3560d000094e21c3eebda9b1c1a943ff9ef354243b3cde65c0ca",
+      "size": 4825
+    },
+    "p4_forecasting/reports/p4_phase1_summary.json": {
+      "bucket": "phase1",
+      "sha256": "b6c002e134e6f6a89c56392de81ae6e865d7f44e542e872e18529235b06c28b8",
+      "size": 7281
+    },
+    "p4_forecasting/scripts/run_p4_phase1_audit.py": {
+      "bucket": "phase1",
+      "sha256": "cc8c2b05652b9fdfca56d9a99b968f4b2f12d4fa77b4535317c3ac4154c6419c",
+      "size": 66084
+    },
+    "results/P1_HANDOFF_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "80503331bf144e0b89f875b588ce409b6aa462c76b9a18b08e36758c45a3aac6",
+      "size": 18459
+    },
+    "results/PHASE3_AUDIT.md": {
+      "bucket": "outside",
+      "sha256": "50f758c6941f710e592346539ed0ea0f647e3049221fd08fcb391a2eff08ad86",
+      "size": 6043
+    },
+    "results/PHASE3_REPORT.md": {
+      "bucket": "outside",
+      "sha256": "12a3d38dd7a0062578f20ec1df034e12f2522185b6e5d739ea83a03576d3af26",
+      "size": 6927
+    },
+    "results/lstm_results.json": {
+      "bucket": "outside",
+      "sha256": "c254255dfa1386871c48522783854edb61f900cd00693df92ccc6b7c6cd98e3a",
+      "size": 666
+    },
+    "results/model_comparison.json": {
+      "bucket": "outside",
+      "sha256": "853fe3421b24367046cdbf92dcfd6e939acd8df364fcdd1d9836596d1da47008",
+      "size": 2126
+    },
+    "results/persistence_baseline.json": {
+      "bucket": "outside",
+      "sha256": "1a7c57100a66d12341e8df8c7059f086266a59a8ef9766aaf1b75ecd2f9cdf79",
+      "size": 663
+    },
+    "results/plots/example_forecast.png": {
+      "bucket": "outside",
+      "sha256": "c6d3c8315f07321af9ed0e7efb537e6674a72b379edbd5467871c018eecaf169",
+      "size": 101632
+    },
+    "results/plots/track_error_comparison.png": {
+      "bucket": "outside",
+      "sha256": "ebb7d07d7006a82658527e6af0460801f3a8fdbc7878c0c632c73a3747edd9ec",
+      "size": 35663
+    },
+    "results/plots/training_loss_curves.png": {
+      "bucket": "outside",
+      "sha256": "de0b9a9a99c32bfe7add5ea24bd05c34f539e6e79148d298280a0d9062569dfb",
+      "size": 98636
+    },
+    "results/plots/wind_prediction_examples.png": {
+      "bucket": "outside",
+      "sha256": "8d8280295fe9881878f97855bc8e4efee3353f269e54abe7d37acf0f0f9ee500",
+      "size": 89891
+    },
+    "scripts/phase1_clean_dataset.py": {
+      "bucket": "outside",
+      "sha256": "3dc9b7a273df23a9e57f21136843592113ee0e6294e2abc12dd74c575690c57f",
+      "size": 28232
+    },
+    "scripts/phase2_build_sequences.py": {
+      "bucket": "outside",
+      "sha256": "f903155c8c14ee0ad23231e0bd960ccb623c12e71c86a700c1c9236d0a066b58",
+      "size": 33514
+    },
+    "scripts/phase3_5_audit.py": {
+      "bucket": "outside",
+      "sha256": "e7b60a685d40ded6418ec61190abf2f9116c9e475fd9b4312c086f87a292eae0",
+      "size": 34406
+    },
+    "scripts/phase3_baseline_lstm.py": {
+      "bucket": "outside",
+      "sha256": "e7a64de00da32da002d4fde58bae9e25497d23af920aac6ab4ca76ef52c707fa",
+      "size": 44128
+    },
+    "src/__init__.py": {
+      "bucket": "outside",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "src/forecasting/__init__.py": {
+      "bucket": "outside",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "src/forecasting/inference.py": {
+      "bucket": "outside",
+      "sha256": "aaad7213f978fbc7aa822558410d25fb5e4935a9a023e36364c488fe4d4542c6",
+      "size": 3326
+    }
+  },
+  "zip": {
+    "members": {
+      "PS70-main/data/raw/insat/insat3d_raw_cyclone_ds/CYCLONE_DATASET_FINAL/45(1).jpg": {
+        "missing": false,
+        "sha256": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132",
+        "size": 62632
+      },
+      "PS70-main/models/classification/image_only_model.pt": {
+        "missing": false,
+        "sha256": "960e3b8a0321c28775ce29e400cc12139923302dc04d767dd278693418eac557",
+        "size": 45186485
+      },
+      "PS70-main/models/classification/tabular_multisource_model.pkl": {
+        "missing": false,
+        "sha256": "2d75080230751e6c89161f9a1fd58f56387392790f179bba90d4c4a8f3a0ea9a",
+        "size": 4816632
+      },
+      "PS70-main/models/detection/model_weights.pt": {
+        "missing": false,
+        "sha256": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+        "size": 4739155
+      }
+    },
+    "n_members_total": 1207,
+    "zip_file_sha256": "f653c8e85728f8a75ec0ddb2e677ccf7f540399c94fb76f52f616b4ede3e2438",
+    "zip_supplied": true
+  }
+}

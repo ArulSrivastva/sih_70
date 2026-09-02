@@ -1,0 +1,54 @@
+{
+  "history": [
+    {
+      "timestamp": "2024-08-25T00:00:00Z",
+      "latitude": 23.30,
+      "longitude": 68.50,
+      "wind_speed_kmh": 55.6,
+      "pressure_hpa": 994.0,
+      "sst": 28.67,
+      "wind_u": 8.5095,
+      "wind_v": 1.2749
+    },
+    {
+      "timestamp": "2024-08-25T06:00:00Z",
+      "latitude": 23.40,
+      "longitude": 68.00,
+      "wind_speed_kmh": 64.8,
+      "pressure_hpa": 993.0,
+      "sst": 28.26,
+      "wind_u": 4.4456,
+      "wind_v": 7.0864
+    },
+    {
+      "timestamp": "2024-08-25T12:00:00Z",
+      "latitude": 23.40,
+      "longitude": 67.10,
+      "wind_speed_kmh": 64.8,
+      "pressure_hpa": 993.0,
+      "sst": 28.43,
+      "wind_u": 7.9810,
+      "wind_v": -3.3996
+    },
+    {
+      "timestamp": "2024-08-25T18:00:00Z",
+      "latitude": 23.60,
+      "longitude": 66.40,
+      "wind_speed_kmh": 64.8,
+      "pressure_hpa": 992.0,
+      "sst": 28.69,
+      "wind_u": 2.0987,
+      "wind_v": -4.1294
+    },
+    {
+      "timestamp": "2024-08-26T00:00:00Z",
+      "latitude": 23.50,
+      "longitude": 65.70,
+      "wind_speed_kmh": 74.1,
+      "pressure_hpa": 991.0,
+      "sst": 28.85,
+      "wind_u": 2.4551,
+      "wind_v": 4.3582
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "P3_lightgbm_champion": {
+    "model": "LightGBMClassifier",
+    "phase": "P3",
+    "feature_set": "Original 6: lat, lon, sst, pressure_msl, wind_u, wind_v",
+    "training_config": {
+      "n_estimators": 300,
+      "learning_rate": 0.05,
+      "max_depth": 4,
+      "num_leaves": 15,
+      "random_state": 42
+    },
+    "evaluation_split": "test (651 samples, 24 cyclones)",
+    "final_metrics": {
+      "test_accuracy_pct": 47.0,
+      "test_macro_f1": 0.3744,
+      "test_weighted_f1": 0.4525,
+      "test_balanced_accuracy_pct": 38.26,
+      "test_mae": 0.8341,
+      "test_off_by_one_pct": 78.03,
+      "test_off_by_two_pct": 94.01,
+      "groupkfold_accuracy_pct": 41.95,
+      "groupkfold_macro_f1": 0.2786,
+      "groupkfold_note": "GroupKFold by cyclone_id gives realistic storm-level generalization"
+    },
+    "status": "LOCKED",
+    "source_results": [
+      "results/P3_ACCURACY_SUMMARY.json",
+      "results/P3_IMPROVEMENT_SUMMARY.json",
+      "results/P3_STORM_FEATURES.json"
+    ],
+    "locked_reason": "All improvement attempts (feature engineering, ordinal classification, class weighting, storm-aggregated features) failed to improve macro-F1 in GroupKFold. Original 6 features are optimal."
+  },
+  "P4_catboost_champion": {
+    "model": "CatBoostRegressor (displacement-based)",
+    "phase": "P4",
+    "feature_set": "23 tabular features: state0_* (7), v_lat/lon_step1/2/4, a_lat/lon, v24_lat/lon, turn_rate, heading_step1, v_lat/lon_mean2, wind/pres_tend, env_speed0, env_u/v0",
+    "training_config": {
+      "iterations": 400,
+      "learning_rate": 0.05,
+      "depth": 5,
+      "l2_leaf_reg": 3.0,
+      "random_seed": 42,
+      "early_stopping_rounds": 30
+    },
+    "evaluation_split": "test (198 samples, 10 cyclones)",
+    "final_metrics": {
+      "test_6h_km": 34.27,
+      "test_12h_km": 71.79,
+      "test_24h_km": 154.84,
+      "storm_cv_6h_km": 26.82,
+      "storm_cv_12h_km": 56.57,
+      "storm_cv_24h_km": 127.28
+    },
+    "status": "LOCKED",
+    "source_results": [
+      "results/P4_TRACK_ERROR_STRATIFICATION.json",
+      "results/P4_E11_STORM_CV.json",
+      "results/P4_NEXT_ACCURACY_SUMMARY.json"
+    ],
+    "locked_reason": "CatBoost wins ALL 5 storm-CV folds and ALL 3 horizons vs LightGBM and MV. Improvement is robust and consistent."
+  },
+  "P4_movement_vector_baseline": {
+    "model": "Movement-Vector (linear extrapolation of last 6h velocity)",
+    "phase": "P4",
+    "feature_set": "Last two timesteps lat/lon only",
+    "training_config": "No training; deterministic physics-based extrapolation",
+    "evaluation_split": "test (198 samples, 10 cyclones)",
+    "final_metrics": {
+      "test_6h_km": 38.05,
+      "test_12h_km": 80.5,
+      "test_24h_km": 180.66,
+      "storm_cv_6h_km": 27.77,
+      "storm_cv_12h_km": 59.19,
+      "storm_cv_24h_km": 138.92
+    },
+    "status": "BASELINE",
+    "source_results": [
+      "results/P4_TRACK_ERROR_STRATIFICATION.json",
+      "results/P4_NEXT_ACCURACY_SUMMARY.json"
+    ]
+  }
+}

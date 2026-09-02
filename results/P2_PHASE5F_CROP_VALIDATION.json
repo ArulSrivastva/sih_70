@@ -1,0 +1,820 @@
+{
+  "validation_name": "P2_PHASE5F_CROP_VALIDATION",
+  "total_crops_validated": 45,
+  "coordinate_projection_status": "PASS",
+  "cropping_box_dimensions": "224x224 pixels (approx. 900x900 km synoptic vortex domain)",
+  "provenance_linkage": "IBTrACS Ground-Truth Synoptic Best Track Coordinates",
+  "mock_bbox_eliminated": true,
+  "crops": [
+    {
+      "crop_filename": "crop_FANI_20190425_1800.png",
+      "source_granule": "3DIMG_20190425_1800_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-25 18:00:00",
+      "center_lat": 1.9,
+      "center_lon": 90.2,
+      "crop_box_pixels": "[-124, 808, 276, 1208]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Extremely Severe Cyclonic Storm",
+      "structural_pattern": "eye_visible",
+      "wind_speed_kmh": 215.0,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190425_2100.png",
+      "source_granule": "3DIMG_20190425_2100_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-25 21:00:00",
+      "center_lat": 2.1,
+      "center_lon": 90.1,
+      "crop_box_pixels": "[-116, 803, 284, 1203]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Extremely Severe Cyclonic Storm",
+      "structural_pattern": "eye_visible",
+      "wind_speed_kmh": 215.0,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_0000.png",
+      "source_granule": "3DIMG_20190426_0000_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 00:00:00",
+      "center_lat": 2.2,
+      "center_lon": 90.0,
+      "crop_box_pixels": "[-112, 800, 288, 1200]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Extremely Severe Cyclonic Storm",
+      "structural_pattern": "eye_visible",
+      "wind_speed_kmh": 215.0,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_0300.png",
+      "source_granule": "3DIMG_20190426_0300_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 03:00:00",
+      "center_lat": 2.3,
+      "center_lon": 89.8,
+      "crop_box_pixels": "[-108, 791, 292, 1192]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Extremely Severe Cyclonic Storm",
+      "structural_pattern": "eye_visible",
+      "wind_speed_kmh": 215.0,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_0600.png",
+      "source_granule": "3DIMG_20190426_0600_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 06:00:00",
+      "center_lat": 2.5,
+      "center_lon": 89.7,
+      "crop_box_pixels": "[-100, 788, 300, 1188]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Extremely Severe Cyclonic Storm",
+      "structural_pattern": "eye_visible",
+      "wind_speed_kmh": 215.0,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_0900.png",
+      "source_granule": "3DIMG_20190426_0900_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 09:00:00",
+      "center_lat": 2.8,
+      "center_lon": 89.8,
+      "crop_box_pixels": "[-88, 791, 312, 1192]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Extremely Severe Cyclonic Storm",
+      "structural_pattern": "eye_visible",
+      "wind_speed_kmh": 215.0,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_1200.png",
+      "source_granule": "3DIMG_20190426_1200_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 12:00:00",
+      "center_lat": 3.2,
+      "center_lon": 89.8,
+      "crop_box_pixels": "[-72, 791, 328, 1192]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 46.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_1500.png",
+      "source_granule": "3DIMG_20190426_1500_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 15:00:00",
+      "center_lat": 3.5,
+      "center_lon": 89.7,
+      "crop_box_pixels": "[-60, 788, 340, 1188]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 46.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_1800.png",
+      "source_granule": "3DIMG_20190426_1800_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 18:00:00",
+      "center_lat": 3.8,
+      "center_lon": 89.5,
+      "crop_box_pixels": "[-48, 780, 352, 1180]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 46.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190426_2100.png",
+      "source_granule": "3DIMG_20190426_2100_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-26 21:00:00",
+      "center_lat": 4.2,
+      "center_lon": 89.4,
+      "crop_box_pixels": "[-31, 776, 368, 1176]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 51.9,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190427_0000.png",
+      "source_granule": "3DIMG_20190427_0000_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-27 00:00:00",
+      "center_lat": 4.6,
+      "center_lon": 89.4,
+      "crop_box_pixels": "[-16, 776, 384, 1176]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190427_0300.png",
+      "source_granule": "3DIMG_20190427_0300_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-27 03:00:00",
+      "center_lat": 4.9,
+      "center_lon": 89.4,
+      "crop_box_pixels": "[-3, 776, 396, 1176]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190427_0600.png",
+      "source_granule": "3DIMG_20190427_0600_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-27 06:00:00",
+      "center_lat": 5.1,
+      "center_lon": 89.4,
+      "crop_box_pixels": "[3, 776, 404, 1176]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 64.8,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190427_0900.png",
+      "source_granule": "3DIMG_20190427_0900_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-27 09:00:00",
+      "center_lat": 5.5,
+      "center_lon": 89.3,
+      "crop_box_pixels": "[20, 771, 420, 1172]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_FANI_20190427_1200.png",
+      "source_granule": "3DIMG_20190427_1200_L1C_SGP.h5",
+      "cyclone_name": "FANI",
+      "cyclone_id": "2019116N02090",
+      "timestamp": "2019-04-27 12:00:00",
+      "center_lat": 6.0,
+      "center_lon": 89.2,
+      "crop_box_pixels": "[40, 768, 440, 1168]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 83.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210514_1800.png",
+      "source_granule": "3DIMG_20210514_1800_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-14 18:00:00",
+      "center_lat": 12.3,
+      "center_lon": 72.8,
+      "crop_box_pixels": "[292, 111, 692, 511]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 64.8,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210514_2100.png",
+      "source_granule": "3DIMG_20210514_2100_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-14 21:00:00",
+      "center_lat": 12.4,
+      "center_lon": 72.8,
+      "crop_box_pixels": "[296, 111, 696, 511]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210515_0000.png",
+      "source_granule": "3DIMG_20210515_0000_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-15 00:00:00",
+      "center_lat": 12.8,
+      "center_lon": 72.9,
+      "crop_box_pixels": "[312, 116, 712, 516]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210515_0300.png",
+      "source_granule": "3DIMG_20210515_0300_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-15 03:00:00",
+      "center_lat": 13.0,
+      "center_lon": 72.9,
+      "crop_box_pixels": "[320, 116, 720, 516]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210515_0600.png",
+      "source_granule": "3DIMG_20210515_0600_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-15 06:00:00",
+      "center_lat": 13.3,
+      "center_lon": 73.0,
+      "crop_box_pixels": "[332, 120, 732, 520]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 83.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210515_0900.png",
+      "source_granule": "3DIMG_20210515_0900_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-15 09:00:00",
+      "center_lat": 13.6,
+      "center_lon": 73.0,
+      "crop_box_pixels": "[344, 120, 744, 520]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 83.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210518_0600.png",
+      "source_granule": "3DIMG_20210518_0600_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-18 06:00:00",
+      "center_lat": 22.1,
+      "center_lon": 71.6,
+      "crop_box_pixels": "[684, 63, 1084, 463]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 83.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210518_0900.png",
+      "source_granule": "3DIMG_20210518_0900_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-18 09:00:00",
+      "center_lat": 22.6,
+      "center_lon": 71.7,
+      "crop_box_pixels": "[704, 68, 1104, 468]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210518_1200.png",
+      "source_granule": "3DIMG_20210518_1200_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-18 12:00:00",
+      "center_lat": 23.2,
+      "center_lon": 72.1,
+      "crop_box_pixels": "[728, 83, 1128, 483]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 64.8,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210524_0000.png",
+      "source_granule": "3DIMG_20210524_0000_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-24 00:00:00",
+      "center_lat": 16.1,
+      "center_lon": 89.8,
+      "crop_box_pixels": "[444, 791, 844, 1192]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 64.8,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210524_0300.png",
+      "source_granule": "3DIMG_20210524_0300_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-24 03:00:00",
+      "center_lat": 16.5,
+      "center_lon": 89.7,
+      "crop_box_pixels": "[460, 788, 860, 1188]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210524_0600.png",
+      "source_granule": "3DIMG_20210524_0600_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-24 06:00:00",
+      "center_lat": 16.6,
+      "center_lon": 89.6,
+      "crop_box_pixels": "[464, 783, 864, 1183]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210524_0900.png",
+      "source_granule": "3DIMG_20210524_0900_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-24 09:00:00",
+      "center_lat": 16.9,
+      "center_lon": 89.6,
+      "crop_box_pixels": "[475, 783, 876, 1183]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 74.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210524_1200.png",
+      "source_granule": "3DIMG_20210524_1200_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-24 12:00:00",
+      "center_lat": 17.2,
+      "center_lon": 89.4,
+      "crop_box_pixels": "[488, 776, 888, 1176]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 83.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_GULAB_20210524_1500.png",
+      "source_granule": "3DIMG_20210524_1500_L1C_SGP.h5",
+      "cyclone_name": "GULAB",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-24 15:00:00",
+      "center_lat": 17.4,
+      "center_lon": 89.2,
+      "crop_box_pixels": "[495, 768, 896, 1168]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Cyclonic Storm",
+      "structural_pattern": "curved_band",
+      "wind_speed_kmh": 83.3,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210514_0900.png",
+      "source_granule": "3DIMG_20210514_0900_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-14 09:00:00",
+      "center_lat": 11.5,
+      "center_lon": 72.4,
+      "crop_box_pixels": "[260, 96, 660, 496]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210514_1200.png",
+      "source_granule": "3DIMG_20210514_1200_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-14 12:00:00",
+      "center_lat": 11.7,
+      "center_lon": 72.6,
+      "crop_box_pixels": "[268, 103, 668, 503]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210514_1500.png",
+      "source_granule": "3DIMG_20210514_1500_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-14 15:00:00",
+      "center_lat": 12.0,
+      "center_lon": 72.7,
+      "crop_box_pixels": "[280, 108, 680, 508]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 61.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210518_1500.png",
+      "source_granule": "3DIMG_20210518_1500_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-18 15:00:00",
+      "center_lat": 23.7,
+      "center_lon": 72.5,
+      "crop_box_pixels": "[748, 100, 1148, 500]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210518_1800.png",
+      "source_granule": "3DIMG_20210518_1800_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-18 18:00:00",
+      "center_lat": 24.1,
+      "center_lon": 73.1,
+      "crop_box_pixels": "[764, 123, 1164, 523]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210518_2100.png",
+      "source_granule": "3DIMG_20210518_2100_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021133N10071",
+      "timestamp": "2021-05-18 21:00:00",
+      "center_lat": 24.4,
+      "center_lon": 73.4,
+      "crop_box_pixels": "[776, 136, 1176, 536]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 51.9,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210523_1500.png",
+      "source_granule": "3DIMG_20210523_1500_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-23 15:00:00",
+      "center_lat": 15.8,
+      "center_lon": 89.5,
+      "crop_box_pixels": "[432, 780, 832, 1180]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 51.9,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210523_1800.png",
+      "source_granule": "3DIMG_20210523_1800_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-23 18:00:00",
+      "center_lat": 15.8,
+      "center_lon": 89.5,
+      "crop_box_pixels": "[432, 780, 832, 1180]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210523_2100.png",
+      "source_granule": "3DIMG_20210523_2100_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-23 21:00:00",
+      "center_lat": 16.0,
+      "center_lon": 89.6,
+      "crop_box_pixels": "[440, 783, 840, 1183]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 61.1,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210526_1800.png",
+      "source_granule": "3DIMG_20210526_1800_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-26 18:00:00",
+      "center_lat": 22.5,
+      "center_lon": 85.8,
+      "crop_box_pixels": "[700, 631, 1100, 1032]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210526_2100.png",
+      "source_granule": "3DIMG_20210526_2100_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-26 21:00:00",
+      "center_lat": 22.8,
+      "center_lon": 85.7,
+      "crop_box_pixels": "[712, 628, 1112, 1028]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210527_0000.png",
+      "source_granule": "3DIMG_20210527_0000_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-27 00:00:00",
+      "center_lat": 23.1,
+      "center_lon": 85.7,
+      "crop_box_pixels": "[724, 628, 1124, 1028]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210527_0300.png",
+      "source_granule": "3DIMG_20210527_0300_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021143N15090",
+      "timestamp": "2021-05-27 03:00:00",
+      "center_lat": 23.3,
+      "center_lon": 85.7,
+      "crop_box_pixels": "[732, 628, 1132, 1028]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210912_2100.png",
+      "source_granule": "3DIMG_20210912_2100_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021256N20087",
+      "timestamp": "2021-09-12 21:00:00",
+      "center_lat": 20.5,
+      "center_lon": 87.1,
+      "crop_box_pixels": "[620, 683, 1020, 1083]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 51.9,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    },
+    {
+      "crop_filename": "crop_BOB_05_2021_20210913_0000.png",
+      "source_granule": "3DIMG_20210913_0000_L1C_SGP.h5",
+      "cyclone_name": "BOB_05_2021",
+      "cyclone_id": "2021256N20087",
+      "timestamp": "2021-09-13 00:00:00",
+      "center_lat": 20.6,
+      "center_lon": 87.0,
+      "crop_box_pixels": "[624, 680, 1024, 1080]",
+      "target_size": [
+        224,
+        224
+      ],
+      "category": "Deep Depression",
+      "structural_pattern": "shear_pattern",
+      "wind_speed_kmh": 55.6,
+      "crop_validation_status": "PASS_COORDINATES_VERIFIED"
+    }
+  ]
+}

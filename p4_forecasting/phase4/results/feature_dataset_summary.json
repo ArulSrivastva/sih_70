@@ -1,0 +1,111 @@
+{
+  "built_from": {
+    "clean_dir": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase2\\results\\canonical_chronological_clean",
+    "chrono_dir": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\canonical_chrono",
+    "quality_csv": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\canonical\\sample_quality.csv",
+    "policy": "Phase-2 CLEAN-only authoritative; no value modification"
+  },
+  "created_at": "2026-08-29T09:45:57.969650+00:00",
+  "input_contract": {
+    "X_in": "(N,5,7)",
+    "X_out": "(N,5,16)",
+    "feature_order_raw": [
+      "lat",
+      "lon",
+      "wind_speed",
+      "pressure",
+      "sst",
+      "wind_u",
+      "wind_v"
+    ],
+    "derived_features": [
+      "delta_lat",
+      "delta_lon",
+      "movement_speed",
+      "movement_direction",
+      "wind_change",
+      "pressure_change",
+      "sst_change",
+      "environmental_wind_speed",
+      "environmental_wind_direction"
+    ],
+    "target_order": [
+      "lat",
+      "lon",
+      "wind_speed"
+    ],
+    "horizons_hours": [
+      6,
+      12,
+      24
+    ]
+  },
+  "first_step_zero_fill_doc": "For difference/trend features requiring a predecessor, the first available history timestep is zero-filled because no predecessor exists within the model's causal input window.",
+  "splits": {
+    "train": {
+      "split": "train",
+      "sequences": 1212,
+      "cyclones": 57,
+      "X_shape": [
+        1212,
+        5,
+        16
+      ],
+      "Y_shape": [
+        1212,
+        3,
+        3
+      ],
+      "dtype": "float32",
+      "nan": false,
+      "inf": false,
+      "wrote": false,
+      "npz": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\feature_dataset\\train.npz",
+      "metadata": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\feature_dataset\\train_metadata.csv"
+    },
+    "val": {
+      "split": "val",
+      "sequences": 231,
+      "cyclones": 13,
+      "X_shape": [
+        231,
+        5,
+        16
+      ],
+      "Y_shape": [
+        231,
+        3,
+        3
+      ],
+      "dtype": "float32",
+      "nan": false,
+      "inf": false,
+      "wrote": false,
+      "npz": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\feature_dataset\\val.npz",
+      "metadata": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\feature_dataset\\val_metadata.csv"
+    },
+    "test": {
+      "split": "test",
+      "sequences": 198,
+      "cyclones": 10,
+      "X_shape": [
+        198,
+        5,
+        16
+      ],
+      "Y_shape": [
+        198,
+        3,
+        3
+      ],
+      "dtype": "float32",
+      "nan": false,
+      "inf": false,
+      "wrote": false,
+      "npz": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\feature_dataset\\test.npz",
+      "metadata": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\phase4\\results\\feature_dataset\\test_metadata.csv"
+    }
+  },
+  "cyclone_counts_match_phase2": true,
+  "sequence_counts_match_phase2": true
+}

@@ -1,0 +1,140 @@
+{
+  "EXP001": {
+    "6h": {
+      "track_error_km_mean": 141.69515887039668,
+      "track_error_km_median": 133.5870656740537,
+      "track_error_km_std": 80.60419617709594,
+      "wind_mae": 8.42062759399414,
+      "wind_rmse": 10.664047241210938
+    },
+    "12h": {
+      "track_error_km_mean": 161.5701530648459,
+      "track_error_km_median": 152.76702363748865,
+      "track_error_km_std": 99.47733917523423,
+      "wind_mae": 11.711254119873047,
+      "wind_rmse": 15.387325286865234
+    },
+    "24h": {
+      "track_error_km_mean": 197.20241334219298,
+      "track_error_km_median": 177.85448498667276,
+      "track_error_km_std": 115.45376602522578,
+      "wind_mae": 20.609949111938477,
+      "wind_rmse": 25.78957176208496
+    }
+  },
+  "EXP002": {
+    "6h": {
+      "track_error_km_mean": 114.02046005955789,
+      "track_error_km_median": 91.28418145996979,
+      "track_error_km_std": 78.99056069325414,
+      "wind_mae": 9.21546459197998,
+      "wind_rmse": 11.669197082519531
+    },
+    "12h": {
+      "track_error_km_mean": 137.62662209631574,
+      "track_error_km_median": 122.52945119728602,
+      "track_error_km_std": 84.81082385877065,
+      "wind_mae": 11.619319915771484,
+      "wind_rmse": 14.90560531616211
+    },
+    "24h": {
+      "track_error_km_mean": 190.03925242698946,
+      "track_error_km_median": 173.1027840545654,
+      "track_error_km_std": 108.83055355179876,
+      "wind_mae": 19.616451263427734,
+      "wind_rmse": 23.881847381591797
+    }
+  },
+  "EXP003": {
+    "6h": {
+      "track_error_km_mean": 98.72286303428844,
+      "track_error_km_median": 83.66182639653289,
+      "track_error_km_std": 65.59372416460937,
+      "wind_mae": 7.8484368324279785,
+      "wind_rmse": 10.157442092895508
+    },
+    "12h": {
+      "track_error_km_mean": 111.02801417120843,
+      "track_error_km_median": 100.67306655986583,
+      "track_error_km_std": 61.64174348645735,
+      "wind_mae": 11.792434692382812,
+      "wind_rmse": 15.101356506347656
+    },
+    "24h": {
+      "track_error_km_mean": 171.70817589613046,
+      "track_error_km_median": 151.85724558557848,
+      "track_error_km_std": 103.76445632446926,
+      "wind_mae": 21.432863235473633,
+      "wind_rmse": 26.379770278930664
+    }
+  },
+  "EXP004": {
+    "6h": {
+      "track_error_km_mean": 107.72315045004844,
+      "track_error_km_median": 93.15016535531228,
+      "track_error_km_std": 60.47484299358325,
+      "wind_mae": 9.207263946533203,
+      "wind_rmse": 11.425877571105957
+    },
+    "12h": {
+      "track_error_km_mean": 136.93023974788835,
+      "track_error_km_median": 121.41195666636685,
+      "track_error_km_std": 73.96475510062552,
+      "wind_mae": 12.468365669250488,
+      "wind_rmse": 15.672247886657715
+    },
+    "24h": {
+      "track_error_km_mean": 176.7731309071716,
+      "track_error_km_median": 153.3039993962645,
+      "track_error_km_std": 113.81132020573273,
+      "wind_mae": 20.74447250366211,
+      "wind_rmse": 24.706178665161133
+    }
+  },
+  "EXP005": {
+    "6h": {
+      "track_error_km_mean": 79.8430765890122,
+      "track_error_km_median": 70.75568762054846,
+      "track_error_km_std": 51.648922677674086,
+      "wind_mae": 7.555985450744629,
+      "wind_rmse": 9.49712085723877
+    },
+    "12h": {
+      "track_error_km_mean": 101.16757375743805,
+      "track_error_km_median": 95.64288650196055,
+      "track_error_km_std": 57.25067904592386,
+      "wind_mae": 11.908552169799805,
+      "wind_rmse": 15.208231925964355
+    },
+    "24h": {
+      "track_error_km_mean": 158.21177219925482,
+      "track_error_km_median": 144.70761367742833,
+      "track_error_km_std": 91.83724264468822,
+      "wind_mae": 22.55363655090332,
+      "wind_rmse": 27.078603744506836
+    }
+  },
+  "EXP006": {
+    "6h": {
+      "track_error_km_mean": 98.72288529685147,
+      "track_error_km_median": 83.66101833453376,
+      "track_error_km_std": 65.59375468196004,
+      "wind_mae": 7.848437309265137,
+      "wind_rmse": 10.157442092895508
+    },
+    "12h": {
+      "track_error_km_mean": 111.02799439932596,
+      "track_error_km_median": 100.67306655986583,
+      "track_error_km_std": 61.64178108921613,
+      "wind_mae": 11.792433738708496,
+      "wind_rmse": 15.10135555267334
+    },
+    "24h": {
+      "track_error_km_mean": 171.70820389304583,
+      "track_error_km_median": 151.8571783955427,
+      "track_error_km_std": 103.76451141702964,
+      "wind_mae": 21.432859420776367,
+      "wind_rmse": 26.37976837158203
+    }
+  }
+}

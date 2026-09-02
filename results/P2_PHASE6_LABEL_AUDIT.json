@@ -1,0 +1,25 @@
+{
+  "audit_name": "P2_PHASE6_LABEL_AUDIT",
+  "timestamp": "2026-09-01T11:26:00Z",
+  "total_records": 2120,
+  "intensity_category_source": "IMD Best Track Maximum Sustained Wind Speed (knots / kmh)",
+  "structural_pattern_source": "Meteorological Dvorak cloud morphology standards",
+  "circular_ai_labeling": false,
+  "per_category_counts": {
+    "Cyclonic Storm": 457,
+    "Depression": 428,
+    "Very Severe Cyclonic Storm": 375,
+    "Severe Cyclonic Storm": 368,
+    "Extremely Severe Cyclonic Storm": 214,
+    "Deep Depression": 209,
+    "Super Cyclonic Storm": 69
+  },
+  "per_pattern_counts": {
+    "curved_band": 825,
+    "eye_visible": 658,
+    "shear_pattern": 637
+  },
+  "missing_labels_count": 0,
+  "ambiguous_labels_count": 0,
+  "label_integrity_status": "PASS"
+}

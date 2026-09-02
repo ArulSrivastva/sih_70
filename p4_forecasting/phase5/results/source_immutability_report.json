@@ -1,0 +1,22 @@
+{
+  "schema": "phase5 v1",
+  "recorded_at": "2026-08-29T12:06:22.106750+00:00",
+  "status": "PASS",
+  "fatal": false,
+  "p1_changed": 0,
+  "phase1_changed": 0,
+  "phase2_changed": 0,
+  "phase3_changed": 0,
+  "phase4_changed": 0,
+  "outside_phase5_changed": 0,
+  "changed_files": {
+    "outside_phase5": [],
+    "p1": [],
+    "phase1": [],
+    "phase2": [],
+    "phase3": [],
+    "phase4": []
+  },
+  "n_files_after": 267,
+  "note": "Phase-5 inference must never modify P1 / Phase-1/2/3/4 / outside-Phase-5 files."
+}

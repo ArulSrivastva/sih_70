@@ -1,0 +1,395 @@
+{
+  "overall": {
+    "total_test": 651,
+    "correct": 255,
+    "errors": 396,
+    "error_rate": 60.83
+  },
+  "error_by_class": {
+    "Depression": {
+      "errors": 105,
+      "total": 253,
+      "error_rate": 41.5
+    },
+    "Deep Depression": {
+      "errors": 62,
+      "total": 102,
+      "error_rate": 60.78
+    },
+    "Cyclonic Storm": {
+      "errors": 88,
+      "total": 110,
+      "error_rate": 80.0
+    },
+    "Severe Cyclonic Storm": {
+      "errors": 54,
+      "total": 72,
+      "error_rate": 75.0
+    },
+    "Very Severe Cyclonic Storm": {
+      "errors": 74,
+      "total": 91,
+      "error_rate": 81.32
+    },
+    "Extremely Severe Cyclonic Storm": {
+      "errors": 13,
+      "total": 23,
+      "error_rate": 56.52
+    }
+  },
+  "top_confusion_pairs": [
+    {
+      "true_class": "Depression",
+      "predicted_class": "Deep Depression",
+      "count": 59
+    },
+    {
+      "true_class": "Deep Depression",
+      "predicted_class": "Depression",
+      "count": 40
+    },
+    {
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "count": 35
+    },
+    {
+      "true_class": "Depression",
+      "predicted_class": "Cyclonic Storm",
+      "count": 33
+    },
+    {
+      "true_class": "Cyclonic Storm",
+      "predicted_class": "Depression",
+      "count": 29
+    },
+    {
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Extremely Severe Cyclonic Storm",
+      "count": 25
+    },
+    {
+      "true_class": "Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "count": 24
+    },
+    {
+      "true_class": "Cyclonic Storm",
+      "predicted_class": "Deep Depression",
+      "count": 22
+    },
+    {
+      "true_class": "Severe Cyclonic Storm",
+      "predicted_class": "Extremely Severe Cyclonic Storm",
+      "count": 15
+    },
+    {
+      "true_class": "Severe Cyclonic Storm",
+      "predicted_class": "Depression",
+      "count": 14
+    }
+  ],
+  "feature_comparison": {
+    "lat": {
+      "correct_mean": 18.2847,
+      "error_mean": 15.5912,
+      "difference_pct": -14.73
+    },
+    "lon": {
+      "correct_mean": 78.16,
+      "error_mean": 77.2093,
+      "difference_pct": -1.22
+    },
+    "sst": {
+      "correct_mean": NaN,
+      "error_mean": NaN,
+      "difference_pct": NaN
+    },
+    "pressure_msl": {
+      "correct_mean": 997.4451,
+      "error_mean": 995.8578,
+      "difference_pct": -0.16
+    },
+    "wind_u": {
+      "correct_mean": -0.167,
+      "error_mean": -0.624,
+      "difference_pct": -273.68
+    },
+    "wind_v": {
+      "correct_mean": 0.2402,
+      "error_mean": 0.1072,
+      "difference_pct": -55.37
+    }
+  },
+  "confidence": {
+    "correct_mean_confidence": 0.5414,
+    "error_mean_confidence": 0.5167
+  },
+  "low_confidence_analysis": {
+    "threshold": 0.5,
+    "n_samples": 308,
+    "accuracy": 31.17
+  },
+  "severe_storm_errors": [
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.0,
+        "lon": 86.4,
+        "sst": 28.35,
+        "pressure_msl": 988.6,
+        "wind_u": 3.4312,
+        "wind_v": 6.4999
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.1,
+        "lon": 85.9,
+        "sst": 28.43,
+        "pressure_msl": 989.0,
+        "wind_u": -7.418,
+        "wind_v": 5.7589
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.0,
+        "lon": 85.1,
+        "sst": 28.42,
+        "pressure_msl": 987.8,
+        "wind_u": -9.349,
+        "wind_v": -7.0931
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.0,
+        "lon": 84.4,
+        "sst": 27.93,
+        "pressure_msl": 989.8,
+        "wind_u": -8.6195,
+        "wind_v": 2.7098
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.1,
+        "lon": 83.8,
+        "sst": 28.01,
+        "pressure_msl": 988.5,
+        "wind_u": -8.7516,
+        "wind_v": -11.1529
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.1,
+        "lon": 83.4,
+        "sst": 28.03,
+        "pressure_msl": 987.0,
+        "wind_u": -6.1996,
+        "wind_v": -9.0727
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.2,
+        "lon": 83.2,
+        "sst": 28.11,
+        "pressure_msl": 986.6,
+        "wind_u": -7.6041,
+        "wind_v": -2.1568
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.2,
+        "lon": 82.7,
+        "sst": 28.12,
+        "pressure_msl": 988.9,
+        "wind_u": -6.6746,
+        "wind_v": -6.6443
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.1,
+        "lon": 82.4,
+        "sst": 28.09,
+        "pressure_msl": 987.4,
+        "wind_u": -1.552,
+        "wind_v": -1.2738
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.2,
+        "lon": 82.0,
+        "sst": 28.01,
+        "pressure_msl": 987.3,
+        "wind_u": -9.7079,
+        "wind_v": -10.4366
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.2,
+        "lon": 81.7,
+        "sst": 27.61,
+        "pressure_msl": 982.9,
+        "wind_u": -1.4457,
+        "wind_v": -4.3457
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.2,
+        "lon": 81.3,
+        "sst": 27.43,
+        "pressure_msl": 984.8,
+        "wind_u": 3.8702,
+        "wind_v": -3.1474
+      }
+    },
+    {
+      "cyclone_id": "2016341N08092",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Severe Cyclonic Storm",
+      "features": {
+        "lat": 13.2,
+        "lon": 80.8,
+        "sst": 27.33,
+        "pressure_msl": 984.5,
+        "wind_u": -0.5382,
+        "wind_v": -6.7696
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 8.9,
+        "lon": 73.0,
+        "sst": 29.5,
+        "pressure_msl": 992.1,
+        "wind_u": 5.704,
+        "wind_v": -10.1826
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 9.0,
+        "lon": 72.8,
+        "sst": 29.52,
+        "pressure_msl": 991.2,
+        "wind_u": -5.8378,
+        "wind_v": -6.9272
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 9.1,
+        "lon": 72.5,
+        "sst": 29.53,
+        "pressure_msl": 992.8,
+        "wind_u": -4.9328,
+        "wind_v": -14.8652
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 9.2,
+        "lon": 72.1,
+        "sst": 29.47,
+        "pressure_msl": 995.4,
+        "wind_u": 1.9156,
+        "wind_v": -17.8826
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 9.3,
+        "lon": 71.8,
+        "sst": 29.47,
+        "pressure_msl": 993.2,
+        "wind_u": 4.766,
+        "wind_v": -17.7797
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 9.5,
+        "lon": 71.5,
+        "sst": 29.17,
+        "pressure_msl": 991.4,
+        "wind_u": 4.8239,
+        "wind_v": -17.4985
+      }
+    },
+    {
+      "cyclone_id": "2017333N06082",
+      "true_class": "Very Severe Cyclonic Storm",
+      "predicted_class": "Cyclonic Storm",
+      "features": {
+        "lat": 9.6,
+        "lon": 71.2,
+        "sst": 29.16,
+        "pressure_msl": 991.2,
+        "wind_u": 9.979,
+        "wind_v": -10.6196
+      }
+    }
+  ]
+}

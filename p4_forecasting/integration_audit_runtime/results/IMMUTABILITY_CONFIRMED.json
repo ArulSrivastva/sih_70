@@ -1,0 +1,48 @@
+{
+  "schema": "integration_qa v1",
+  "check": "Source immutability re-verification (read-only) against pre_audit_snapshot.json",
+  "pre_snapshot": "p4_forecasting/integration_api/results/pre_audit_snapshot.json",
+  "snapshot_files": 426,
+  "method": "Recompute SHA256 of every file present in the pre-audit snapshot (excluding the newly created integration_audit_runtime dir) and compare to the stored hash.",
+  "result": "PASS",
+  "changed_by_bucket": {
+    "P1 (p1)": 0,
+    "Phase-1 (phase1)": 0,
+    "Phase-2 (phase2)": 0,
+    "Phase-3 (phase3)": 0,
+    "Phase-4 (phase4)": 0,
+    "Phase-5 (phase5)": 0,
+    "phase6": 0,
+    "outside": 0,
+    "allowed_integration": 0,
+    "frontend": 8
+  },
+  "only_changed_files_all_in_approved_scope": [
+    "cyclone-dashboard/src/App.jsx",
+    "cyclone-dashboard/src/components/Header.jsx",
+    "cyclone-dashboard/src/components/LandfallPanel.jsx",
+    "cyclone-dashboard/src/components/LiveCycloneStatus.jsx",
+    "cyclone-dashboard/src/components/PipelineStatus.jsx",
+    "cyclone-dashboard/src/components/RiskIndicator.jsx",
+    "cyclone-dashboard/src/components/SatelliteViewer.jsx",
+    "cyclone-dashboard/src/components/map/MapView.jsx"
+  ],
+  "forbidden_scope_changes": 0,
+  "p1_phase1_phase2_phase3_phase4_phase5_changed": 0,
+  "missing_files": 0,
+  "zip": "verified unchanged in source_immutability_report.json (byte-identical members)",
+  "changed_by_bucket_confirmed_on_final_run": {
+    "P1 (p1)": 0,
+    "Phase-1 (phase1)": 0,
+    "Phase-2 (phase2)": 0,
+    "Phase-3 (phase3)": 0,
+    "Phase-4 (phase4)": 0,
+    "Phase-5 (phase5)": 0,
+    "phase6": 0,
+    "outside/forbidden": 0,
+    "allowed_integration": 0,
+    "frontend": 8
+  },
+  "note": "These 8 frontend files are the approved honesty fixes from the prior QA step (ProvenancePanel + honesty labelling). New integration_audit_runtime outputs are NOT counted as application changes.",
+  "recorded_at": "2026-08-30"
+}

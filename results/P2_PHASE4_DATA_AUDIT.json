@@ -1,0 +1,50 @@
+{
+  "audit_name": "P2_PHASE4_DATA_AUDIT",
+  "timestamp": "2026-09-01T10:52:00Z",
+  "scope": "Spatial Representation, Augmentation & Fine-Tuning Data Audit",
+  "dataset_summary": {
+    "total_images": 133,
+    "train_samples": 93,
+    "val_samples": 19,
+    "test_samples": 21,
+    "development_set_samples": 112
+  },
+  "structural_pattern_distribution": {
+    "eye_visible": 78,
+    "curved_band": 44,
+    "shear_pattern": 11
+  },
+  "intensity_category_distribution": {
+    "Cyclonic Storm": 43,
+    "Severe Cyclonic Storm": 36,
+    "Very Severe Cyclonic Storm": 31,
+    "Deep Depression": 10,
+    "Extremely Severe Cyclonic Storm": 11,
+    "Depression": 1,
+    "Super Cyclonic Storm": 1
+  },
+  "image_properties": {
+    "channels": 3,
+    "color_mode": "RGB",
+    "dimensions_min": [166, 166],
+    "dimensions_max": [359, 359],
+    "dimensions_median": [357, 357],
+    "dynamic_range": [0.0, 255.0],
+    "mean_pixel_brightness": 110.65,
+    "std_pixel_brightness": 31.73,
+    "exact_byte_duplicates": 0
+  },
+  "localization_and_bounding_box_audit": {
+    "real_localization_available": false,
+    "genuine_bounding_box_annotations_exist": false,
+    "mock_bbox_value": "[420, 190, 600, 370]",
+    "mock_bbox_is_constant": true,
+    "provenance_note": "The mock bounding box is a fixed UI interface placeholder string present in all rows of the dataset. No physical bounding boxes or center annotations exist.",
+    "spatial_cropping_verdict": "UNSAFE_AND_UNSUPPORTED (images are already pre-cropped bounding boxes around cyclone centers; arbitrary sub-cropping risks removing cloud features)"
+  },
+  "temporal_and_storm_grouping": {
+    "unique_filename_base_ids": 66,
+    "multi_frame_storm_sequences": 35,
+    "provenance": "Filename numbering (e.g. 35.jpg, 35(1).jpg) indicates multiple chronological frames from identical cyclones."
+  }
+}

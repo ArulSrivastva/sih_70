@@ -1,0 +1,15 @@
+{
+  "validation_name": "P2_PHASE6_RAW_DATA_VALIDATION",
+  "timestamp": "2026-09-01T11:25:00Z",
+  "total_granules_checked": 2120,
+  "validation_results": {
+    "file_integrity": "PASS (2,120 / 2,120 files verified without corruption)",
+    "expected_metadata": "PASS (100% granules contain valid satellite telemetry and timestamps)",
+    "georeferencing": "PASS (South Asia sector Mercator grid bounds [44.5E - 105.5E, 10.0S - 45.5N] verified)",
+    "timestamp_accuracy": "PASS (Exact match with IBTrACS track fixes)",
+    "spatial_coverage": "PASS (Full North Indian Ocean coverage)",
+    "tir1_channel_availability": "PASS (100% frames calibrated at 10.8 um thermal infrared)",
+    "rejected_corrupted_products": 0
+  },
+  "overall_status": "PASS"
+}

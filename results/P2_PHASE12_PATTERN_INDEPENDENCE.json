@@ -1,0 +1,13 @@
+{
+  "audit_name": "P2_PHASE12_PATTERN_INDEPENDENCE",
+  "timestamp": "2026-09-01T18:58:00Z",
+  "pattern_independence_metrics": {
+    "independently_supported_N": 23,
+    "independently_supported_accuracy": 0.08695652173913043,
+    "independently_supported_macro_f1": 0.08,
+    "derived_rule_only_N": 0,
+    "derived_rule_only_accuracy": NaN,
+    "derived_rule_only_macro_f1": NaN
+  },
+  "status": "MIXED_INDEPENDENTLY_SUPPORTED_AND_DERIVED"
+}

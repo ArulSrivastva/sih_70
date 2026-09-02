@@ -1,0 +1,8 @@
+{
+  "audit_name": "P2_PHASE11_LABEL_AUDIT",
+  "timestamp": "2026-09-01T18:30:00Z",
+  "intensity_label_source": "AUTHORITATIVE_IBTRACS_IMD_VMAX",
+  "pattern_label_status": "MIXED_INDEPENDENTLY_SUPPORTED_AND_DERIVED",
+  "independently_supported_count": 88,
+  "derived_rule_only_count": 50
+}

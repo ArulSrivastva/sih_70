@@ -1,0 +1,15 @@
+{
+  "audit_name": "P2_PHASE7_PREEXISTING_DATA_AUDIT",
+  "timestamp": "2026-09-01T11:50:00Z",
+  "phase6_total_crops": 2120,
+  "phase6_crop_files_on_disk": 2120,
+  "phase6_unique_image_hashes": 414,
+  "phase6_unique_cyclones": 24,
+  "phase6_sample_classification": {
+    "GENUINE_RAW_SOURCE_VERIFIED": 143,
+    "DERIVED_FROM_GENUINE_SOURCE": 271,
+    "SYNTHETIC/PARAMETRIZED": 1706,
+    "UNKNOWN_PROVENANCE": 0
+  },
+  "forensic_conclusion": "Phase-6 dataset contained 414 unique base visual templates parametrized across 2,120 sample records. Phase-7 requires 100% genuine, non-duplicated, 1:1 mapped satellite scenes."
+}

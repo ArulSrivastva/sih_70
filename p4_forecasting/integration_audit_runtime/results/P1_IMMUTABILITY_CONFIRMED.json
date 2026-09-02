@@ -1,0 +1,56 @@
+{
+  "schema": "p1_immutability v1",
+  "check": "Source immutability re-verification after the P1 continuation (LightGBM/tabular verification + North-Indian-Ocean upstream guard)",
+  "pre_snapshot": "p4_forecasting/integration_api/results/pre_audit_snapshot.json",
+  "snapshot_files": 426,
+  "method": "Recompute SHA256 of every file in the pre-audit snapshot tree and compare to the stored hash; recompute the PS70-main.zip hash (byte-identical members).",
+  "result": "PASS",
+  "missing_files": 0,
+  "changed_total": 14,
+  "changed_by_bucket": {
+    "p1": 0,
+    "phase1": 0,
+    "phase2": 0,
+    "phase3": 0,
+    "phase4": 0,
+    "phase5": 0,
+    "phase6": 0,
+    "outside": 0,
+    "frontend": 9,
+    "allowed_integration": 5
+  },
+  "only_changed_files_all_in_approved_scope": [
+    "cyclone-dashboard/src/App.jsx",
+    "cyclone-dashboard/src/api/client.js",
+    "cyclone-dashboard/src/components/Header.jsx",
+    "cyclone-dashboard/src/components/LandfallPanel.jsx",
+    "cyclone-dashboard/src/components/LiveCycloneStatus.jsx",
+    "cyclone-dashboard/src/components/PipelineStatus.jsx",
+    "cyclone-dashboard/src/components/RiskIndicator.jsx",
+    "cyclone-dashboard/src/components/SatelliteViewer.jsx",
+    "cyclone-dashboard/src/components/map/MapView.jsx",
+    "p4_forecasting/integration_api/analyzer.py",
+    "p4_forecasting/integration_api/config.py",
+    "p4_forecasting/integration_api/p3_classifier.py",
+    "p4_forecasting/integration_api/routes.py",
+    "p4_forecasting/integration_api/schemas.py"
+  ],
+  "p1_continuation_allowed_integration_delta": [
+    "p4_forecasting/integration_api/config.py",
+    "p4_forecasting/integration_api/p3_classifier.py",
+    "p4_forecasting/integration_api/schemas.py"
+  ],
+  "new_file_in_approved_scope": [
+    "p4_forecasting/integration_api/tests/test_nio_domain.py (13 tests)"
+  ],
+  "forbidden_scope_changes": 0,
+  "p1_phase1_phase2_phase3_phase4_phase5_changed": 0,
+  "zip": {
+    "file_sha256_matches": true,
+    "file_sha256": "f653c8e85728f8a75ec0ddb2e677ccf7f540399c94fb76f52f616b4ede3e2438",
+    "n_members": 1207,
+    "reference_frame_and_models_byte_identical": true
+  },
+  "note": "9 frontend + 3 allowed_integration (analyzer, routes, schemas) were the earlier P0 work. The P1 continuation added config.py, p3_classifier.py and further schema.py changes in allowed_integration scope, plus the new test test_nio_domain.py. No audited source/dataset/model/phase file was modified and PS70-main.zip is byte-identical.",
+  "recorded_at": "2026-08-30"
+}

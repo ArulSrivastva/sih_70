@@ -1,0 +1,14 @@
+{
+  "audit_name": "P2_PHASE8_5_LABEL_AUDIT",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "intensity_category": {
+    "source": "Authoritative IBTrACS Best Track maximum sustained wind speed (Vmax)",
+    "status": "AUTHORITATIVE_VERIFIED",
+    "circularity": false
+  },
+  "structural_pattern": {
+    "source": "Rule-derived from Vmax thresholds and Dvorak intensity categories",
+    "status": "DERIVED_RULE_NOT_INDEPENDENTLY_ANNOTATED",
+    "circularity": "MODERATE_CAVEAT (Shares underlying Vmax thresholding with intensity category)"
+  }
+}

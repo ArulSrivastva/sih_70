@@ -1,0 +1,64 @@
+{
+  "audit_name": "P2_PHASE8_5_PER_CYCLONE",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "E0_per_cyclone": {
+    "ASANI_2022": {
+      "N": 8,
+      "category_accuracy": 0.375,
+      "category_macro_f1": 0.2727272727272727,
+      "pattern_accuracy": 0.0,
+      "pattern_macro_f1": 0.0
+    },
+    "BIPARJOY_2023": {
+      "N": 7,
+      "category_accuracy": 0.2857142857142857,
+      "category_macro_f1": 0.2222222222222222,
+      "pattern_accuracy": 0.0,
+      "pattern_macro_f1": 0.0
+    },
+    "KYARR_2019": {
+      "N": 8,
+      "category_accuracy": 0.25,
+      "category_macro_f1": 0.2,
+      "pattern_accuracy": 0.25,
+      "pattern_macro_f1": 0.2
+    },
+    "UNNAMED_2021_DD": {
+      "N": 7,
+      "category_accuracy": 0.8571428571428571,
+      "category_macro_f1": 0.46153846153846156,
+      "pattern_accuracy": 1.0,
+      "pattern_macro_f1": 1.0
+    }
+  },
+  "E2_per_cyclone": {
+    "ASANI_2022": {
+      "N": 8,
+      "category_accuracy": 1.0,
+      "category_macro_f1": 1.0,
+      "pattern_accuracy": 0.0,
+      "pattern_macro_f1": 0.0
+    },
+    "BIPARJOY_2023": {
+      "N": 7,
+      "category_accuracy": 0.7142857142857143,
+      "category_macro_f1": 0.4166666666666667,
+      "pattern_accuracy": 0.0,
+      "pattern_macro_f1": 0.0
+    },
+    "KYARR_2019": {
+      "N": 8,
+      "category_accuracy": 0.375,
+      "category_macro_f1": 0.2727272727272727,
+      "pattern_accuracy": 0.25,
+      "pattern_macro_f1": 0.2
+    },
+    "UNNAMED_2021_DD": {
+      "N": 7,
+      "category_accuracy": 0.14285714285714285,
+      "category_macro_f1": 0.125,
+      "pattern_accuracy": 1.0,
+      "pattern_macro_f1": 1.0
+    }
+  }
+}

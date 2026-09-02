@@ -1,0 +1,48 @@
+{
+  "model_name": "P2_DVORAK_CONSISTENCY_CANDIDATE",
+  "architecture": "MobileNetV3-small backbone + Dvorak Domain Consistency Soft-Gating Mechanism",
+  "mechanism_definition": {
+    "compatibility_matrix": "C[i, j] = (N(i, j) + alpha) / sum_j' (N(i, j') + alpha), constructed strictly from fold training data",
+    "smoothing_parameter_alpha": 0.1,
+    "adjustment_formula": "P_adj(category_j) propto P_CNN(category_j) * (sum_i P_CNN(pattern_i) * C[i, j])^beta",
+    "gating_parameter_beta": 1.0,
+    "leakage_protection": "Strictly fold-isolated. No validation or test data consulted during matrix generation."
+  },
+  "5_fold_cv_metrics": {
+    "pattern_accuracy": 0.5715415019762846,
+    "pattern_accuracy_std": 0.01738234836691456,
+    "pattern_precision_weighted": 0.3269666060133276,
+    "pattern_precision_weighted_std": 0.01979929283733056,
+    "pattern_recall_weighted": 0.5715415019762846,
+    "pattern_recall_weighted_std": 0.01738234836691456,
+    "pattern_f1_weighted": 0.4158747873325879,
+    "pattern_f1_weighted_std": 0.02066380695026938,
+    "pattern_f1_macro": 0.2424027388733271,
+    "pattern_f1_macro_std": 0.004700570375924765,
+    "category_accuracy": 0.2850197628458498,
+    "category_accuracy_std": 0.09503463991206121,
+    "category_precision_weighted": 0.1614749842186716,
+    "category_precision_weighted_std": 0.09413284061805908,
+    "category_recall_weighted": 0.2850197628458498,
+    "category_recall_weighted_std": 0.09503463991206121,
+    "category_f1_weighted": 0.17505193498877145,
+    "category_f1_weighted_std": 0.07080277259972322,
+    "category_f1_macro": 0.11789700947702844,
+    "category_f1_macro_std": 0.04381862590209217,
+    "physical_consistency_rate": 0.4430830039525692,
+    "physical_consistency_rate_std": 0.4197022209703487
+  },
+  "test_metrics_n21": {
+    "pattern_accuracy": 0.6666666666666666,
+    "pattern_precision_weighted": 0.4444444444444444,
+    "pattern_recall_weighted": 0.6666666666666666,
+    "pattern_f1_weighted": 0.5333333333333333,
+    "pattern_f1_macro": 0.26666666666666666,
+    "category_accuracy": 0.23809523809523808,
+    "category_precision_weighted": 0.05952380952380952,
+    "category_recall_weighted": 0.23809523809523808,
+    "category_f1_weighted": 0.09523809523809523,
+    "category_f1_macro": 0.06666666666666667,
+    "physical_consistency_rate": 0.047619047619047616
+  }
+}

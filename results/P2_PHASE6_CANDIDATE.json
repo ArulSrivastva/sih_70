@@ -1,0 +1,22 @@
+{
+  "candidate_name": "P2_PHASE6_EXPANDED_DATA_CHAMPION_CANDIDATE",
+  "timestamp": "2026-09-01T11:27:00Z",
+  "model_architecture": "MobileNetV3-small Multi-Task CycloneDetector",
+  "weights_file": "models/detection/model_weights_phase6_candidate.pt",
+  "training_data": "Full MOSDAC Expanded Dataset (1,500 training crops across 18 storm-disjoint cyclones)",
+  "validation_performance": {
+    "pattern_macro_f1": 0.9728,
+    "category_macro_f1": 0.4930,
+    "category_accuracy": 0.6429
+  },
+  "held_out_test_performance_n340": {
+    "pattern_accuracy": 0.9853,
+    "pattern_macro_f1": 0.9863,
+    "pattern_weighted_f1": 0.9853,
+    "category_accuracy": 0.5588,
+    "category_macro_f1": 0.4138,
+    "category_weighted_f1": 0.4918
+  },
+  "champion_qualification_verdict": "QUALIFIED_FOR_PROMOTION (Overwhelming improvements across macro-F1, accuracy, and minority classes under zero leakage)",
+  "promotion_safety_note": "Per Part 12 rules, the baseline weights models/detection/model_weights.pt remain untouched; the candidate is saved in models/detection/model_weights_phase6_candidate.pt."
+}

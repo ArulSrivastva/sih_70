@@ -1,0 +1,248 @@
+{
+  "E0_baseline": {
+    "n_features": 26,
+    "summary": {
+      "6": {
+        "mean": 27.39562330166956,
+        "median": 24.249423502558212,
+        "std": 17.312706557362045
+      },
+      "12": {
+        "mean": 57.37861863633161,
+        "median": 51.350243703297934,
+        "std": 34.626427975562656
+      },
+      "24": {
+        "mean": 130.03985777486554,
+        "median": 114.79428836402987,
+        "std": 78.71832705263097
+      }
+    },
+    "feature_cols": [
+      "state0_lat",
+      "state0_lon",
+      "state0_wind_speed",
+      "state0_pressure",
+      "state0_sst",
+      "state0_wind_u",
+      "state0_wind_v",
+      "v_lat_step1",
+      "v_lon_step1",
+      "v_lat_step2",
+      "v_lon_step2",
+      "v_lat_step4",
+      "v_lon_step4",
+      "a_lat",
+      "a_lon",
+      "v24_lat",
+      "v24_lon",
+      "turn_rate",
+      "heading_step1",
+      "v_lat_mean2",
+      "v_lon_mean2",
+      "wind_tend",
+      "pres_tend",
+      "env_speed0",
+      "env_u0",
+      "env_v0"
+    ]
+  },
+  "E1_motion": {
+    "n_features": 42,
+    "summary": {
+      "6": {
+        "mean": 27.401437547961276,
+        "median": 24.366638841407344,
+        "std": 17.161747051521722
+      },
+      "12": {
+        "mean": 57.64002689271471,
+        "median": 51.159076620808506,
+        "std": 34.54474808619964
+      },
+      "24": {
+        "mean": 128.91884869650343,
+        "median": 113.52123477788462,
+        "std": 77.65326650643239
+      }
+    },
+    "feature_cols": [
+      "state0_lat",
+      "state0_lon",
+      "state0_wind_speed",
+      "state0_pressure",
+      "state0_sst",
+      "state0_wind_u",
+      "state0_wind_v",
+      "v_lat_step1",
+      "v_lon_step1",
+      "v_lat_step2",
+      "v_lon_step2",
+      "v_lat_step4",
+      "v_lon_step4",
+      "a_lat",
+      "a_lon",
+      "v24_lat",
+      "v24_lon",
+      "turn_rate",
+      "heading_step1",
+      "v_lat_mean2",
+      "v_lon_mean2",
+      "wind_tend",
+      "pres_tend",
+      "env_speed0",
+      "env_u0",
+      "env_v0",
+      "v_lat_step3",
+      "v_lon_step3",
+      "disp_3h_km",
+      "disp_3h_heading",
+      "disp_6h_km",
+      "disp_6h_heading",
+      "disp_12h_km",
+      "disp_12h_heading",
+      "speed_6h",
+      "speed_12h",
+      "heading_change_12h",
+      "heading_change_18h",
+      "accel_lat_step",
+      "accel_lon_step",
+      "speed_trend",
+      "env_speed_t0"
+    ]
+  },
+  "E2_env": {
+    "n_features": 37,
+    "summary": {
+      "6": {
+        "mean": 27.452867477037667,
+        "median": 24.34055340336626,
+        "std": 17.195323190480693
+      },
+      "12": {
+        "mean": 57.728885038508494,
+        "median": 51.42302353326889,
+        "std": 34.69935175887845
+      },
+      "24": {
+        "mean": 129.38588314882347,
+        "median": 112.55432596500077,
+        "std": 78.92895200896594
+      }
+    },
+    "feature_cols": [
+      "state0_lat",
+      "state0_lon",
+      "state0_wind_speed",
+      "state0_pressure",
+      "state0_sst",
+      "state0_wind_u",
+      "state0_wind_v",
+      "v_lat_step1",
+      "v_lon_step1",
+      "v_lat_step2",
+      "v_lon_step2",
+      "v_lat_step4",
+      "v_lon_step4",
+      "a_lat",
+      "a_lon",
+      "v24_lat",
+      "v24_lon",
+      "turn_rate",
+      "heading_step1",
+      "v_lat_mean2",
+      "v_lon_mean2",
+      "wind_tend",
+      "pres_tend",
+      "env_speed0",
+      "env_u0",
+      "env_v0",
+      "sst_t0",
+      "sst_change_6h",
+      "sst_change_24h",
+      "pres_t0",
+      "pres_change_6h",
+      "pres_change_24h",
+      "env_speed_t0",
+      "env_u_t0",
+      "env_v_t0",
+      "wind_mag_t0",
+      "storm_env_ratio"
+    ]
+  },
+  "E3_all": {
+    "n_features": 53,
+    "summary": {
+      "6": {
+        "mean": 27.485107985831842,
+        "median": 24.15515479036251,
+        "std": 17.232958106264814
+      },
+      "12": {
+        "mean": 57.67801858050566,
+        "median": 50.54178394454763,
+        "std": 34.85399400382816
+      },
+      "24": {
+        "mean": 128.54954939793512,
+        "median": 112.81484867871315,
+        "std": 79.35803902777735
+      }
+    },
+    "feature_cols": [
+      "state0_lat",
+      "state0_lon",
+      "state0_wind_speed",
+      "state0_pressure",
+      "state0_sst",
+      "state0_wind_u",
+      "state0_wind_v",
+      "v_lat_step1",
+      "v_lon_step1",
+      "v_lat_step2",
+      "v_lon_step2",
+      "v_lat_step4",
+      "v_lon_step4",
+      "a_lat",
+      "a_lon",
+      "v24_lat",
+      "v24_lon",
+      "turn_rate",
+      "heading_step1",
+      "v_lat_mean2",
+      "v_lon_mean2",
+      "wind_tend",
+      "pres_tend",
+      "env_speed0",
+      "env_u0",
+      "env_v0",
+      "v_lat_step3",
+      "v_lon_step3",
+      "disp_3h_km",
+      "disp_3h_heading",
+      "disp_6h_km",
+      "disp_6h_heading",
+      "disp_12h_km",
+      "disp_12h_heading",
+      "speed_6h",
+      "speed_12h",
+      "heading_change_12h",
+      "heading_change_18h",
+      "accel_lat_step",
+      "accel_lon_step",
+      "speed_trend",
+      "env_speed_t0",
+      "sst_t0",
+      "sst_change_6h",
+      "sst_change_24h",
+      "pres_t0",
+      "pres_change_6h",
+      "pres_change_24h",
+      "env_speed_t0",
+      "env_u_t0",
+      "env_v_t0",
+      "wind_mag_t0",
+      "storm_env_ratio"
+    ]
+  }
+}

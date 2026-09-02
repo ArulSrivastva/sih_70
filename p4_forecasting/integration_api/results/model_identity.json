@@ -1,0 +1,35 @@
+{
+  "p2": {
+    "model": "PS70-main/models/detection/model_weights.pt",
+    "loaded": true,
+    "backbone": "mobilenet_v3_small (weights=None)",
+    "patterns": 3,
+    "categories": 7,
+    "runtime_param_count": 1149995,
+    "presence_sample": null
+  },
+  "p3_image": {
+    "model": "PS70-main/models/classification/image_only_model.pt",
+    "loaded": true,
+    "backbone": "resnet18 (weights=None)",
+    "classes": 7,
+    "runtime_param_count": 11275976
+  },
+  "p4_forecast": {
+    "experiment_id": "EXP005",
+    "family": "GRU",
+    "loss": "Huber",
+    "horizons": [
+      6,
+      12,
+      24
+    ],
+    "targets": [
+      "lat",
+      "lon",
+      "wind_speed_kmh"
+    ],
+    "validation_primary_score": 113.07414084856835,
+    "runtime_param_count": 89577
+  }
+}

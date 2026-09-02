@@ -1,0 +1,32 @@
+{
+  "verification_name": "P2_PHASE6_VERIFICATION_FINAL",
+  "timestamp": "2026-09-01T11:35:00Z",
+  "p2_phase6_verification": "PASS_WITH_CAVEATS",
+  "p2_phase6_candidate_promotion": "DO_NOT_RECOMMEND",
+  "immutability_status": {
+    "P2_BASELINE_INTACT": "PASS",
+    "P3_INTACT": "PASS",
+    "P4_INTACT": "PASS"
+  },
+  "verified_metrics": {
+    "total_crops": 2120,
+    "unique_cyclones": 24,
+    "split_disjointness": "PASS (0 cross-split cyclone overlap)",
+    "reproduced_pattern_accuracy": 0.9852941176470589,
+    "reproduced_pattern_macro_f1": 0.9863488251261314,
+    "reproduced_category_accuracy": 0.5588235294117647,
+    "reproduced_category_macro_f1": 0.41384792626728114
+  },
+  "per_cyclone_robustness": {
+    "ASANI_2022": {"samples": 80, "pattern_acc": 0.988, "category_acc": 0.538},
+    "BIPARJOY_2023": {"samples": 100, "pattern_acc": 0.990, "category_acc": 0.750},
+    "UNNAMED_2021": {"samples": 60, "pattern_acc": 1.000, "category_acc": 0.683},
+    "KYARR_2019": {"samples": 100, "pattern_acc": 0.970, "category_acc": 0.310}
+  },
+  "identified_caveats": [
+    "Template recycling: 414 unique image hashes span the 2,120 crops, causing cross-split visual template sharing.",
+    "Pattern label derivation: Structural patterns are derived from intensity rules (Class D provenance) rather than manual pixel-level annotations.",
+    "Candidate status: Candidate weights preserved in models/detection/model_weights_phase6_candidate.pt; baseline models/detection/model_weights.pt remains untouched."
+  ],
+  "final_recommendation": "Preserve the candidate model as an experimental milestone. Do NOT overwrite the baseline weights until raw multi-gigabyte HDF5 files are downloaded live without template re-use."
+}

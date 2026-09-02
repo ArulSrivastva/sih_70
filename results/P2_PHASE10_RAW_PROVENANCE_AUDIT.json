@@ -1,0 +1,11 @@
+{
+  "audit_name": "P2_PHASE10_RAW_PROVENANCE_AUDIT",
+  "timestamp": "2026-09-01T18:25:00Z",
+  "total_observations": 138,
+  "provenance_breakdown": {
+    "RAW_MOSDAC_VERIFIED": 138
+  },
+  "raw_mosdac_verified_count": 138,
+  "synthetic_or_reconstructed_count": 0,
+  "provenance_status": "PASS_ALL_GENUINE_MOSDAC_RAW_VERIFIED"
+}

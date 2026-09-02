@@ -1,0 +1,547 @@
+{
+  "experiment": "P4_TRACK_ERROR_STRATIFICATION",
+  "dataset": {
+    "test_samples": 198,
+    "test_cyclones": 10,
+    "train_pool_samples": 1443
+  },
+  "models_compared": [
+    "CatBoost displacement (trained on train+val)",
+    "Movement vector baseline"
+  ],
+  "stratification_results": {
+    "by_horizon": {
+      "strata": {
+        "6h": {
+          "n": 198,
+          "catboost_mean": 34.27,
+          "catboost_median": 28.33,
+          "mv_mean": 38.05,
+          "mv_median": 32.83,
+          "improvement_km": 3.78,
+          "improvement_pct": 9.94,
+          "cat_better_count": 111,
+          "mv_better_count": 87,
+          "flag": "OK"
+        },
+        "12h": {
+          "n": 198,
+          "catboost_mean": 71.79,
+          "catboost_median": 65.56,
+          "mv_mean": 80.5,
+          "mv_median": 64.54,
+          "improvement_km": 8.72,
+          "improvement_pct": 10.83,
+          "cat_better_count": 112,
+          "mv_better_count": 86,
+          "flag": "OK"
+        },
+        "24h": {
+          "n": 198,
+          "catboost_mean": 154.84,
+          "catboost_median": 133.66,
+          "mv_mean": 180.66,
+          "mv_median": 164.99,
+          "improvement_km": 25.82,
+          "improvement_pct": 14.29,
+          "cat_better_count": 116,
+          "mv_better_count": 82,
+          "flag": "OK"
+        }
+      }
+    },
+    "by_wind_intensity": {
+      "strata": {
+        "weak_<=46_6h": {
+          "n": 32,
+          "catboost_mean": 55.82,
+          "mv_mean": 64.85,
+          "improvement_km": 9.04,
+          "improvement_pct": 13.93,
+          "flag": "OK"
+        },
+        "weak_<=46_12h": {
+          "n": 32,
+          "catboost_mean": 133.83,
+          "mv_mean": 149.8,
+          "improvement_km": 15.97,
+          "improvement_pct": 10.66,
+          "flag": "OK"
+        },
+        "weak_<=46_24h": {
+          "n": 32,
+          "catboost_mean": 303.72,
+          "mv_mean": 352.02,
+          "improvement_km": 48.3,
+          "improvement_pct": 13.72,
+          "flag": "OK"
+        },
+        "moderate_46-74_6h": {
+          "n": 98,
+          "catboost_mean": 30.86,
+          "mv_mean": 33.92,
+          "improvement_km": 3.05,
+          "improvement_pct": 9.01,
+          "flag": "OK"
+        },
+        "moderate_46-74_12h": {
+          "n": 98,
+          "catboost_mean": 64.27,
+          "mv_mean": 71.69,
+          "improvement_km": 7.42,
+          "improvement_pct": 10.35,
+          "flag": "OK"
+        },
+        "moderate_46-74_24h": {
+          "n": 98,
+          "catboost_mean": 131.3,
+          "mv_mean": 159.75,
+          "improvement_km": 28.45,
+          "improvement_pct": 17.81,
+          "flag": "OK"
+        },
+        "strong_74-102_6h": {
+          "n": 61,
+          "catboost_mean": 28.06,
+          "mv_mean": 30.61,
+          "improvement_km": 2.55,
+          "improvement_pct": 8.32,
+          "flag": "OK"
+        },
+        "strong_74-102_12h": {
+          "n": 61,
+          "catboost_mean": 52.82,
+          "mv_mean": 61.31,
+          "improvement_km": 8.49,
+          "improvement_pct": 13.85,
+          "flag": "OK"
+        },
+        "strong_74-102_24h": {
+          "n": 61,
+          "catboost_mean": 116.12,
+          "mv_mean": 127.13,
+          "improvement_km": 11.02,
+          "improvement_pct": 8.67,
+          "flag": "OK"
+        },
+        "very_strong_102-130_6h": {
+          "n": 7,
+          "catboost_mean": 37.61,
+          "mv_mean": 38.29,
+          "improvement_km": 0.69,
+          "improvement_pct": 1.79,
+          "flag": "LOW_N"
+        },
+        "very_strong_102-130_12h": {
+          "n": 7,
+          "catboost_mean": 58.62,
+          "mv_mean": 54.34,
+          "improvement_km": -4.27,
+          "improvement_pct": -7.86,
+          "flag": "LOW_N"
+        },
+        "very_strong_102-130_24h": {
+          "n": 7,
+          "catboost_mean": 141.17,
+          "mv_mean": 156.44,
+          "improvement_km": 15.28,
+          "improvement_pct": 9.76,
+          "flag": "LOW_N"
+        }
+      }
+    },
+    "by_movement_speed": {
+      "strata": {
+        "slow_6h": {
+          "n": 69,
+          "catboost_mean": 34.6,
+          "mv_mean": 36.09,
+          "improvement_km": 1.49,
+          "improvement_pct": 4.12,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "slow_12h": {
+          "n": 69,
+          "catboost_mean": 75.57,
+          "mv_mean": 75.88,
+          "improvement_km": 0.32,
+          "improvement_pct": 0.42,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "slow_24h": {
+          "n": 69,
+          "catboost_mean": 152.02,
+          "mv_mean": 150.14,
+          "improvement_km": -1.88,
+          "improvement_pct": -1.25,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "medium_6h": {
+          "n": 63,
+          "catboost_mean": 31.28,
+          "mv_mean": 33.2,
+          "improvement_km": 1.92,
+          "improvement_pct": 5.79,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "medium_12h": {
+          "n": 63,
+          "catboost_mean": 61.81,
+          "mv_mean": 68.55,
+          "improvement_km": 6.74,
+          "improvement_pct": 9.84,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "medium_24h": {
+          "n": 63,
+          "catboost_mean": 136.78,
+          "mv_mean": 159.04,
+          "improvement_km": 22.26,
+          "improvement_pct": 14.0,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "fast_6h": {
+          "n": 66,
+          "catboost_mean": 36.78,
+          "mv_mean": 44.73,
+          "improvement_km": 7.96,
+          "improvement_pct": 17.78,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "fast_12h": {
+          "n": 66,
+          "catboost_mean": 77.36,
+          "mv_mean": 96.75,
+          "improvement_km": 19.39,
+          "improvement_pct": 20.04,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        },
+        "fast_24h": {
+          "n": 66,
+          "catboost_mean": 175.02,
+          "mv_mean": 233.2,
+          "improvement_km": 58.18,
+          "improvement_pct": 24.95,
+          "speed_threshold_slow": 47.27,
+          "speed_threshold_fast": 79.36,
+          "flag": "OK"
+        }
+      }
+    },
+    "by_turning": {
+      "strata": {
+        "straight_<17_6h": {
+          "n": 100,
+          "catboost_mean": 34.43,
+          "mv_mean": 36.69,
+          "improvement_km": 2.26,
+          "improvement_pct": 6.15,
+          "flag": "OK"
+        },
+        "straight_<17_12h": {
+          "n": 100,
+          "catboost_mean": 74.59,
+          "mv_mean": 78.06,
+          "improvement_km": 3.47,
+          "improvement_pct": 4.44,
+          "flag": "OK"
+        },
+        "straight_<17_24h": {
+          "n": 100,
+          "catboost_mean": 169.02,
+          "mv_mean": 183.64,
+          "improvement_km": 14.62,
+          "improvement_pct": 7.96,
+          "flag": "OK"
+        },
+        "turning_>=17_6h": {
+          "n": 98,
+          "catboost_mean": 34.1,
+          "mv_mean": 39.44,
+          "improvement_km": 5.34,
+          "improvement_pct": 13.54,
+          "flag": "OK"
+        },
+        "turning_>=17_12h": {
+          "n": 98,
+          "catboost_mean": 68.92,
+          "mv_mean": 83.0,
+          "improvement_km": 14.08,
+          "improvement_pct": 16.96,
+          "flag": "OK"
+        },
+        "turning_>=17_24h": {
+          "n": 98,
+          "catboost_mean": 140.36,
+          "mv_mean": 177.62,
+          "improvement_km": 37.25,
+          "improvement_pct": 20.97,
+          "flag": "OK"
+        }
+      }
+    },
+    "by_sst_available": {
+      "strata": {
+        "sst_available_6h": {
+          "n": 198,
+          "catboost_mean": 34.27,
+          "mv_mean": 38.05,
+          "improvement_km": 3.78,
+          "improvement_pct": 9.94,
+          "flag": "OK"
+        },
+        "sst_available_12h": {
+          "n": 198,
+          "catboost_mean": 71.79,
+          "mv_mean": 80.5,
+          "improvement_km": 8.72,
+          "improvement_pct": 10.83,
+          "flag": "OK"
+        },
+        "sst_available_24h": {
+          "n": 198,
+          "catboost_mean": 154.84,
+          "mv_mean": 180.66,
+          "improvement_km": 25.82,
+          "improvement_pct": 14.29,
+          "flag": "OK"
+        }
+      }
+    },
+    "by_region": {
+      "strata": {
+        "western_AS_6h": {
+          "n": 28,
+          "catboost_mean": 35.86,
+          "mv_mean": 42.4,
+          "improvement_km": 6.54,
+          "improvement_pct": 15.43,
+          "flag": "OK"
+        },
+        "western_AS_12h": {
+          "n": 28,
+          "catboost_mean": 67.76,
+          "mv_mean": 86.61,
+          "improvement_km": 18.85,
+          "improvement_pct": 21.76,
+          "flag": "OK"
+        },
+        "western_AS_24h": {
+          "n": 28,
+          "catboost_mean": 157.82,
+          "mv_mean": 179.57,
+          "improvement_km": 21.75,
+          "improvement_pct": 12.11,
+          "flag": "OK"
+        },
+        "central_AS_BB_6h": {
+          "n": 144,
+          "catboost_mean": 34.61,
+          "mv_mean": 38.18,
+          "improvement_km": 3.57,
+          "improvement_pct": 9.34,
+          "flag": "OK"
+        },
+        "central_AS_BB_12h": {
+          "n": 144,
+          "catboost_mean": 75.0,
+          "mv_mean": 81.89,
+          "improvement_km": 6.89,
+          "improvement_pct": 8.41,
+          "flag": "OK"
+        },
+        "central_AS_BB_24h": {
+          "n": 144,
+          "catboost_mean": 162.96,
+          "mv_mean": 188.07,
+          "improvement_km": 25.11,
+          "improvement_pct": 13.35,
+          "flag": "OK"
+        },
+        "eastern_BB_6h": {
+          "n": 26,
+          "catboost_mean": 30.67,
+          "mv_mean": 32.67,
+          "improvement_km": 2.0,
+          "improvement_pct": 6.13,
+          "flag": "OK"
+        },
+        "eastern_BB_12h": {
+          "n": 26,
+          "catboost_mean": 58.29,
+          "mv_mean": 66.25,
+          "improvement_km": 7.96,
+          "improvement_pct": 12.01,
+          "flag": "OK"
+        },
+        "eastern_BB_24h": {
+          "n": 26,
+          "catboost_mean": 106.67,
+          "mv_mean": 140.82,
+          "improvement_km": 34.15,
+          "improvement_pct": 24.25,
+          "flag": "OK"
+        }
+      }
+    },
+    "by_latitude": {
+      "strata": {
+        "low_lat_<10_6h": {
+          "n": 23,
+          "catboost_mean": 28.61,
+          "mv_mean": 30.36,
+          "improvement_km": 1.76,
+          "improvement_pct": 5.78,
+          "flag": "OK"
+        },
+        "low_lat_<10_12h": {
+          "n": 23,
+          "catboost_mean": 68.01,
+          "mv_mean": 72.34,
+          "improvement_km": 4.34,
+          "improvement_pct": 5.99,
+          "flag": "OK"
+        },
+        "low_lat_<10_24h": {
+          "n": 23,
+          "catboost_mean": 153.04,
+          "mv_mean": 174.81,
+          "improvement_km": 21.77,
+          "improvement_pct": 12.45,
+          "flag": "OK"
+        },
+        "mid_lat_10-15_6h": {
+          "n": 60,
+          "catboost_mean": 33.37,
+          "mv_mean": 37.81,
+          "improvement_km": 4.45,
+          "improvement_pct": 11.76,
+          "flag": "OK"
+        },
+        "mid_lat_10-15_12h": {
+          "n": 60,
+          "catboost_mean": 66.96,
+          "mv_mean": 70.3,
+          "improvement_km": 3.34,
+          "improvement_pct": 4.76,
+          "flag": "OK"
+        },
+        "mid_lat_10-15_24h": {
+          "n": 60,
+          "catboost_mean": 140.19,
+          "mv_mean": 161.96,
+          "improvement_km": 21.77,
+          "improvement_pct": 13.44,
+          "flag": "OK"
+        },
+        "midhigh_lat_15-20_6h": {
+          "n": 79,
+          "catboost_mean": 37.5,
+          "mv_mean": 42.86,
+          "improvement_km": 5.37,
+          "improvement_pct": 12.52,
+          "flag": "OK"
+        },
+        "midhigh_lat_15-20_12h": {
+          "n": 79,
+          "catboost_mean": 78.84,
+          "mv_mean": 93.9,
+          "improvement_km": 15.06,
+          "improvement_pct": 16.04,
+          "flag": "OK"
+        },
+        "midhigh_lat_15-20_24h": {
+          "n": 79,
+          "catboost_mean": 167.0,
+          "mv_mean": 203.17,
+          "improvement_km": 36.17,
+          "improvement_pct": 17.8,
+          "flag": "OK"
+        },
+        "high_lat_>=20_6h": {
+          "n": 36,
+          "catboost_mean": 32.31,
+          "mv_mean": 32.8,
+          "improvement_km": 0.49,
+          "improvement_pct": 1.5,
+          "flag": "OK"
+        },
+        "high_lat_>=20_12h": {
+          "n": 36,
+          "catboost_mean": 66.77,
+          "mv_mean": 73.33,
+          "improvement_km": 6.56,
+          "improvement_pct": 8.94,
+          "flag": "OK"
+        },
+        "high_lat_>=20_24h": {
+          "n": 36,
+          "catboost_mean": 153.71,
+          "mv_mean": 166.17,
+          "improvement_km": 12.46,
+          "improvement_pct": 7.5,
+          "flag": "OK"
+        }
+      }
+    },
+    "overall": {
+      "6h": {
+        "catboost_mean": 34.27,
+        "catboost_median": 28.33,
+        "mv_mean": 38.05,
+        "mv_median": 32.83,
+        "improvement_km": 3.78,
+        "improvement_pct": 9.94,
+        "cat_better_count": 111,
+        "mv_better_count": 87,
+        "cat_tied_count": 0
+      },
+      "12h": {
+        "catboost_mean": 71.79,
+        "catboost_median": 65.56,
+        "mv_mean": 80.5,
+        "mv_median": 64.54,
+        "improvement_km": 8.72,
+        "improvement_pct": 10.83,
+        "cat_better_count": 112,
+        "mv_better_count": 86,
+        "cat_tied_count": 0
+      },
+      "24h": {
+        "catboost_mean": 154.84,
+        "catboost_median": 133.66,
+        "mv_mean": 180.66,
+        "mv_median": 164.99,
+        "improvement_km": 25.82,
+        "improvement_pct": 14.29,
+        "cat_better_count": 116,
+        "mv_better_count": 82,
+        "cat_tied_count": 0
+      }
+    },
+    "strongest_catboost_advantage_24h": {
+      "stratum": "fast_24h",
+      "improvement_km": 58.18
+    },
+    "weakest_catboost_advantage_24h": {
+      "stratum": "slow_24h",
+      "improvement_km": -1.88
+    }
+  }
+}

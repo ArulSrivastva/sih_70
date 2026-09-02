@@ -1,0 +1,9 @@
+{
+  "audit_name": "P2_PHASE10_PATTERN_LABEL_AUDIT",
+  "timestamp": "2026-09-01T18:25:00Z",
+  "independently_supported_count": 88,
+  "independently_supported_pct": 63.77,
+  "derived_rule_only_count": 50,
+  "derived_rule_only_pct": 36.23,
+  "overall_pattern_status": "MIXED_INDEPENDENTLY_SUPPORTED_AND_DERIVED"
+}

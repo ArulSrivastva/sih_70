@@ -1,0 +1,36 @@
+{
+  "experiment_id": "P2_PHASE3_BASELINE_E0",
+  "lambda_phys": 0.0,
+  "description": "Locked P2 baseline reproduction with pure supervised multi-task loss",
+  "5_fold_cv_metrics": {
+    "pattern_accuracy": 0.5897233201581027,
+    "pattern_accuracy_std": 0.02604169720444315,
+    "pattern_f1_macro": 0.2766878587568243,
+    "pattern_f1_macro_std": 0.06507421893339194,
+    "pattern_f1_weighted": 0.4551944939950937,
+    "pattern_f1_weighted_std": 0.06471676602334812,
+    "category_accuracy": 0.2573122529644269,
+    "category_accuracy_std": 0.09360492807977464,
+    "category_f1_macro": 0.14217932791845836,
+    "category_f1_macro_std": 0.06269992984518712,
+    "category_f1_weighted": 0.19837524794046532,
+    "category_f1_weighted_std": 0.10107771746200259,
+    "physical_consistency_rate": 0.824110671936759,
+    "physical_consistency_rate_std": 0.20370002166347318,
+    "incompatible_prediction_rate": 0.14861660079051383,
+    "incompatible_prediction_rate_std": 0.21008681121175657,
+    "mean_physics_loss": 0.22880793511867523,
+    "mean_physics_loss_std": 0.016212177309995543
+  },
+  "test_metrics_n21": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_f1_macro": 0.3697478991596639,
+    "pattern_f1_weighted": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_f1_macro": 0.1465378421900161,
+    "category_f1_weighted": 0.23050379572118704,
+    "physical_consistency_rate": 0.19047619047619047,
+    "incompatible_prediction_rate": 0.8095238095238095,
+    "mean_physics_loss": 0.2345520704984665
+  }
+}

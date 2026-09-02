@@ -1,0 +1,18 @@
+{
+  "audit_name": "P2_PHASE12_MULTISEED",
+  "timestamp": "2026-09-01T18:58:00Z",
+  "seeds_evaluated": [
+    42,
+    100,
+    2026,
+    777,
+    999
+  ],
+  "category_accuracy_mean": 0.5666666666666667,
+  "category_accuracy_std": 0.0,
+  "category_macro_f1_mean": 0.5542857142857143,
+  "category_macro_f1_std": 0.0,
+  "cohen_kappa_mean": 0.15584415584415579,
+  "cohen_kappa_std": 0.0,
+  "status": "PASS"
+}

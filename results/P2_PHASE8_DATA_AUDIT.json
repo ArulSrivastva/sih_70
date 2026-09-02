@@ -1,0 +1,21 @@
+{
+  "audit_name": "P2_PHASE8_DATA_AUDIT",
+  "timestamp": "2026-09-01T12:00:00Z",
+  "total_genuine_crops": 138,
+  "unique_image_hashes": 138,
+  "unique_cyclone_systems": 18,
+  "splits": {
+    "train": 84,
+    "val": 24,
+    "test": 30
+  },
+  "cyclones_per_split": {
+    "train": 11,
+    "val": 3,
+    "test": 4
+  },
+  "mock_bbox_used": false,
+  "synthetic_samples_used": 0,
+  "intensity_provenance": "AUTHORITATIVE_BEST_TRACK_VMAX",
+  "pattern_provenance": "DERIVED_RULE (NOT_INDEPENDENTLY_ANNOTATED)"
+}

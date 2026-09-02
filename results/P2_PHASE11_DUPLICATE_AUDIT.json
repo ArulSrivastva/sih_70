@@ -1,0 +1,8 @@
+{
+  "audit_name": "P2_PHASE11_DUPLICATE_AUDIT",
+  "timestamp": "2026-09-01T18:30:00Z",
+  "total_scenes": 138,
+  "unique_sha256_hashes": 138,
+  "exact_duplicates": 0,
+  "cross_split_duplicates": 0
+}

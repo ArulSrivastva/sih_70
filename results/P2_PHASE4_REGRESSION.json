@@ -1,0 +1,16 @@
+{
+  "test_suite": "integration_audit_accuracy/tests",
+  "total_tests": 38,
+  "passed": 38,
+  "failed": 0,
+  "status": {
+    "BASELINE_INTACT": "PASS",
+    "P3_INTACT": "PASS",
+    "P4_INTACT": "PASS",
+    "LEAKAGE_CHECK": "PASS",
+    "REPRODUCIBILITY_CHECK": "PASS"
+  },
+  "locked_baseline_file": "models/detection/model_weights.pt",
+  "p3_champion_file": "models/classification/champion_model.json",
+  "p4_champion_file": "p4_forecasting/phase4/results/champion_model.json"
+}

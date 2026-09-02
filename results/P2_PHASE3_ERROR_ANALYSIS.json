@@ -1,0 +1,68 @@
+{
+  "analysis_name": "P2_PHASE3_ERROR_ANALYSIS",
+  "per_class_pattern_test_metrics": {
+    "curved_band": {
+      "E0_baseline": {"precision": 1.000, "recall": 0.167, "f1": 0.286},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    },
+    "eye_visible": {
+      "E0_baseline": {"precision": 0.700, "recall": 1.000, "f1": 0.824},
+      "E1_lambda_001": {"precision": 0.667, "recall": 1.000, "f1": 0.800},
+      "E2_lambda_005": {"precision": 0.667, "recall": 1.000, "f1": 0.800}
+    },
+    "shear_pattern": {
+      "E0_baseline": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    }
+  },
+  "per_class_category_test_metrics": {
+    "Cyclonic Storm": {
+      "E0_baseline": {"precision": 0.278, "recall": 1.000, "f1": 0.435},
+      "E1_lambda_001": {"precision": 0.200, "recall": 0.800, "f1": 0.320},
+      "E2_lambda_005": {"precision": 0.200, "recall": 0.800, "f1": 0.320}
+    },
+    "Severe Cyclonic Storm": {
+      "E0_baseline": {"precision": 0.667, "recall": 0.333, "f1": 0.444},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    },
+    "Very Severe Cyclonic Storm": {
+      "E0_baseline": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    },
+    "Extremely Severe Cyclonic Storm": {
+      "E0_baseline": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    },
+    "Deep Depression": {
+      "E0_baseline": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    },
+    "Depression": {
+      "E0_baseline": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    },
+    "Super Cyclonic Storm": {
+      "E0_baseline": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E1_lambda_001": {"precision": 0.000, "recall": 0.000, "f1": 0.000},
+      "E2_lambda_005": {"precision": 0.000, "recall": 0.000, "f1": 0.000}
+    }
+  },
+  "minority_class_findings": {
+    "zero_recall_classes": [
+      "shear_pattern",
+      "Deep Depression",
+      "Depression",
+      "Extremely Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm",
+      "Super Cyclonic Storm"
+    ],
+    "explanation": "Weak physics regularization loss does not supply missing latent representations for classes with near-zero support (e.g. Depression N=1 in train, Super Cyclonic Storm N=0 in train). The model remains severely data-limited."
+  }
+}

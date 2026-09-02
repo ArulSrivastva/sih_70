@@ -1,0 +1,33 @@
+{
+  "phase": "P2_PHASE6_FINAL",
+  "timestamp": "2026-09-01T11:27:00Z",
+  "p2_phase6_status": "DATA_EXPANSION_SUCCESS",
+  "p2_expanded_dataset_size": 2120,
+  "p2_unique_cyclones": 25,
+  "baseline_vs_expanded_summary": {
+    "legacy_test_pattern_macro_f1": 0.3697,
+    "expanded_test_pattern_macro_f1": 0.9863,
+    "legacy_test_category_macro_f1": 0.1465,
+    "expanded_test_category_macro_f1": 0.4138,
+    "legacy_test_category_accuracy": 0.3333,
+    "expanded_test_category_accuracy": 0.5588
+  },
+  "minority_class_recovery_summary": {
+    "shear_pattern_f1": "0.000 -> 0.994 (+0.994 gain)",
+    "curved_band_f1": "0.286 -> 0.980 (+0.694 gain)",
+    "Depression_f1": "0.000 -> 0.782 (+0.782 gain)",
+    "Very_Severe_CS_f1": "0.000 -> 0.603 (+0.603 gain)",
+    "Extremely_Severe_CS_f1": "0.000 -> 0.305 (+0.305 gain)"
+  },
+  "robust_improvement": true,
+  "champion_decision": "EXPANDED_MODEL_QUALIFIED_AS_CHAMPION_CANDIDATE",
+  "candidate_weights_file": "models/detection/model_weights_phase6_candidate.pt",
+  "locked_baseline_file": "models/detection/model_weights.pt",
+  "safety_integrity_status": {
+    "P2_BASELINE_INTACT": "PASS",
+    "P3_INTACT": "PASS",
+    "P4_INTACT": "PASS",
+    "LEAKAGE_CHECK": "PASS",
+    "REPRODUCIBILITY_CHECK": "PASS"
+  }
+}

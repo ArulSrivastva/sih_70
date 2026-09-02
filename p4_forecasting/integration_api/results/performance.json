@@ -1,0 +1,19 @@
+{
+  "latencies_ms": {
+    "health": 362.78,
+    "analyze_cold_first": 76.97,
+    "analyze_warm": [
+      63.64,
+      62.66,
+      64.4,
+      62.35,
+      63.46
+    ],
+    "analyze_warm_avg": 63.3
+  },
+  "stage_ms_single": {
+    "p2_detect": 9.45,
+    "p3_classify": 56.19,
+    "p4_forecast": 1.0
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "analysis_name": "P2_PHASE2B_ERROR_ANALYSIS",
+  "per_class_pattern_cv": {
+    "baseline": {
+      "curved_band": {"support": 38, "precision": 0.6000, "recall": 0.0789, "f1": 0.1395},
+      "eye_visible": {"support": 64, "precision": 0.5888, "recall": 0.9844, "f1": 0.7368},
+      "shear_pattern": {"support": 10, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000}
+    },
+    "candidate": {
+      "curved_band": {"support": 38, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "eye_visible": {"support": 64, "precision": 0.5714, "recall": 1.0000, "f1": 0.7273},
+      "shear_pattern": {"support": 10, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000}
+    }
+  },
+  "per_class_category_cv": {
+    "baseline": {
+      "Cyclonic Storm": {"support": 38, "precision": 0.3889, "recall": 0.1842, "f1": 0.2500},
+      "Deep Depression": {"support": 9, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "Depression": {"support": 1, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "Extremely Severe Cyclonic Storm": {"support": 9, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "Severe Cyclonic Storm": {"support": 30, "precision": 0.2750, "recall": 0.3667, "f1": 0.3143},
+      "Very Severe Cyclonic Storm": {"support": 25, "precision": 0.2037, "recall": 0.4400, "f1": 0.2785}
+    },
+    "candidate": {
+      "Cyclonic Storm": {"support": 38, "precision": 0.3492, "recall": 0.5789, "f1": 0.4356},
+      "Deep Depression": {"support": 9, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "Depression": {"support": 1, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "Extremely Severe Cyclonic Storm": {"support": 9, "precision": 0.0000, "recall": 0.0000, "f1": 0.0000},
+      "Severe Cyclonic Storm": {"support": 30, "precision": 0.2188, "recall": 0.2333, "f1": 0.2258},
+      "Very Severe Cyclonic Storm": {"support": 25, "precision": 0.1765, "recall": 0.1200, "f1": 0.1429}
+    }
+  },
+  "error_mechanism_findings": {
+    "majority_class_amplification": "Because the CNN pattern head is heavily biased towards predicting 'eye_visible' (64/112 support, predicted 107/112 times), coupling it via C[pattern, category] artificially suppresses Cyclonic Storm for false-positive eye_visible predictions and pushes predictions into Severe Cyclonic Storm.",
+    "minority_class_impact": "Minority classes (Deep Depression, Depression, Extremely Severe Cyclonic Storm, shear_pattern) received 0.0 recall/F1 in both baseline and candidate. The consistency mechanism did not revive minority classes.",
+    "systematic_errors_introduced": "Total collapse of curved_band predictions (F1 dropped from 0.1395 to 0.0000), reducing the pattern classifier to a 1-class constant predictor."
+  }
+}

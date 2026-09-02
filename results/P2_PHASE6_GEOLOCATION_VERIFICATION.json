@@ -1,0 +1,16 @@
+{
+  "verification_name": "P2_PHASE6_GEOLOCATION_VERIFICATION",
+  "timestamp": "2026-09-01T11:35:00Z",
+  "mock_bbox_eliminated": true,
+  "legacy_mock_bbox_instances_found": 0,
+  "geographic_source": "Authoritative IBTrACS Synoptic Best Track Dataset (data/metadata/ibtracs_clean.csv)",
+  "projection_formula_verified": {
+    "x_pixel": "(Longitude - 44.5) / (105.5 - 44.5) * Grid_Width",
+    "y_pixel": "(45.5 - Latitude) / (45.5 - (-10.0)) * Grid_Height"
+  },
+  "cyclones_verified": 24,
+  "representative_diagnostic_figure": "results/figures/p2/phase6/p2_phase6_verification_25cyclones.png",
+  "spatial_offset_anomalies": 0,
+  "axis_reversal_anomalies": 0,
+  "geolocation_status": "PASS"
+}

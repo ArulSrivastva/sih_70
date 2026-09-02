@@ -1,0 +1,87 @@
+{
+  "raw_features": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v"
+  ],
+  "raw_shape": [
+    1212,
+    5,
+    7
+  ],
+  "feature_shape": [
+    1212,
+    5,
+    16
+  ],
+  "available_variables": [
+    {
+      "name": "lat",
+      "source": "IBTrACS",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    },
+    {
+      "name": "lon",
+      "source": "IBTrACS",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    },
+    {
+      "name": "wind_speed",
+      "source": "IBTrACS cross-agency",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    },
+    {
+      "name": "pressure",
+      "source": "IBTrACS cross-agency",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    },
+    {
+      "name": "sst",
+      "source": "ERA5 single-level",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    },
+    {
+      "name": "wind_u",
+      "source": "ERA5 10m",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    },
+    {
+      "name": "wind_v",
+      "source": "ERA5 10m",
+      "temporal": "3-hourly",
+      "spatial": "storm center",
+      "safe": true
+    }
+  ],
+  "unavailable_variables": [
+    "pressure_levels (500hPa, 850hPa, 200hPa) -- not downloaded",
+    "vertical_wind_shear -- requires multi-level data",
+    "relative_humidity -- not downloaded",
+    "geopotential_height -- not downloaded",
+    "vorticity -- not downloaded",
+    "divergence -- not downloaded",
+    "SST_anomaly -- not computed"
+  ],
+  "notes": [
+    "Only single-level ERA5 reanalysis available",
+    "No multi-level atmospheric data in the codebase",
+    "Environmental wind features show negligible predictive power in Phase-1 ablation",
+    "SST has ~28% NaN in P3 classification data"
+  ]
+}

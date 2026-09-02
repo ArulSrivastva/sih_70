@@ -1,0 +1,22 @@
+{
+  "experiment_id": "EXP001",
+  "consumed": {
+    "dataset": {
+      "train.npz": "165d909213d3f2bacc7b8f22f048ff1f25308503606bdabb04bb03b6d1355eab",
+      "val.npz": "6b3e43f5185b43fea03eb440242b1346944ba1edd8e5a57bdbfe00ff0c1f0690"
+    },
+    "normalization_stats.json": "a5404a5743b29abe2e720c5b863883e07b222491df0d88c5d7a550771641bbc0",
+    "config.json": "4b6ab34572a77c6ecca713a824f3c201af460bb6b9faa7cf1ab1744554ea31a4"
+  },
+  "immutable_sources": {
+    "chrono_train.npz": "df70303e20c3bb57835a71e3787ff5cf6d79e218a0a1116d18eef052349897cc",
+    "clean_train.npz": "ddd0b149dc333728f4db45a3cedbb4724f085f132440394a8265f0ca74b3b451",
+    "chrono_val.npz": "48cf065d75a1fc3138ce6c2267de1849d0a7c86fbb7a0922146ab1d1dace2abd",
+    "clean_val.npz": "7a8c237de655d7c5cf49e6e69783e89d63c9785c6275da14b37c8c5c0975418a",
+    "chrono_test.npz": "89e9c2e23d42e0d20ceedd7672fb929b352c54c212e35eab9f1e3ad0172d727d",
+    "clean_test.npz": "b8a28425887e02a18998da9a74e3916f27b4aa570523b7b38f68bf64a9b9762c",
+    "quality.csv": "239dbb035e016242c9cea842e7f6aa335b007aa4bd2f111210634268dc9c631a",
+    "p2_baseline_results.json": "d939675311ab95c6adf1c225083251b2912e3164da12ebb6be5f303c2f3598b3",
+    "p3_model_comparison.json": "33717d181c55dea9fad1d318f3024a3f4e45fcc7e61ba3316814134f5f92f788"
+  }
+}

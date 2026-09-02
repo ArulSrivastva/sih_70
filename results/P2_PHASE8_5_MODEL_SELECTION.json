@@ -1,0 +1,19 @@
+{
+  "audit_name": "P2_PHASE8_5_MODEL_SELECTION",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "candidate_comparison": {
+    "E0": {
+      "category_accuracy": 0.4333,
+      "category_macro_f1": 0.4276,
+      "balance": "Better minority-class balance"
+    },
+    "E2": {
+      "category_accuracy": 0.5667,
+      "category_macro_f1": 0.4222,
+      "balance": "Higher accuracy via majority classes"
+    }
+  },
+  "preferred_candidate": "E0_Clean_Baseline",
+  "selection_rationale": "Under severe class imbalance, Macro-F1 (0.4276 in E0 vs 0.4222 in E2) and balanced per-class sensitivity take priority over raw accuracy. E0 provides the cleanest, un-augmented representation baseline.",
+  "promotion_recommendation": "DO_NOT_PROMOTE_YET (Retain as Candidate; baseline weights remain locked)"
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "phase6 v1",
+  "recorded_at": "2026-08-29T12:27:34.427701+00:00",
+  "final_status": "PASS",
+  "steps": {
+    "phase5_artifacts": true,
+    "api_modules": true,
+    "schemas": true,
+    "endpoints": true,
+    "input_validation": true,
+    "causality": true,
+    "determinism": true,
+    "offline": true,
+    "baseline_integration": true,
+    "openapi": true,
+    "latency": true,
+    "tests": true,
+    "immutability": true
+  },
+  "latency": {
+    "pass": true,
+    "cold_load_ms": 0.001,
+    "warm": {
+      "n": 15,
+      "mean_ms": 1.915,
+      "median_ms": 1.88,
+      "min_ms": 1.649,
+      "max_ms": 2.28
+    }
+  },
+  "tests": {
+    "passed": 67,
+    "failed": 0,
+    "total": 67
+  },
+  "immutability": {
+    "p1": 0,
+    "phase1": 0,
+    "phase2": 0,
+    "phase3": 0,
+    "phase4": 0,
+    "phase5": 0,
+    "outside_phase6": 0
+  },
+  "failures": [],
+  "outputs": {
+    "api_contract": "phase6/results/api_contract.json",
+    "api_test_results": "phase6/results/api_test_results.json",
+    "source_immutability": "phase6/results/source_immutability_report.json",
+    "summary": "phase6/results/phase6_summary.json",
+    "report": "phase6/reports/PHASE6_REPORT.md"
+  }
+}

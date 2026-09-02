@@ -1,0 +1,319 @@
+{
+  "split_stats": {
+    "train": {
+      "n_rows": 3039,
+      "n_columns": 15,
+      "columns": [
+        "cyclone_id",
+        "season",
+        "name",
+        "subbasin",
+        "timestamp",
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "wind_speed",
+        "pressure",
+        "category",
+        "pre_genesis_favorable"
+      ],
+      "n_unique_cyclone_ids": 104,
+      "date_range": [
+        "2013-05-10 09:00:00",
+        "2025-11-27 15:00:00"
+      ]
+    },
+    "val": {
+      "n_rows": 518,
+      "n_columns": 15,
+      "columns": [
+        "cyclone_id",
+        "season",
+        "name",
+        "subbasin",
+        "timestamp",
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "wind_speed",
+        "pressure",
+        "category",
+        "pre_genesis_favorable"
+      ],
+      "n_unique_cyclone_ids": 21,
+      "date_range": [
+        "2013-07-30 03:00:00",
+        "2025-10-29 18:00:00"
+      ]
+    },
+    "test": {
+      "n_rows": 651,
+      "n_columns": 15,
+      "columns": [
+        "cyclone_id",
+        "season",
+        "name",
+        "subbasin",
+        "timestamp",
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "wind_speed",
+        "pressure",
+        "category",
+        "pre_genesis_favorable"
+      ],
+      "n_unique_cyclone_ids": 24,
+      "date_range": [
+        "2013-05-29 03:00:00",
+        "2025-12-02 18:00:00"
+      ]
+    }
+  },
+  "class_distribution": {
+    "train": {
+      "Depression": 1219,
+      "Deep Depression": 619,
+      "Cyclonic Storm": 569,
+      "Very Severe Cyclonic Storm": 238,
+      "Severe Cyclonic Storm": 213,
+      "Extremely Severe Cyclonic Storm": 155,
+      "Super Cyclonic Storm": 25,
+      "Low Pressure Area": 1
+    },
+    "val": {
+      "Depression": 193,
+      "Deep Depression": 147,
+      "Cyclonic Storm": 90,
+      "Severe Cyclonic Storm": 64,
+      "Very Severe Cyclonic Storm": 24
+    },
+    "test": {
+      "Depression": 253,
+      "Cyclonic Storm": 110,
+      "Deep Depression": 102,
+      "Very Severe Cyclonic Storm": 91,
+      "Severe Cyclonic Storm": 72,
+      "Extremely Severe Cyclonic Storm": 23
+    }
+  },
+  "missing_values": {
+    "train": {
+      "sst": 856,
+      "pressure": 3
+    },
+    "val": {
+      "sst": 153,
+      "pressure": 3
+    },
+    "test": {
+      "sst": 207,
+      "pressure": 3
+    }
+  },
+  "feature_statistics": {
+    "train": {
+      "lat": {
+        "mean": 16.340605462323136,
+        "std": 5.390472945852725,
+        "min": 3.2,
+        "max": 29.2,
+        "n_missing": 0
+      },
+      "lon": {
+        "mean": 78.21934846989141,
+        "std": 13.197825372843708,
+        "min": 42.8,
+        "max": 134.5,
+        "n_missing": 0
+      },
+      "sst": {
+        "mean": 28.7655474118186,
+        "std": 1.1262383388904202,
+        "min": 25.49,
+        "max": 31.41,
+        "n_missing": 856
+      },
+      "pressure_msl": {
+        "mean": 997.7650213886146,
+        "std": 9.053505131118383,
+        "min": 944.8,
+        "max": 1016.3,
+        "n_missing": 0
+      },
+      "wind_u": {
+        "mean": 0.1447506735457445,
+        "std": 5.623187577636926,
+        "min": -25.429855346679688,
+        "max": 24.8397216796875,
+        "n_missing": 0
+      },
+      "wind_v": {
+        "mean": 0.34654706808719715,
+        "std": 5.783348522087954,
+        "min": -19.51771545410156,
+        "max": 23.38926696777344,
+        "n_missing": 0
+      },
+      "wind_speed": {
+        "mean": 72.04527805199078,
+        "std": 40.86436205491749,
+        "min": 27.8,
+        "max": 240.8,
+        "n_missing": 0
+      },
+      "pressure": {
+        "mean": 992.3774703557312,
+        "std": 13.581038955148557,
+        "min": 920.0,
+        "max": 1006.0,
+        "n_missing": 3
+      }
+    },
+    "val": {
+      "lat": {
+        "mean": 17.010038610038613,
+        "std": 4.856590927153478,
+        "min": 5.0,
+        "max": 24.4,
+        "n_missing": 0
+      },
+      "lon": {
+        "mean": 82.66679536679536,
+        "std": 10.709121266400421,
+        "min": 49.2,
+        "max": 112.8,
+        "n_missing": 0
+      },
+      "sst": {
+        "mean": 28.997123287671236,
+        "std": 0.7368806385146328,
+        "min": 26.12,
+        "max": 31.83,
+        "n_missing": 153
+      },
+      "pressure_msl": {
+        "mean": 1000.1177606177606,
+        "std": 5.690817980643339,
+        "min": 987.7,
+        "max": 1013.4,
+        "n_missing": 0
+      },
+      "wind_u": {
+        "mean": -0.4079102328385165,
+        "std": 4.520481713465013,
+        "min": -12.157943725585938,
+        "max": 14.604751586914062,
+        "n_missing": 0
+      },
+      "wind_v": {
+        "mean": 0.9535510843785113,
+        "std": 4.833352290332808,
+        "min": -16.851104736328125,
+        "max": 13.761428833007812,
+        "n_missing": 0
+      },
+      "wind_speed": {
+        "mean": 63.91119691119691,
+        "std": 24.627795428246145,
+        "min": 37.0,
+        "max": 148.2,
+        "n_missing": 0
+      },
+      "pressure": {
+        "mean": 996.1184466019417,
+        "std": 6.695398088158278,
+        "min": 972.0,
+        "max": 1006.0,
+        "n_missing": 3
+      }
+    },
+    "test": {
+      "lat": {
+        "mean": 16.646236559139787,
+        "std": 5.025206965438552,
+        "min": 5.9,
+        "max": 28.5,
+        "n_missing": 0
+      },
+      "lon": {
+        "mean": 77.58172043010754,
+        "std": 11.605237045477375,
+        "min": 52.4,
+        "max": 117.9,
+        "n_missing": 0
+      },
+      "sst": {
+        "mean": 28.851081081081084,
+        "std": 1.2491406355958472,
+        "min": 25.61,
+        "max": 31.66,
+        "n_missing": 207
+      },
+      "pressure_msl": {
+        "mean": 996.479569892473,
+        "std": 8.493959689057766,
+        "min": 972.3,
+        "max": 1012.2,
+        "n_missing": 0
+      },
+      "wind_u": {
+        "mean": -0.44497174381660426,
+        "std": 5.038960523501938,
+        "min": -15.622360229492188,
+        "max": 18.349899291992188,
+        "n_missing": 0
+      },
+      "wind_v": {
+        "mean": 0.15926875570036483,
+        "std": 6.058563561660295,
+        "min": -19.2459716796875,
+        "max": 16.635101318359375,
+        "n_missing": 0
+      },
+      "wind_speed": {
+        "mean": 74.88064516129033,
+        "std": 37.880866616052046,
+        "min": 37.0,
+        "max": 185.2,
+        "n_missing": 0
+      },
+      "pressure": {
+        "mean": 991.2685185185185,
+        "std": 11.13672772621649,
+        "min": 950.0,
+        "max": 1005.0,
+        "n_missing": 3
+      }
+    }
+  },
+  "duplicate_rows": {
+    "train": 0,
+    "val": 0,
+    "test": 0
+  },
+  "cross_split_cyclone_ids": {
+    "train_val_overlap_count": 0,
+    "train_test_overlap_count": 0,
+    "val_test_overlap_count": 0,
+    "train_val_overlap_ids": [],
+    "train_test_overlap_ids": []
+  },
+  "label_issues": [
+    "Class 'Low Pressure Area' has only 1 samples in train split"
+  ],
+  "warnings": [
+    "SEVERE IMBALANCE: Depression class is >30% of training data",
+    "MISSING CLASSES in val: ['Extremely Severe Cyclonic Storm', 'Super Cyclonic Storm']",
+    "MISSING CLASSES in test: ['Super Cyclonic Storm']"
+  ]
+}

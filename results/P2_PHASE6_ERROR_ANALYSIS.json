@@ -1,0 +1,68 @@
+{
+  "analysis_name": "P2_PHASE6_ERROR_ANALYSIS",
+  "timestamp": "2026-09-01T11:27:00Z",
+  "pattern_per_class_f1": {
+    "curved_band": {
+      "baseline_f1": 0.286,
+      "expanded_d3_f1": 0.980,
+      "support": 121,
+      "status": "TOTAL_RECOVERY"
+    },
+    "eye_visible": {
+      "baseline_f1": 0.824,
+      "expanded_d3_f1": 0.985,
+      "support": 137,
+      "status": "NEAR_PERFECT"
+    },
+    "shear_pattern": {
+      "baseline_f1": 0.000,
+      "expanded_d3_f1": 0.994,
+      "support": 82,
+      "status": "ZERO_TO_HERO_RECOVERY"
+    }
+  },
+  "category_per_class_f1": {
+    "Depression": {
+      "baseline_f1": 0.000,
+      "expanded_d3_f1": 0.782,
+      "support": 52,
+      "status": "ZERO_TO_HERO_RECOVERY"
+    },
+    "Cyclonic Storm": {
+      "baseline_f1": 0.435,
+      "expanded_d3_f1": 0.642,
+      "support": 50,
+      "status": "SUBSTANTIAL_IMPROVEMENT"
+    },
+    "Severe Cyclonic Storm": {
+      "baseline_f1": 0.444,
+      "expanded_d3_f1": 0.564,
+      "support": 71,
+      "status": "IMPROVED"
+    },
+    "Very Severe Cyclonic Storm": {
+      "baseline_f1": 0.000,
+      "expanded_d3_f1": 0.603,
+      "support": 75,
+      "status": "ZERO_TO_HERO_RECOVERY"
+    },
+    "Extremely Severe Cyclonic Storm": {
+      "baseline_f1": 0.000,
+      "expanded_d3_f1": 0.305,
+      "support": 30,
+      "status": "ZERO_TO_HERO_RECOVERY"
+    },
+    "Deep Depression": {
+      "baseline_f1": 0.000,
+      "expanded_d3_f1": 0.000,
+      "support": 30,
+      "status": "BORDERLINE_CONFUSION_WITH_DEPRESSION"
+    },
+    "Super Cyclonic Storm": {
+      "baseline_f1": 0.000,
+      "expanded_d3_f1": 0.000,
+      "support": 32,
+      "status": "CONFUSION_WITH_VERY_SEVERE_CS"
+    }
+  }
+}

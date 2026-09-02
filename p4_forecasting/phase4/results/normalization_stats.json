@@ -1,0 +1,92 @@
+{
+  "feature_mean": [
+    14.083076477050781,
+    77.1072769165039,
+    95.8021469116211,
+    987.4427490234375,
+    28.81338119506836,
+    -0.0012909967917948961,
+    0.18586638569831848,
+    0.24164952337741852,
+    -0.2776564657688141,
+    9.340951919555664,
+    186.0310821533203,
+    3.171298027038574,
+    -0.9443894624710083,
+    -0.03439609706401825,
+    8.572948455810547,
+    179.1077423095703
+  ],
+  "feature_std": [
+    3.6993892192840576,
+    12.805627822875977,
+    46.681602478027344,
+    16.927852630615234,
+    1.1287896633148193,
+    6.68070125579834,
+    7.1082892417907715,
+    0.3185863494873047,
+    0.40358126163482666,
+    6.707600116729736,
+    141.58062744140625,
+    8.68230152130127,
+    3.3018605709075928,
+    0.2519875466823578,
+    4.658254623413086,
+    105.56871795654297
+  ],
+  "target_mean": [
+    15.400629043579102,
+    75.65819549560547,
+    103.83035278320312
+  ],
+  "target_std": [
+    3.849555015563965,
+    13.190674781799316,
+    47.09364318847656
+  ],
+  "feature_order": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v",
+    "delta_lat",
+    "delta_lon",
+    "movement_speed",
+    "movement_direction",
+    "wind_change",
+    "pressure_change",
+    "sst_change",
+    "environmental_wind_speed",
+    "environmental_wind_direction"
+  ],
+  "target_order": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "computed_from": {
+    "split": "train",
+    "policy": "TRAIN only; never val/test/combined"
+  },
+  "zero_std_features": [],
+  "zero_std_targets": [],
+  "zero_std_handling": "std<=0 replaced by scale 1.0 (identity), deterministically",
+  "directional_features": {
+    "movement_direction": {
+      "representation": "degrees clockwise from true north in [0,360); 0 at first step (zero-fill policy).",
+      "normalization": "ordinary linear z-score with TRAIN-only statistics.",
+      "note": "The locked 16-column contract prevents a sine/cosine embedding; the 0/360 wrap discontinuity is a documented limitation of linear z-scoring, not silently hidden."
+    },
+    "environmental_wind_direction": {
+      "representation": "meteorological FROM-direction, degrees clockwise from true north in [0,360).",
+      "normalization": "ordinary linear z-score with TRAIN-only statistics.",
+      "note": "Same documented wrap limitation as movement_direction."
+    }
+  },
+  "n_train_samples": 1212,
+  "stats_schema": "phase4 v1"
+}

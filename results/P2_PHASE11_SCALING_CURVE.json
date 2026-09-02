@@ -1,0 +1,34 @@
+{
+  "audit_name": "P2_PHASE11_SCALING_CURVE",
+  "timestamp": "2026-09-01T18:30:00Z",
+  "scaling_records": [
+    {
+      "tier": "D0_Legacy_Baseline",
+      "train_samples": 93,
+      "train_cyclones": 4,
+      "category_accuracy": 0.3333,
+      "category_macro_f1": 0.1465
+    },
+    {
+      "tier": "D1_Genuine_25pct",
+      "train_samples": 23,
+      "train_cyclones": 3,
+      "category_accuracy": 0.3,
+      "category_macro_f1": 0.23076923076923078
+    },
+    {
+      "tier": "D2_Genuine_50pct",
+      "train_samples": 46,
+      "train_cyclones": 6,
+      "category_accuracy": 0.3,
+      "category_macro_f1": 0.23076923076923078
+    },
+    {
+      "tier": "D3_Genuine_100pct",
+      "train_samples": 84,
+      "train_cyclones": 11,
+      "category_accuracy": 0.5666666666666667,
+      "category_macro_f1": 0.5542857142857143
+    }
+  ]
+}

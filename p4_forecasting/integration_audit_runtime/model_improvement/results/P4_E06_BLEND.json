@@ -1,0 +1,89 @@
+{
+  "experiment": "P4-E06",
+  "description": "Movement-vector + LightGBM displacement blend",
+  "dataset": "canonical_chronological_clean (train/val/test)",
+  "protocol": {
+    "fit": "train",
+    "selection": "validation (weight w per horizon, grid 0..1 step 0.05)",
+    "test": "untouched CLEAN test, evaluated once with frozen weights"
+  },
+  "split_sizes": {
+    "train": 1212,
+    "val": 231,
+    "test": 198
+  },
+  "leakage": "cyclone-disjoint splits; displacement from same t0 used by model; w chosen on validation only",
+  "validation_movement_vector_km": {
+    "6": 28.257995402353632,
+    "12": 62.664397099257386,
+    "24": 139.95629020271613
+  },
+  "validation_lightgbm_km": {
+    "6": 28.512940634252594,
+    "12": 62.56101566047595,
+    "24": 135.1442502953094
+  },
+  "validation_blend_best_km": {
+    "6": 27.400667696592542,
+    "12": 59.88162321216364,
+    "24": 129.44431119214923
+  },
+  "selected_weights_w": {
+    "6": 0.55,
+    "12": 0.5,
+    "24": 0.45
+  },
+  "frozen_test_movement_vector_km": {
+    "6": 38.09693838040657,
+    "12": 80.63262435492244,
+    "24": 181.04489951538577
+  },
+  "frozen_test_lightgbm_km": {
+    "6": 35.1278844067878,
+    "12": 73.07248626583431,
+    "24": 159.8227411175736
+  },
+  "frozen_test_e06_blend_km": {
+    "6": 35.75334377480391,
+    "12": 74.66460347388352,
+    "24": 162.69653571414298
+  },
+  "e06_vs_movement_km": {
+    "6": -2.343594605602661,
+    "12": -5.968020881038925,
+    "24": -18.348363801242783
+  },
+  "e06_vs_movement_pct": {
+    "6": -6.151661275773232,
+    "12": -7.401496514325705,
+    "24": -10.134703518495687
+  },
+  "e06_vs_lightgbm_km": {
+    "6": 0.6254593680161094,
+    "12": 1.5921172080492028,
+    "24": 2.8737945965693825
+  },
+  "e06_vs_lightgbm_pct": {
+    "6": 1.7805210264676548,
+    "12": 2.1788189911277334,
+    "24": 1.798113695506746
+  },
+  "verdict": "IMPROVED",
+  "control_baselines_km": {
+    "persistence": {
+      "6": 64.686,
+      "12": 123.936,
+      "24": 227.327
+    },
+    "movement_vector": {
+      "6": 38.09693838040657,
+      "12": 80.63262435492244,
+      "24": 181.04489951538577
+    },
+    "exp005": {
+      "6": 91.43,
+      "12": 119.76,
+      "24": 188.24
+    }
+  }
+}

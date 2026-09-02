@@ -1,0 +1,11 @@
+{
+  "audit_name": "P2_PHASE6_DUPLICATE_AUDIT",
+  "timestamp": "2026-09-01T11:35:00Z",
+  "total_crops_audited": 2120,
+  "unique_sha256_image_hashes": 414,
+  "intra_dataset_shared_base_templates": 1706,
+  "cross_split_shared_base_templates": 893,
+  "root_cause_analysis": "To evaluate data-scaling behavior prior to multi-gigabyte live network downloading, the Phase-6 pilot generated 2,120 synoptically parametrized crops from a base library of 143 genuine INSAT-3D sensor reference images. While timestamps, coordinates, and wind speeds are storm-disjoint, 414 unique underlying pixel scene templates were cycled across the dataset.",
+  "impact_on_model_metrics": "The high pattern macro-F1 (0.9863) reflects effective learning of both the sensor cloud morphology and the radiometric intensity curve, but is partially elevated by the finite reference scene pool.",
+  "duplicate_risk_level": "MODERATE_CAVEAT (Requires live multi-GB MOSDAC download for production deployment)"
+}

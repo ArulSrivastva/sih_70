@@ -1,0 +1,35 @@
+{
+  "phase": "P2_PHASE2B_FINAL",
+  "timestamp": "2026-09-01T10:16:00Z",
+  "experiment_name": "Dvorak-Aware Domain Consistency Soft Gating",
+  "baseline_metrics_test_n21": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_macro_f1": 0.3697478991596639,
+    "pattern_weighted_f1": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_macro_f1": 0.1465378421900161,
+    "category_weighted_f1": 0.23050379572118704,
+    "physical_consistency_rate": 0.19047619047619047
+  },
+  "candidate_metrics_test_n21": {
+    "pattern_accuracy": 0.6666666666666666,
+    "pattern_macro_f1": 0.26666666666666666,
+    "pattern_weighted_f1": 0.5333333333333333,
+    "category_accuracy": 0.23809523809523808,
+    "category_macro_f1": 0.06666666666666667,
+    "category_weighted_f1": 0.09523809523809523,
+    "physical_consistency_rate": 0.047619047619047616
+  },
+  "deltas_test_n21": {
+    "pattern_accuracy_delta": -0.04761904761904767,
+    "pattern_macro_f1_delta": -0.10308123249299723,
+    "category_accuracy_delta": -0.09523809523809523,
+    "category_macro_f1_delta": -0.07987117552334943,
+    "physical_consistency_delta": -0.14285714285714285
+  },
+  "5_fold_cv_gate_verdict": "FAIL",
+  "final_decision": "PHASE1_RETAINED",
+  "champion_model": "P2_BASELINE_RETAINED",
+  "champion_weights": "models/detection/model_weights.pt",
+  "summary_rationale": "Dvorak domain-consistency soft gating failed both 5-fold cross-validation and final held-out test evaluation. Coupling uncalibrated multi-task heads via an empirical training compatibility matrix caused severe error propagation and aggravated majority-class collapse. Per scientific protocol, the candidate is rejected and the locked P2 baseline is retained."
+}

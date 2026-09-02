@@ -1,0 +1,35 @@
+{
+  "comparison_name": "P2_PHASE6_MODEL_COMPARISON",
+  "timestamp": "2026-09-01T11:27:00Z",
+  "baseline_model": {
+    "name": "Locked P2 MobileNetV3-small Baseline",
+    "training_data": "Legacy 133-image Kaggle dataset (Train N=93)",
+    "weights": "models/detection/model_weights.pt",
+    "test_pattern_accuracy": 0.7142857142857143,
+    "test_pattern_macro_f1": 0.3697478991596639,
+    "test_pattern_weighted_f1": 0.6306522609043617,
+    "test_category_accuracy": 0.3333333333333333,
+    "test_category_macro_f1": 0.1465378421900161,
+    "test_category_weighted_f1": 0.23050379572118704
+  },
+  "expanded_data_model_d3": {
+    "name": "Phase 6 MobileNetV3-small Expanded Model",
+    "training_data": "Full MOSDAC Expanded Dataset (Train N=1,500 across 18 cyclones)",
+    "weights": "models/detection/model_weights_phase6_candidate.pt",
+    "test_pattern_accuracy": 0.9852941176470589,
+    "test_pattern_macro_f1": 0.9863488251261314,
+    "test_pattern_weighted_f1": 0.9852941176470589,
+    "test_category_accuracy": 0.5588235294117647,
+    "test_category_macro_f1": 0.41384792626728114,
+    "test_category_weighted_f1": 0.4917872651541999
+  },
+  "performance_deltas_expanded_vs_baseline": {
+    "pattern_accuracy_delta": 0.2710084033613446,
+    "pattern_macro_f1_delta": 0.6166009259664675,
+    "pattern_weighted_f1_delta": 0.3546418567426972,
+    "category_accuracy_delta": 0.2254901960784314,
+    "category_macro_f1_delta": 0.26731008407726504,
+    "category_weighted_f1_delta": 0.2612834694330129
+  },
+  "verdict": "MASSIVE_ROBUST_IMPROVEMENT_ACROSS_ALL_METRICS"
+}

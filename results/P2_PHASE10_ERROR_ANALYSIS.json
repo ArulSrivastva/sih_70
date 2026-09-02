@@ -1,0 +1,137 @@
+{
+  "audit_name": "P2_PHASE10_ERROR_ANALYSIS",
+  "timestamp": "2026-09-01T18:25:00Z",
+  "total_test_errors": 13,
+  "error_breakdown": [
+    {
+      "filename": "p7_mosdac_KYARR_2019_0014_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "KYARR_2019",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.376,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.485
+    },
+    {
+      "filename": "p7_mosdac_BIPARJOY_2023_0015_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "BIPARJOY_2023",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.364,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.456
+    },
+    {
+      "filename": "p7_mosdac_UNNAMED_2021_DD_0017_Depression.png",
+      "cyclone": "UNNAMED_2021_DD",
+      "true_category": "Depression",
+      "predicted_category": "Very Severe Cyclonic Storm",
+      "category_confidence": 0.364,
+      "true_pattern": "shear_pattern",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.464
+    },
+    {
+      "filename": "p7_mosdac_BIPARJOY_2023_0033_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "BIPARJOY_2023",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.381,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.465
+    },
+    {
+      "filename": "p7_mosdac_ASANI_2022_0034_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "ASANI_2022",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.383,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.493
+    },
+    {
+      "filename": "p7_mosdac_UNNAMED_2021_DD_0053_Depression.png",
+      "cyclone": "UNNAMED_2021_DD",
+      "true_category": "Depression",
+      "predicted_category": "Very Severe Cyclonic Storm",
+      "category_confidence": 0.368,
+      "true_pattern": "shear_pattern",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.456
+    },
+    {
+      "filename": "p7_mosdac_KYARR_2019_0068_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "KYARR_2019",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.38,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.478
+    },
+    {
+      "filename": "p7_mosdac_BIPARJOY_2023_0069_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "BIPARJOY_2023",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.38,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.459
+    },
+    {
+      "filename": "p7_mosdac_ASANI_2022_0070_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "ASANI_2022",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.361,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.468
+    },
+    {
+      "filename": "p7_mosdac_KYARR_2019_0086_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "KYARR_2019",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.362,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.476
+    },
+    {
+      "filename": "p7_mosdac_KYARR_2019_0104_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "KYARR_2019",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.354,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.455
+    },
+    {
+      "filename": "p7_mosdac_UNNAMED_2021_DD_0107_Depression.png",
+      "cyclone": "UNNAMED_2021_DD",
+      "true_category": "Depression",
+      "predicted_category": "Very Severe Cyclonic Storm",
+      "category_confidence": 0.355,
+      "true_pattern": "shear_pattern",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.443
+    },
+    {
+      "filename": "p7_mosdac_BIPARJOY_2023_0123_Very_Severe_Cyclonic_Storm.png",
+      "cyclone": "BIPARJOY_2023",
+      "true_category": "Very Severe Cyclonic Storm",
+      "predicted_category": "Depression",
+      "category_confidence": 0.362,
+      "true_pattern": "eye_visible",
+      "predicted_pattern": "shear_pattern",
+      "pattern_confidence": 0.45
+    }
+  ]
+}

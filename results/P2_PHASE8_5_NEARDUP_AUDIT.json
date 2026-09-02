@@ -1,0 +1,110 @@
+{
+  "audit_name": "P2_PHASE8_5_NEARDUP_AUDIT",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "total_pairwise_comparisons": 9453,
+  "exact_duplicate_count": 0,
+  "near_duplicate_pairs_count": 311,
+  "cross_split_near_duplicate_pairs_count": 183,
+  "near_duplicate_details": [
+    {
+      "file1": "p7_mosdac_FANI_2019_0000_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_AMPHAN_2020_0001_Very_Severe_Cyclonic_Storm.png",
+      "cyclone1": "FANI_2019",
+      "cyclone2": "AMPHAN_2020",
+      "split1": "train",
+      "split2": "train",
+      "hamming_distance": 2,
+      "perceptual_similarity_pct": 96.9
+    },
+    {
+      "file1": "p7_mosdac_FANI_2019_0000_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_TITLI_2018_0003_Very_Severe_Cyclonic_Storm.png",
+      "cyclone1": "FANI_2019",
+      "cyclone2": "TITLI_2018",
+      "split1": "train",
+      "split2": "train",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    },
+    {
+      "file1": "p7_mosdac_FANI_2019_0000_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_UNNAMED_2021_DD_0125_Depression.png",
+      "cyclone1": "FANI_2019",
+      "cyclone2": "UNNAMED_2021_DD",
+      "split1": "train",
+      "split2": "test",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    },
+    {
+      "file1": "p7_mosdac_AMPHAN_2020_0001_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_HUDHUD_2014_0002_Very_Severe_Cyclonic_Storm.png",
+      "cyclone1": "AMPHAN_2020",
+      "cyclone2": "HUDHUD_2014",
+      "split1": "train",
+      "split2": "train",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    },
+    {
+      "file1": "p7_mosdac_AMPHAN_2020_0001_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_TITLI_2018_0003_Very_Severe_Cyclonic_Storm.png",
+      "cyclone1": "AMPHAN_2020",
+      "cyclone2": "TITLI_2018",
+      "split1": "train",
+      "split2": "train",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    },
+    {
+      "file1": "p7_mosdac_AMPHAN_2020_0001_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_AMPHAN_2020_0055_Very_Severe_Cyclonic_Storm.png",
+      "cyclone1": "AMPHAN_2020",
+      "cyclone2": "AMPHAN_2020",
+      "split1": "train",
+      "split2": "train",
+      "hamming_distance": 3,
+      "perceptual_similarity_pct": 95.3
+    },
+    {
+      "file1": "p7_mosdac_AMPHAN_2020_0001_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_YAAS_2021_0066_Depression.png",
+      "cyclone1": "AMPHAN_2020",
+      "cyclone2": "YAAS_2021",
+      "split1": "train",
+      "split2": "val",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    },
+    {
+      "file1": "p7_mosdac_AMPHAN_2020_0001_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_UNNAMED_2021_DD_0125_Depression.png",
+      "cyclone1": "AMPHAN_2020",
+      "cyclone2": "UNNAMED_2021_DD",
+      "split1": "train",
+      "split2": "test",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    },
+    {
+      "file1": "p7_mosdac_HUDHUD_2014_0002_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_UNNAMED_2019_D_0046_Depression.png",
+      "cyclone1": "HUDHUD_2014",
+      "cyclone2": "UNNAMED_2019_D",
+      "split1": "train",
+      "split2": "train",
+      "hamming_distance": 3,
+      "perceptual_similarity_pct": 95.3
+    },
+    {
+      "file1": "p7_mosdac_HUDHUD_2014_0002_Very_Severe_Cyclonic_Storm.png",
+      "file2": "p7_mosdac_YAAS_2021_0066_Depression.png",
+      "cyclone1": "HUDHUD_2014",
+      "cyclone2": "YAAS_2021",
+      "split1": "train",
+      "split2": "val",
+      "hamming_distance": 4,
+      "perceptual_similarity_pct": 93.8
+    }
+  ]
+}

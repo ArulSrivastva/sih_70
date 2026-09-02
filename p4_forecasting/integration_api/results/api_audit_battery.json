@@ -1,0 +1,158 @@
+{
+  "cases": [
+    {
+      "case": "missing_history",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "MISSING_FEATURE",
+      "expected_reject": true
+    },
+    {
+      "case": "history_4_items",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_HISTORY_LENGTH",
+      "expected_reject": true
+    },
+    {
+      "case": "history_6_items",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_HISTORY_LENGTH",
+      "expected_reject": true
+    },
+    {
+      "case": "spacing_30h",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_HISTORY_SPACING",
+      "expected_reject": true
+    },
+    {
+      "case": "non_monotonic",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "NON_MONOTONIC_HISTORY",
+      "expected_reject": true
+    },
+    {
+      "case": "bad_timestamp_full5",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_TIMESTAMP",
+      "expected_reject": true
+    },
+    {
+      "case": "lat_95",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_LATITUDE",
+      "expected_reject": true
+    },
+    {
+      "case": "lat_minus40_full5",
+      "endpoint": "/api/analyze",
+      "status_code": 200,
+      "error_code": null,
+      "expected_reject": false
+    },
+    {
+      "case": "lon_negative",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_LONGITUDE",
+      "expected_reject": true
+    },
+    {
+      "case": "lon_360",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_LONGITUDE",
+      "expected_reject": true
+    },
+    {
+      "case": "wind_negative",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_WIND",
+      "expected_reject": true
+    },
+    {
+      "case": "wind_9999",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_WIND",
+      "expected_reject": true
+    },
+    {
+      "case": "pressure_800",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_REQUEST",
+      "expected_reject": true
+    },
+    {
+      "case": "nested_pressure_1200",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_REQUEST",
+      "expected_reject": true
+    },
+    {
+      "case": "sst_nan_str",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "NON_FINITE_VALUE",
+      "expected_reject": true
+    },
+    {
+      "case": "obs_extra_field",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_REQUEST",
+      "expected_reject": true
+    },
+    {
+      "case": "meta_extra_field",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_REQUEST",
+      "expected_reject": true
+    },
+    {
+      "case": "body_extra_field",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "INVALID_REQUEST",
+      "expected_reject": true
+    },
+    {
+      "case": "empty_body",
+      "endpoint": "/api/analyze",
+      "status_code": 422,
+      "error_code": "MISSING_FEATURE",
+      "expected_reject": true
+    },
+    {
+      "case": "not_found_endpoint",
+      "endpoint": "/api/nope",
+      "status_code": 404,
+      "error_code": null,
+      "expected_reject": true
+    },
+    {
+      "case": "battery_good_control",
+      "endpoint": "/api/analyze",
+      "status_code": 200,
+      "error_code": null,
+      "expected_reject": false
+    },
+    {
+      "case": "oversized_body",
+      "endpoint": "/api/analyze",
+      "status_code": 413,
+      "error_code": "INVALID_REQUEST",
+      "expected_reject": true
+    }
+  ]
+}

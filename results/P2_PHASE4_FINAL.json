@@ -1,0 +1,42 @@
+{
+  "phase": "P2_PHASE4_FINAL",
+  "timestamp": "2026-09-01T10:52:00Z",
+  "experiment_name": "Spatial Representation, Augmentation & Fine-Tuning Strategy",
+  "locked_baseline_metrics_test_n21": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_macro_f1": 0.3697478991596639,
+    "pattern_weighted_f1": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_macro_f1": 0.1465378421900161,
+    "category_weighted_f1": 0.23050379572118704
+  },
+  "candidate_metrics_test_n21": {
+    "candidate_A1_aug": {
+      "pattern_accuracy": 0.6190476190476191,
+      "pattern_macro_f1": 0.2549019607843137,
+      "pattern_weighted_f1": 0.5098039215686274,
+      "category_accuracy": 0.23809523809523808,
+      "category_macro_f1": 0.0641025641025641,
+      "category_weighted_f1": 0.09157509157509157
+    },
+    "candidate_F0_frozen": {
+      "pattern_accuracy": 0.6666666666666666,
+      "pattern_macro_f1": 0.26666666666666666,
+      "pattern_weighted_f1": 0.5333333333333333,
+      "category_accuracy": 0.23809523809523808,
+      "category_macro_f1": 0.0641025641025641,
+      "category_weighted_f1": 0.09157509157509157
+    }
+  },
+  "test_deltas_best_candidate_vs_baseline": {
+    "pattern_accuracy_delta": -0.04761904761904767,
+    "pattern_macro_f1_delta": -0.10308123249299723,
+    "category_accuracy_delta": -0.09523809523809523,
+    "category_macro_f1_delta": -0.082435278087452,
+    "verdict": "CLEAR_REGRESSION"
+  },
+  "champion_decision": "PHASE1_RETAINED",
+  "champion_model": "Locked P2 CycloneDetector",
+  "champion_weights": "models/detection/model_weights.pt",
+  "final_scientific_verdict": "P2 is declared COMPLETE. Spatial augmentations, rotation, and backbone unfreezing fail to overcome the 133-image sample size and severe class imbalance. The locked Phase-1 baseline remains the official, immutable champion."
+}

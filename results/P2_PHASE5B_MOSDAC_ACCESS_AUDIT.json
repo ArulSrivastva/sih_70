@@ -1,0 +1,30 @@
+{
+  "audit_name": "P2_PHASE5B_MOSDAC_ACCESS_AUDIT",
+  "timestamp": "2026-09-01T11:07:00Z",
+  "access_protocol": {
+    "portal": "ISRO / MOSDAC Open Search Portal",
+    "portal_url": "https://mosdac.gov.in",
+    "api_endpoint": "https://mosdac.gov.in/open_search",
+    "authentication_required": true,
+    "auth_type": "Researcher API Token (config.json / mdapi.py)",
+    "batch_download_permitted": true
+  },
+  "product_specifications": {
+    "satellite": "INSAT-3D (82.0 E) / INSAT-3DR (74.0 E) / INSAT-3DS (82.0 E)",
+    "instrument": "6-Channel Multi-Spectral Imager",
+    "primary_channel": "TIR-1 (10.30 - 11.30 um)",
+    "spatial_resolution": "4.0 km at nadir",
+    "temporal_resolution": "30 minutes (15 minutes combined 3D+3DR)",
+    "coverage": "South Asia Sector (44.5 E - 105.5 E, 10.0 S - 45.5 N)",
+    "format": "HDF5 (.h5) and GeoTIFF (.tif)",
+    "average_granule_size_hdf5": "18.5 MB",
+    "average_granule_size_tir1_extract": "3.2 MB",
+    "metadata_availability": "Full ISO 19115 compliant spatial/temporal HDF5 attributes"
+  },
+  "historical_availability": {
+    "start_year": 2014,
+    "end_year": 2024,
+    "coverage_continuity": "Continuous archival coverage across North Indian Ocean cyclones (Bay of Bengal and Arabian Sea)"
+  },
+  "download_safety_enforcement": "No automated large-scale bulk download initiated. Pilot evaluation restricted to a targeted sample."
+}

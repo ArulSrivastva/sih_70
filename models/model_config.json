@@ -1,0 +1,34 @@
+{
+  "model_name": "CycloneLSTM",
+  "input_size": 7,
+  "seq_len": 9,
+  "hidden_size": 64,
+  "num_layers": 1,
+  "dropout": 0.0,
+  "n_horizons": 3,
+  "n_targets": 3,
+  "horizons_hours": [
+    6,
+    12,
+    24
+  ],
+  "target_names": [
+    "latitude",
+    "longitude",
+    "wind_speed_kmh"
+  ],
+  "feature_names": [
+    "latitude",
+    "longitude",
+    "wind_speed_kmh",
+    "pressure_hpa",
+    "storm_speed",
+    "storm_direction",
+    "pressure_hpa_missing"
+  ],
+  "best_configuration": "A",
+  "best_val_loss": 0.04194529013708234,
+  "training_time_seconds": 10.32286524772644,
+  "random_seed": 42,
+  "training_date": "2026-08-26T09:40:35.388005"
+}

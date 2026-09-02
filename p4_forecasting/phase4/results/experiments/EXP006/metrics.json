@@ -1,0 +1,27 @@
+{
+  "experiment_id": "EXP006",
+  "split": "val",
+  "samples": 231,
+  "best_epoch": 31,
+  "best_val_loss": 0.069610999808425,
+  "train_loss_at_best_epoch": 0.027761355921527734,
+  "epochs_run": 46,
+  "training_time_s": 78.0648546218872,
+  "parameter_count": 89577,
+  "checkpoint_reused": false,
+  "validation_primary_score": 127.15302786307443,
+  "tiebreak": {
+    "mean_wind_mae": 13.691243489583334,
+    "mean_wind_rmse": 17.212855339050293
+  },
+  "per_horizon_track_mean_km": {
+    "6h": 98.72288529685147,
+    "12h": 111.02799439932596,
+    "24h": 171.70820389304583
+  },
+  "per_horizon_wind_mae": {
+    "6h": 7.848437309265137,
+    "12h": 11.792433738708496,
+    "24h": 21.432859420776367
+  }
+}

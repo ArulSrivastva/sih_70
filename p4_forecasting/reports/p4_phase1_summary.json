@@ -1,0 +1,300 @@
+{
+  "project": "PS 26070 (SIH2026) - cyclone forecasting",
+  "phase": 1,
+  "status": "PASS_WITH_WARNINGS",
+  "generated_at": "2026-08-29T13:25:41",
+  "script": "p4_forecasting/scripts/run_p4_phase1_audit.py",
+  "files_inventoried": {
+    "count": 117,
+    "zip_sha256": "f015bc3b98fe4a99d0a75e65cc1391bc97bca70b1d2b8df4867ad41020a6e5ac",
+    "baseline_file": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\logs\\p1_source_hashes.json"
+  },
+  "npz_audit": {
+    "keys": [
+      "X",
+      "Y",
+      "features",
+      "targets"
+    ],
+    "shapes": {
+      "train_X": [
+        2275,
+        5,
+        7
+      ],
+      "val_X": [
+        378,
+        5,
+        7
+      ],
+      "test_X": [
+        423,
+        5,
+        7
+      ],
+      "train_Y": [
+        2275,
+        3,
+        3
+      ],
+      "val_Y": [
+        378,
+        3,
+        3
+      ],
+      "test_Y": [
+        423,
+        3,
+        3
+      ]
+    },
+    "dtype": "float32",
+    "total_sequences": 3076,
+    "nan_count": 0,
+    "inf_count": 0
+  },
+  "feature_order_verified": "YES",
+  "features": [
+    "lat",
+    "lon",
+    "wind_speed",
+    "pressure",
+    "sst",
+    "wind_u",
+    "wind_v"
+  ],
+  "target_structure_verified": "YES",
+  "targets": [
+    "lat",
+    "lon",
+    "wind_speed"
+  ],
+  "horizons_hours": [
+    6,
+    12,
+    24
+  ],
+  "temporal": {
+    "window_hours": 24,
+    "max_window_deviation_h": 0.0,
+    "max_horizon_deviation_h": 0.0,
+    "off_grid_t_zero": 1,
+    "irregular_windows": 0,
+    "max_abs_target_diff_vs_metadata": 6.103515630684342e-06
+  },
+  "leakage": {
+    "feature_target_separation": {
+      "confirmed_leakage": 0,
+      "samples_checked": 3076
+    },
+    "split_overlap_cyclones": {
+      "train_val": 0,
+      "train_test": 0,
+      "val_test": 0
+    },
+    "non_causal_interpolation_risk": {
+      "affected_input_samples": 1307,
+      "affected_input_pct": 42.49024707412224,
+      "affected_target_samples": 659,
+      "severity": "MEDIUM",
+      "affected_columns": [
+        "lat",
+        "lon",
+        "wind_speed",
+        "pressure",
+        "sst",
+        "wind_u",
+        "wind_v",
+        "targets: lat, lon, wind_speed"
+      ]
+    },
+    "dup_sequences": 0
+  },
+  "missing_values": {
+    "npz_nan": 0,
+    "master_row_level": {
+      "sst_pct": 28.060572888159097,
+      "wind_pct": 23.225688742930124,
+      "pressure_pct": 22.22222222222222,
+      "sst_by_lag_input_synth_cells": {
+        "24h": 258,
+        "18h": 272,
+        "12h": 296,
+        "6h": 321,
+        "0h": 347
+      }
+    },
+    "per_split_synth": {
+      "train": {
+        "input": 932,
+        "target": 474,
+        "n": 2275
+      },
+      "val": {
+        "input": 200,
+        "target": 92,
+        "n": 378
+      },
+      "test": {
+        "input": 175,
+        "target": 93,
+        "n": 423
+      }
+    }
+  },
+  "physical_sanity": {
+    "violations": 0,
+    "sst_unit": "Celsius (deg C as delivered; raw ERA5 is Kelvin)",
+    "lat_range_ok": true,
+    "lon_range_ok": true,
+    "wind_range_ok": true,
+    "pressure_range_ok": true,
+    "uv_magnitude_ok": true
+  },
+  "normalization": {
+    "NPZ_NORMALIZATION": "NONE"
+  },
+  "canonical": {
+    "train_sequences": 2275,
+    "val_sequences": 378,
+    "test_sequences": 423,
+    "excluded": {
+      "train": {
+        "leakage": 0,
+        "invalid": 0
+      },
+      "val": {
+        "leakage": 0,
+        "invalid": 0
+      },
+      "test": {
+        "leakage": 0,
+        "invalid": 0
+      }
+    },
+    "quality_kept_non_causal_risk": 1435,
+    "quality_clean": 1641
+  },
+  "chronological_split": {
+    "train_cyclones": 68,
+    "val_cyclones": 15,
+    "test_cyclones": 14,
+    "train_sequences": 2259,
+    "val_sequences": 416,
+    "test_sequences": 401,
+    "cyclone_in_multiple_splits": 0,
+    "split_basis": "cyclone start date (master-level), 70/15/15"
+  },
+  "measures": {
+    "max_abs_target_diff_vs_metadata": 6.103515630684342e-06,
+    "master_consistency": {
+      "train": {
+        "samples_checked": 20,
+        "max_abs_diff_input": {
+          "lat": 7.629394538355427e-07,
+          "lon": 3.051757815342171e-06,
+          "wind_speed": 6.103515630684342e-06,
+          "pressure": 0.0,
+          "sst": 9.155273446026513e-07,
+          "wind_u": 1.7763568394002505e-15,
+          "wind_v": 3.552713678800501e-15
+        },
+        "cells_checked": {
+          "lat": 100,
+          "lon": 100,
+          "wind_speed": 83,
+          "pressure": 88,
+          "sst": 89,
+          "wind_u": 100,
+          "wind_v": 100
+        },
+        "cells_diff_gt_0_01": {
+          "lat": 0,
+          "lon": 0,
+          "wind_speed": 0,
+          "pressure": 0,
+          "sst": 0,
+          "wind_u": 0,
+          "wind_v": 0
+        },
+        "max_abs_diff_target_vs_master": 6.103515630684342e-06
+      },
+      "val": {
+        "samples_checked": 20,
+        "max_abs_diff_input": {
+          "lat": 7.629394538355427e-07,
+          "lon": 3.051757815342171e-06,
+          "wind_speed": 6.103515630684342e-06,
+          "pressure": 0.0,
+          "sst": 9.155273446026513e-07,
+          "wind_u": 8.881784197001252e-16,
+          "wind_v": 8.881784197001252e-16
+        },
+        "cells_checked": {
+          "lat": 100,
+          "lon": 100,
+          "wind_speed": 72,
+          "pressure": 69,
+          "sst": 81,
+          "wind_u": 100,
+          "wind_v": 100
+        },
+        "cells_diff_gt_0_01": {
+          "lat": 0,
+          "lon": 0,
+          "wind_speed": 0,
+          "pressure": 0,
+          "sst": 0,
+          "wind_u": 0,
+          "wind_v": 0
+        },
+        "max_abs_diff_target_vs_master": 6.103515630684342e-06
+      },
+      "test": {
+        "samples_checked": 20,
+        "max_abs_diff_input": {
+          "lat": 7.629394538355427e-07,
+          "lon": 3.051757815342171e-06,
+          "wind_speed": 6.103515630684342e-06,
+          "pressure": 0.0,
+          "sst": 9.155273446026513e-07,
+          "wind_u": 1.7763568394002505e-15,
+          "wind_v": 1.7763568394002505e-15
+        },
+        "cells_checked": {
+          "lat": 100,
+          "lon": 100,
+          "wind_speed": 83,
+          "pressure": 80,
+          "sst": 93,
+          "wind_u": 100,
+          "wind_v": 100
+        },
+        "cells_diff_gt_0_01": {
+          "lat": 0,
+          "lon": 0,
+          "wind_speed": 0,
+          "pressure": 0,
+          "sst": 0,
+          "wind_u": 0,
+          "wind_v": 0
+        },
+        "max_abs_diff_target_vs_master": 6.103515630684342e-06
+      }
+    }
+  },
+  "post_creation_verification": {
+    "shapes_ok": true,
+    "dtypes_ok": true,
+    "nan_ok": true,
+    "feature_order_ok": true,
+    "target_order_ok": true,
+    "sample_counts_ok": true,
+    "metadata_alignment_ok": true,
+    "cyclone_split_ok": true,
+    "chrono_cyclone_split_ok": true,
+    "source_hashes_unchanged": true
+  },
+  "data_contract": "p4_forecasting/canonical/P4_DATA_CONTRACT.md",
+  "final_report": "p4_forecasting/reports/P4_PHASE1_FINAL_REPORT.md"
+}

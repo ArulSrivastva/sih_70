@@ -1,0 +1,37 @@
+{
+  "experiment": "P2_PHASE4_FINETUNING_EXPERIMENT",
+  "dataset_split": "5-Fold Stratified Cross-Validation on Development Set (N=112)",
+  "configurations": {
+    "F0_frozen_backbone": {
+      "description": "Freeze MobileNetV3 backbone; train only 3 classification heads",
+      "trainable_parameters": 222858,
+      "total_parameters": 1149866,
+      "pattern_accuracy": "0.5806 +/- 0.0126",
+      "pattern_macro_f1": "0.2586 +/- 0.0291",
+      "category_accuracy": "0.3202 +/- 0.0704",
+      "category_macro_f1": "0.1401 +/- 0.0327",
+      "category_weighted_f1": "0.2187 +/- 0.0555"
+    },
+    "F1_partial_finetune": {
+      "description": "Freeze features[:10]; fine-tune later blocks features[10:] + heads",
+      "trainable_parameters": 867498,
+      "total_parameters": 1149866,
+      "pattern_accuracy": "0.5715 +/- 0.0174",
+      "pattern_macro_f1": "0.2424 +/- 0.0047",
+      "category_accuracy": "0.3111 +/- 0.0929",
+      "category_macro_f1": "0.1478 +/- 0.0673",
+      "category_weighted_f1": "0.2046 +/- 0.1066"
+    },
+    "F2_full_finetune": {
+      "description": "Full fine-tuning of all backbone layers + heads (Baseline setup)",
+      "trainable_parameters": 1149866,
+      "total_parameters": 1149866,
+      "pattern_accuracy": "0.5715 +/- 0.0174",
+      "pattern_macro_f1": "0.2424 +/- 0.0047",
+      "category_accuracy": "0.3032 +/- 0.0405",
+      "category_macro_f1": "0.1489 +/- 0.0352",
+      "category_weighted_f1": "0.2069 +/- 0.0510"
+    }
+  },
+  "verdict": "NO_ROBUST_IMPROVEMENT (all fine-tuning variations achieve category macro-F1 between 0.140-0.149, within noise margins; pattern macro-F1 remains locked in majority collapse)"
+}

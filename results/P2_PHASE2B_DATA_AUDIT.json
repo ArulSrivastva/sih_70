@@ -1,0 +1,92 @@
+{
+  "audit_name": "P2_PHASE2B_DATA_AUDIT",
+  "timestamp": "2026-09-01T10:15:00Z",
+  "dataset_source": "data/processed/detection/train_detection.csv (N=93)",
+  "total_training_samples": 93,
+  "structural_pattern_distribution": {
+    "eye_visible": 51,
+    "curved_band": 33,
+    "shear_pattern": 9
+  },
+  "intensity_category_distribution": {
+    "Cyclonic Storm": 33,
+    "Severe Cyclonic Storm": 24,
+    "Very Severe Cyclonic Storm": 19,
+    "Extremely Severe Cyclonic Storm": 8,
+    "Deep Depression": 8,
+    "Depression": 1,
+    "Super Cyclonic Storm": 0
+  },
+  "contingency_table_counts": {
+    "curved_band": {
+      "Cyclonic Storm": 33,
+      "Deep Depression": 0,
+      "Depression": 0,
+      "Extremely Severe Cyclonic Storm": 0,
+      "Severe Cyclonic Storm": 0,
+      "Very Severe Cyclonic Storm": 0
+    },
+    "eye_visible": {
+      "Cyclonic Storm": 0,
+      "Deep Depression": 0,
+      "Depression": 0,
+      "Extremely Severe Cyclonic Storm": 8,
+      "Severe Cyclonic Storm": 24,
+      "Very Severe Cyclonic Storm": 19
+    },
+    "shear_pattern": {
+      "Cyclonic Storm": 0,
+      "Deep Depression": 8,
+      "Depression": 1,
+      "Extremely Severe Cyclonic Storm": 0,
+      "Severe Cyclonic Storm": 0,
+      "Very Severe Cyclonic Storm": 0
+    }
+  },
+  "contingency_table_percentages": {
+    "curved_band_x_Cyclonic_Storm": 35.48,
+    "eye_visible_x_Severe_Cyclonic_Storm": 25.81,
+    "eye_visible_x_Very_Severe_Cyclonic_Storm": 20.43,
+    "eye_visible_x_Extremely_Severe_Cyclonic_Storm": 8.60,
+    "shear_pattern_x_Deep_Depression": 8.60,
+    "shear_pattern_x_Depression": 1.08
+  },
+  "rare_combinations_in_train": [
+    {
+      "pattern": "shear_pattern",
+      "category": "Depression",
+      "count": 1,
+      "percentage": 1.08,
+      "status": "RARE_BUT_METEOROLOGICALLY_PLAUSIBLE"
+    },
+    {
+      "pattern": "eye_visible",
+      "category": "Extremely Severe Cyclonic Storm",
+      "count": 8,
+      "percentage": 8.60,
+      "status": "PLAUSIBLE_INTENSE"
+    }
+  ],
+  "meteorologically_inconsistent_pairs": [
+    {
+      "pattern": "eye_visible",
+      "category": "Cyclonic Storm",
+      "dvorak_explanation": "An eye cannot physically exist at Cyclonic Storm intensity (wind < 89 km/h; T-number < 3.5)"
+    },
+    {
+      "pattern": "eye_visible",
+      "category": "Deep Depression",
+      "dvorak_explanation": "An eye is physically impossible in a deep depression"
+    },
+    {
+      "pattern": "eye_visible",
+      "category": "Depression",
+      "dvorak_explanation": "An eye is physically impossible in a depression"
+    },
+    {
+      "pattern": "shear_pattern",
+      "category": "Extremely Severe Cyclonic Storm",
+      "dvorak_explanation": "A strongly sheared pattern cannot sustain central core winds > 166 km/h"
+    }
+  ]
+}

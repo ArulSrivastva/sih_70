@@ -1,0 +1,37 @@
+{
+  "audit_name": "P2_PHASE11_DATASET_AUDIT",
+  "timestamp": "2026-09-01T18:30:00Z",
+  "total_scenes": 138,
+  "cyclone_count": 18,
+  "split_distribution": {
+    "train": 84,
+    "val": 24,
+    "test": 30
+  },
+  "cyclones_per_split": {
+    "train": [
+      "AMPHAN_2020",
+      "BULBUL_2019",
+      "FANI_2019",
+      "FENGAL_2024",
+      "GAJA_2018",
+      "GULAB_2021",
+      "HUDHUD_2014",
+      "JAWAD_2021",
+      "TITLI_2018",
+      "UNNAMED_2018_DD",
+      "UNNAMED_2019_D"
+    ],
+    "val": [
+      "SITRANG_2022",
+      "TAUKTAE_2021",
+      "YAAS_2021"
+    ],
+    "test": [
+      "ASANI_2022",
+      "BIPARJOY_2023",
+      "KYARR_2019",
+      "UNNAMED_2021_DD"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "manifest_name": "P2_PHASE6_CROP_MANIFEST",
+  "timestamp": "2026-09-01T11:26:00Z",
+  "total_crops_generated": 2120,
+  "crop_dimensions": [224, 224, 3],
+  "format": "PNG",
+  "storage_directory": "data/p2_mosdac_expanded/crops/",
+  "cyclones_count": 25,
+  "split_counts": {
+    "train": 1500,
+    "val": 280,
+    "test": 340
+  },
+  "cyclone_counts": {
+    "AMPHAN": 100,
+    "KYARR": 100,
+    "FANI": 100,
+    "MOCHA": 100,
+    "TAUKTAE": 100,
+    "HUDHUD": 100,
+    "BIPARJOY": 100,
+    "TITLI": 100,
+    "BULBUL": 100,
+    "GAJA": 100,
+    "YAAS": 100,
+    "MICHAUNG": 80,
+    "REMAL": 80,
+    "ASANI": 80,
+    "DANA": 80,
+    "FENGAL": 80,
+    "GULAB": 80,
+    "SITRANG": 80,
+    "JAWAD": 80,
+    "MIDHILI": 80,
+    "UNNAMED_2018_DD": 60,
+    "UNNAMED_2019_DD": 60,
+    "UNNAMED_2021_DD": 60,
+    "UNNAMED_2019_D": 60,
+    "UNNAMED_2020_D": 60
+  }
+}

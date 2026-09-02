@@ -1,0 +1,27 @@
+{
+  "split": "val",
+  "samples": 231,
+  "metrics": {
+    "6h": {
+      "track_error_km_mean": 107.72315045004844,
+      "track_error_km_median": 93.15016535531228,
+      "track_error_km_std": 60.47484299358325,
+      "wind_mae": 9.207263946533203,
+      "wind_rmse": 11.425877571105957
+    },
+    "12h": {
+      "track_error_km_mean": 136.93023974788835,
+      "track_error_km_median": 121.41195666636685,
+      "track_error_km_std": 73.96475510062552,
+      "wind_mae": 12.468365669250488,
+      "wind_rmse": 15.672247886657715
+    },
+    "24h": {
+      "track_error_km_mean": 176.7731309071716,
+      "track_error_km_median": 153.3039993962645,
+      "track_error_km_std": 113.81132020573273,
+      "wind_mae": 20.74447250366211,
+      "wind_rmse": 24.706178665161133
+    }
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "schema": "integration_qa v1",
+  "verdict": "READY_WITH_MINOR_LIMITATIONS",
+  "generated_from": "authoritative evidence under p4_forecasting/integration_api/results/ plus executed regression (backend 136) and P1 hardening continuation",
+  "date": "2026-08-31",
+
+  "blocking_issues": [],
+
+  "resolved_p0_limitations": [
+    {
+      "id": "L1",
+      "severity": "P0",
+      "status": "RESOLVED",
+      "resolution": "POST /api/image added; SatelliteViewer now sends real uploads to the backend (P2+P3). Verified live HTTP 200; backend tests pass; offline-clean; location/movement/bbox honest nulls; provenance image_source=USER-UPLOADED IMAGE."
+    },
+    {
+      "id": "L2",
+      "severity": "P0",
+      "status": "RESOLVED",
+      "resolution": "HistoryEditor added (5 obs, 6h spacing, exact-5 enforced, add/edit/delete/clear/reset); posts user history through the unchanged POST /api/analyze contract; server re-validates with phase-6 rules; DEMO DATA vs USER-EDITED HISTORY explicit. Verified live HTTP 200."
+    }
+  ],
+  "resolved_p1_actions": [
+    {
+      "id": "P1-A",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "lightgbm 4.7.0 installed; P3 tabular metrics independently reproduced (acc 0.47, macro-F1 0.37, 0 SID overlap); in-process NOT_RUN preserved honestly."
+    },
+    {
+      "id": "P1-B",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "NIO guard lat [0,30], lon [40,100] upstream on AnalyzeRequest; 13 tests + live HTTP; OUT_OF_DOMAIN, never clamped."
+    },
+    {
+      "id": "P1-C",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "EXP005 metrics independently reproduced (91.4/119.8/188.2 km track, 6.68/9.46/16.11 wind MAE); loses to movement-vector baseline at all horizons — disclosed."
+    },
+    {
+      "id": "P1-D",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "API contract hardened: strict validation, deterministic error codes, 125+ integration tests pass."
+    },
+    {
+      "id": "P1-E",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "Offline mode verified: all inference offline; online tiles degrade gracefully; no false live claims."
+    },
+    {
+      "id": "P1-F",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "Scientific honesty verified: every output classified; no fabrication; movement-vector baseline disclosed."
+    },
+    {
+      "id": "P1-G",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "Frontend E2E verified: 18-step user journey, lint 0 errors, build PASS, no runtime errors."
+    },
+    {
+      "id": "P1-H",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "Performance verified: cold startup ~360ms, /api/analyze ~63ms, no blocking issues for research prototype."
+    },
+    {
+      "id": "P1-SI",
+      "severity": "P1",
+      "status": "RESOLVED",
+      "resolution": "Source immutability verified: 426 snapshot files, 0 missing, 0 forbidden changes, PS70-main.zip byte-identical."
+    }
+  ],
+  "limitations": [
+    {
+      "id": "L3",
+      "severity": "P1",
+      "text": "P3 LightGBM/tabular classifier is enabled and evaluated, but is weak (acc 0.47, macro-F1 0.37) and NOT served in-process. Numbers honest."
+    },
+    {
+      "id": "L4",
+      "severity": "P1",
+      "text": "P2/P3 are weak image classifiers on synthetic/leak-prone labels (pattern 0.714, acc 38.1%); caveats required."
+    },
+    {
+      "id": "L5",
+      "severity": "P1",
+      "text": "P4 EXP005 track forecast below movement-vector baseline at every horizon; must stay disclosed."
+    },
+    {
+      "id": "L6",
+      "severity": "P1",
+      "text": "Heuristic landfall/risk and illustrative cone not ML; correctly labelled."
+    },
+    {
+      "id": "L7",
+      "severity": "P2",
+      "text": "No calibrated forecast pressure/uncertainty (honest nulls); P3 dominates analyze latency."
+    }
+  ],
+
+  "passed_steps": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 18],
+  "warning_steps": [13, 17],
+  "failed_steps": [],
+
+  "counts": {
+    "steps_total": 18,
+    "steps_pass": 16,
+    "steps_warning": 2,
+    "steps_fail": 0,
+    "blocking_issues": 0,
+    "p0_actions": 0,
+    "p1_actions": 0,
+    "p1_actions_resolved": 9,
+    "p2_actions": 3
+  },
+
+  "checks": {
+    "frontend_backend_contract": "PASS",
+    "p2_p3_p4_p5_integration": "PASS",
+    "offline_inference": "PASS",
+    "determinism": "PASS",
+    "security_validation": "PASS",
+    "source_immutability": "PASS",
+    "honest_accuracy_reporting": "PASS",
+    "p0_satellite_ingestion": "PASS",
+    "p0_history_editor": "PASS",
+    "p1_lightgbm": "PASS_WITH_WARNING",
+    "p1_nio_guard": "PASS",
+    "p4_forecast_validation": "PASS",
+    "p1_api_hardening": "PASS",
+    "p1_offline_audit": "PASS",
+    "p1_scientific_honesty": "PASS",
+    "p1_frontend_e2e": "PASS",
+    "p1_performance": "PASS",
+    "p1_source_immutability": "PASS",
+    "p1_regression": "PASS"
+  },
+
+  "recommended_next_actions": {
+    "P0": [
+      "DONE: backend satellite-image ingestion + SatelliteViewer real upload.",
+      "DONE: HistoryEditor added with re-validation.",
+      "KEEP: heuristic landfall/risk labelled NON-ML and movement-vector-superior track visible."
+    ],
+    "P1": [
+      "DONE: lightgbm installed, P3 tabular verified (weak, honest).",
+      "DONE: NIO guard upstream verified.",
+      "DONE: P4 EXP005 metrics reproduced; loses to movement-vector baseline — disclosed.",
+      "DONE: API hardening, offline audit, scientific honesty, frontend E2E, performance — all PASS.",
+      "DONE: Source immutability verified (0 forbidden changes).",
+      "PENDING: final SIH submission double-check (docs + honest labels)."
+    ],
+    "P2": [
+      "Optimize cold bootstrap (~360ms) and P3-dominated analyze latency.",
+      "Code-split to address Vite chunk-size warning.",
+      "Future: calibrated forecast uncertainty + validated localizer."
+    ]
+  }
+}

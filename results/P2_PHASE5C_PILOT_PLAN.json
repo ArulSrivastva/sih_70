@@ -1,0 +1,40 @@
+{
+  "plan_name": "P2_PHASE5C_PILOT_PLAN",
+  "timestamp": "2026-09-01T11:07:00Z",
+  "pilot_objective": "Validate end-to-end MOSDAC metadata parsing, geographic-to-pixel coordinate projection, vortex center cropping, and label generation across 3 distinct meteorological regimes without downloading full bulk archives.",
+  "selected_pilot_systems": [
+    {
+      "cyclone_id": "2019116N12089",
+      "name": "FANI",
+      "year": 2019,
+      "peak_category": "Extremely Severe Cyclonic Storm",
+      "peak_wind_kmh": 215.0,
+      "target_patterns": ["eye_visible", "curved_band"],
+      "pilot_granules": 15,
+      "selection_rationale": "High-intensity system with mature eye formation and intense spiral bands."
+    },
+    {
+      "cyclone_id": "2021267N18089",
+      "name": "GULAB",
+      "year": 2021,
+      "peak_category": "Cyclonic Storm",
+      "peak_wind_kmh": 85.0,
+      "target_patterns": ["curved_band"],
+      "pilot_granules": 15,
+      "selection_rationale": "Moderate intensity system with strong curved banding without eye development."
+    },
+    {
+      "cyclone_id": "2021255N17088",
+      "name": "BOB_05_2021",
+      "year": 2021,
+      "peak_category": "Deep Depression",
+      "peak_wind_kmh": 55.0,
+      "target_patterns": ["shear_pattern"],
+      "pilot_granules": 15,
+      "selection_rationale": "Weak depression system under vertical wind shear to validate minority class recovery."
+    }
+  ],
+  "total_pilot_granules": 45,
+  "estimated_pilot_download_size_mb": 144.0,
+  "storage_directory": "data/p2_mosdac_pilot/raw/"
+}

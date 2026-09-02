@@ -1,0 +1,845 @@
+{
+  "experiment": "P3_P4_FEATURE_ENGINEERING",
+  "dataset": {
+    "train": 3038,
+    "val": 518,
+    "test": 651,
+    "n_original_features": 6,
+    "n_engineered_features": 16,
+    "n_classes": 7,
+    "sst_nan_pct_train": 28.1,
+    "classes": [
+      "Depression",
+      "Deep Depression",
+      "Cyclonic Storm",
+      "Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm",
+      "Extremely Severe Cyclonic Storm",
+      "Super Cyclonic Storm"
+    ]
+  },
+  "original_features": [
+    "lat",
+    "lon",
+    "sst",
+    "pressure_msl",
+    "wind_u",
+    "wind_v"
+  ],
+  "engineered_features": [
+    "wind_speed_mag",
+    "wind_dir_sin",
+    "wind_dir_cos",
+    "abs_lat",
+    "lat_sq",
+    "lon_sin",
+    "lon_cos",
+    "pressure_deficit",
+    "pressure_sq",
+    "sst_x_pressure",
+    "sst_x_lat",
+    "pressure_x_lat",
+    "sst_above_26",
+    "sst_anomaly_approx",
+    "wind_u_x_pressure",
+    "wind_v_x_pressure"
+  ],
+  "feature_catalog": {
+    "wind_speed_mag": {
+      "formula": "sqrt(wind_u**2 + wind_v**2)",
+      "reason": "Total wind magnitude captures intensity regardless of direction",
+      "available_inference": true
+    },
+    "wind_dir_sin": {
+      "formula": "wind_v / (wind_speed_mag + 1e-8)",
+      "reason": "Sinusoidal wind direction component",
+      "available_inference": true
+    },
+    "wind_dir_cos": {
+      "formula": "wind_u / (wind_speed_mag + 1e-8)",
+      "reason": "Cosine wind direction component",
+      "available_inference": true
+    },
+    "abs_lat": {
+      "formula": "abs(lat)",
+      "reason": "Distance from equator; cyclone dynamics differ by hemisphere distance",
+      "available_inference": true
+    },
+    "lat_sq": {
+      "formula": "lat**2",
+      "reason": "Nonlinear latitude effect on Coriolis parameter",
+      "available_inference": true
+    },
+    "lon_sin": {
+      "formula": "sin(lon * pi / 180)",
+      "reason": "Cyclic encoding of longitude for geographic continuity",
+      "available_inference": true
+    },
+    "lon_cos": {
+      "formula": "cos(lon * pi / 180)",
+      "reason": "Cyclic encoding of longitude for geographic continuity",
+      "available_inference": true
+    },
+    "pressure_deficit": {
+      "formula": "1013.25 - pressure_msl",
+      "reason": "Pressure deficit from standard atmosphere is a direct intensity proxy",
+      "available_inference": true
+    },
+    "pressure_sq": {
+      "formula": "(1013.25 - pressure_msl)**2",
+      "reason": "Nonlinear pressure-intensity relationship",
+      "available_inference": true
+    },
+    "sst_x_pressure": {
+      "formula": "sst * pressure_msl",
+      "reason": "Interaction: warm SST + low pressure = intensification potential",
+      "available_inference": true
+    },
+    "sst_x_lat": {
+      "formula": "sst * abs(lat)",
+      "reason": "Interaction: warm water at low latitudes favors genesis",
+      "available_inference": true
+    },
+    "pressure_x_lat": {
+      "formula": "pressure_msl * abs(lat)",
+      "reason": "Interaction: pressure-latitude effects on storm structure",
+      "available_inference": true
+    },
+    "sst_above_26": {
+      "formula": "(sst > 26.5).astype(float)",
+      "reason": "SST threshold for cyclogenesis (>26.5C is critical)",
+      "available_inference": true
+    },
+    "sst_anomaly_approx": {
+      "formula": "sst - 28.77 (train mean SST)",
+      "reason": "Deviation from mean SST; relative warmth may indicate intensification",
+      "available_inference": true
+    },
+    "wind_u_x_pressure": {
+      "formula": "wind_u * pressure_msl",
+      "reason": "Wind-pressure interaction",
+      "available_inference": true
+    },
+    "wind_v_x_pressure": {
+      "formula": "wind_v * pressure_msl",
+      "reason": "Wind-pressure interaction",
+      "available_inference": true
+    }
+  },
+  "sst_missingness_experiment": [
+    {
+      "label": "A. Native LightGBM NaN handling",
+      "method": "native",
+      "val_accuracy": 41.12,
+      "val_macro_f1": 0.2036,
+      "test_accuracy": 46.24,
+      "test_macro_f1": 0.3444
+    },
+    {
+      "label": "B. Median imputation",
+      "method": "median_impute",
+      "val_accuracy": 40.73,
+      "val_macro_f1": 0.1958,
+      "test_accuracy": 47.31,
+      "test_macro_f1": 0.3747
+    },
+    {
+      "label": "C. Median + missing indicator",
+      "method": "median_indicator",
+      "val_accuracy": 38.61,
+      "val_macro_f1": 0.1799,
+      "test_accuracy": 47.77,
+      "test_macro_f1": 0.3779
+    },
+    {
+      "label": "D. KNN imputation",
+      "method": "knn_impute",
+      "val_accuracy": 35.71,
+      "val_macro_f1": 0.1741,
+      "test_accuracy": 47.16,
+      "test_macro_f1": 0.3118
+    }
+  ],
+  "ablation_results": {
+    "E1_original": {
+      "val_accuracy": 41.12,
+      "val_macro_f1": 0.2036,
+      "val_balanced_acc": 26.63,
+      "val_mae": 0.8687,
+      "val_off_by_one": 79.73,
+      "val_off_by_two": 93.63,
+      "features": [
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v"
+      ],
+      "n_features": 6
+    },
+    "E2_orig_nonlinear": {
+      "val_accuracy": 40.54,
+      "val_macro_f1": 0.1969,
+      "val_balanced_acc": 26.16,
+      "val_mae": 0.8861,
+      "val_off_by_one": 79.92,
+      "val_off_by_two": 93.05,
+      "features": [
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "abs_lat",
+        "lat_sq",
+        "lon_sin",
+        "lon_cos",
+        "pressure_deficit",
+        "pressure_sq",
+        "sst_anomaly_approx"
+      ],
+      "n_features": 13
+    },
+    "E3_orig_interactions": {
+      "val_accuracy": 39.19,
+      "val_macro_f1": 0.1856,
+      "val_balanced_acc": 25.34,
+      "val_mae": 0.8938,
+      "val_off_by_one": 78.96,
+      "val_off_by_two": 93.82,
+      "features": [
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "sst_x_pressure",
+        "sst_x_lat",
+        "pressure_x_lat",
+        "wind_u_x_pressure",
+        "wind_v_x_pressure"
+      ],
+      "n_features": 11
+    },
+    "E4_orig_nonlinear_interactions": {
+      "val_accuracy": 39.19,
+      "val_macro_f1": 0.187,
+      "val_balanced_acc": 25.36,
+      "val_mae": 0.8861,
+      "val_off_by_one": 78.96,
+      "val_off_by_two": 94.4,
+      "features": [
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "abs_lat",
+        "lat_sq",
+        "lon_sin",
+        "lon_cos",
+        "pressure_deficit",
+        "pressure_sq",
+        "sst_anomaly_approx",
+        "sst_x_pressure",
+        "sst_x_lat",
+        "pressure_x_lat",
+        "wind_u_x_pressure",
+        "wind_v_x_pressure"
+      ],
+      "n_features": 18
+    },
+    "E5_orig_all_eng": {
+      "val_accuracy": 38.8,
+      "val_macro_f1": 0.1767,
+      "val_balanced_acc": 24.57,
+      "val_mae": 0.9131,
+      "val_off_by_one": 77.61,
+      "val_off_by_two": 93.82,
+      "features": [
+        "lat",
+        "lon",
+        "sst",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "abs_lat",
+        "lat_sq",
+        "lon_sin",
+        "lon_cos",
+        "pressure_deficit",
+        "pressure_sq",
+        "sst_anomaly_approx",
+        "sst_x_pressure",
+        "sst_x_lat",
+        "pressure_x_lat",
+        "wind_u_x_pressure",
+        "wind_v_x_pressure",
+        "wind_speed_mag",
+        "wind_dir_sin",
+        "wind_dir_cos",
+        "sst_above_26"
+      ],
+      "n_features": 22
+    },
+    "E6_no_sst": {
+      "val_accuracy": 37.64,
+      "val_macro_f1": 0.1718,
+      "val_balanced_acc": 23.82,
+      "val_mae": 0.9189,
+      "val_off_by_one": 76.83,
+      "val_off_by_two": 94.4,
+      "features": [
+        "lat",
+        "lon",
+        "pressure_msl",
+        "wind_u",
+        "wind_v",
+        "abs_lat",
+        "lat_sq",
+        "lon_sin",
+        "lon_cos",
+        "pressure_deficit",
+        "pressure_sq",
+        "sst_anomaly_approx",
+        "sst_x_pressure",
+        "sst_x_lat",
+        "pressure_x_lat",
+        "wind_u_x_pressure",
+        "wind_v_x_pressure",
+        "wind_speed_mag",
+        "wind_dir_sin",
+        "wind_dir_cos",
+        "sst_above_26"
+      ],
+      "n_features": 21
+    }
+  },
+  "best_ablation": "E1_original",
+  "best_ablation_n_features": 6,
+  "best_ablation_features": [
+    "lat",
+    "lon",
+    "sst",
+    "pressure_msl",
+    "wind_u",
+    "wind_v"
+  ],
+  "hyperparameter_tuning": {
+    "n_trials": 80,
+    "best_val_f1": 0.207,
+    "best_val_accuracy": 43.24,
+    "best_params": {
+      "n_estimators": 500,
+      "learning_rate": 0.02,
+      "max_depth": 5,
+      "num_leaves": 7,
+      "min_child_samples": 20,
+      "feature_fraction": 1.0,
+      "bagging_fraction": 0.85,
+      "bagging_freq": 0,
+      "lambda_l1": 5.0,
+      "lambda_l2": 0.0
+    },
+    "top_10": [
+      {
+        "trial": 13,
+        "accuracy": 43.24,
+        "macro_f1": 0.207,
+        "params": {
+          "n_estimators": 500,
+          "learning_rate": 0.02,
+          "max_depth": 5,
+          "num_leaves": 7,
+          "min_child_samples": 20,
+          "feature_fraction": 1.0,
+          "bagging_fraction": 0.85,
+          "bagging_freq": 0,
+          "lambda_l1": 5.0,
+          "lambda_l2": 0.0
+        }
+      },
+      {
+        "trial": 51,
+        "accuracy": 42.86,
+        "macro_f1": 0.2041,
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.02,
+          "max_depth": 5,
+          "num_leaves": 63,
+          "min_child_samples": 20,
+          "feature_fraction": 1.0,
+          "bagging_fraction": 0.7,
+          "bagging_freq": 1,
+          "lambda_l1": 0.0,
+          "lambda_l2": 10.0
+        }
+      },
+      {
+        "trial": 53,
+        "accuracy": 39.58,
+        "macro_f1": 0.2027,
+        "params": {
+          "n_estimators": 800,
+          "learning_rate": 0.08,
+          "max_depth": 4,
+          "num_leaves": 15,
+          "min_child_samples": 75,
+          "feature_fraction": 1.0,
+          "bagging_fraction": 0.7,
+          "bagging_freq": 1,
+          "lambda_l1": 0.1,
+          "lambda_l2": 10.0
+        }
+      },
+      {
+        "trial": 50,
+        "accuracy": 41.31,
+        "macro_f1": 0.2014,
+        "params": {
+          "n_estimators": 800,
+          "learning_rate": 0.03,
+          "max_depth": 3,
+          "num_leaves": 63,
+          "min_child_samples": 75,
+          "feature_fraction": 0.7,
+          "bagging_fraction": 0.7,
+          "bagging_freq": 0,
+          "lambda_l1": 1.0,
+          "lambda_l2": 10.0
+        }
+      },
+      {
+        "trial": 54,
+        "accuracy": 41.12,
+        "macro_f1": 0.2012,
+        "params": {
+          "n_estimators": 500,
+          "learning_rate": 0.03,
+          "max_depth": 4,
+          "num_leaves": 15,
+          "min_child_samples": 75,
+          "feature_fraction": 0.85,
+          "bagging_fraction": 1.0,
+          "bagging_freq": 1,
+          "lambda_l1": 0.1,
+          "lambda_l2": 1.0
+        }
+      },
+      {
+        "trial": 10,
+        "accuracy": 40.93,
+        "macro_f1": 0.2001,
+        "params": {
+          "n_estimators": 200,
+          "learning_rate": 0.03,
+          "max_depth": 7,
+          "num_leaves": 63,
+          "min_child_samples": 75,
+          "feature_fraction": 0.85,
+          "bagging_fraction": 1.0,
+          "bagging_freq": 0,
+          "lambda_l1": 5.0,
+          "lambda_l2": 0.1
+        }
+      },
+      {
+        "trial": 25,
+        "accuracy": 40.73,
+        "macro_f1": 0.1997,
+        "params": {
+          "n_estimators": 200,
+          "learning_rate": 0.08,
+          "max_depth": 4,
+          "num_leaves": 63,
+          "min_child_samples": 50,
+          "feature_fraction": 1.0,
+          "bagging_fraction": 1.0,
+          "bagging_freq": 5,
+          "lambda_l1": 0.0,
+          "lambda_l2": 10.0
+        }
+      },
+      {
+        "trial": 47,
+        "accuracy": 41.31,
+        "macro_f1": 0.1992,
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.02,
+          "max_depth": 6,
+          "num_leaves": 15,
+          "min_child_samples": 30,
+          "feature_fraction": 1.0,
+          "bagging_fraction": 0.7,
+          "bagging_freq": 1,
+          "lambda_l1": 5.0,
+          "lambda_l2": 0.1
+        }
+      },
+      {
+        "trial": 74,
+        "accuracy": 40.54,
+        "macro_f1": 0.1986,
+        "params": {
+          "n_estimators": 500,
+          "learning_rate": 0.02,
+          "max_depth": 6,
+          "num_leaves": 15,
+          "min_child_samples": 10,
+          "feature_fraction": 1.0,
+          "bagging_fraction": 0.7,
+          "bagging_freq": 0,
+          "lambda_l1": 5.0,
+          "lambda_l2": 0.0
+        }
+      },
+      {
+        "trial": 19,
+        "accuracy": 41.12,
+        "macro_f1": 0.1976,
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.02,
+          "max_depth": 7,
+          "num_leaves": 15,
+          "min_child_samples": 50,
+          "feature_fraction": 0.85,
+          "bagging_fraction": 0.85,
+          "bagging_freq": 5,
+          "lambda_l1": 5.0,
+          "lambda_l2": 0.1
+        }
+      }
+    ]
+  },
+  "cv_results": {
+    "group_kfold": {
+      "folds": [
+        {
+          "fold": 1,
+          "accuracy": 46.35,
+          "macro_f1": 0.3647,
+          "balanced_acc": 34.94,
+          "mae": 0.8315,
+          "n_val": 712
+        },
+        {
+          "fold": 2,
+          "accuracy": 43.26,
+          "macro_f1": 0.2676,
+          "balanced_acc": 29.41,
+          "mae": 0.7879,
+          "n_val": 712
+        },
+        {
+          "fold": 3,
+          "accuracy": 38.93,
+          "macro_f1": 0.1811,
+          "balanced_acc": 19.85,
+          "mae": 1.0353,
+          "n_val": 709
+        },
+        {
+          "fold": 4,
+          "accuracy": 38.06,
+          "macro_f1": 0.2643,
+          "balanced_acc": 29.85,
+          "mae": 1.0028,
+          "n_val": 712
+        },
+        {
+          "fold": 5,
+          "accuracy": 43.18,
+          "macro_f1": 0.3081,
+          "balanced_acc": 39.19,
+          "mae": 0.8087,
+          "n_val": 711
+        }
+      ],
+      "summary": {
+        "mean_accuracy": 41.96,
+        "std_accuracy": 3.06,
+        "mean_macro_f1": 0.2772,
+        "std_macro_f1": 0.0602,
+        "mean_balanced_acc": 30.65,
+        "std_balanced_acc": 6.48,
+        "mean_mae": 0.8932,
+        "std_mae": 0.1042
+      }
+    },
+    "stratified_kfold": {
+      "folds": [
+        {
+          "fold": 1,
+          "accuracy": 63.34,
+          "macro_f1": 0.6058,
+          "balanced_acc": 57.83,
+          "mae": 0.4944
+        },
+        {
+          "fold": 2,
+          "accuracy": 63.43,
+          "macro_f1": 0.5845,
+          "balanced_acc": 54.12,
+          "mae": 0.5176
+        },
+        {
+          "fold": 3,
+          "accuracy": 61.88,
+          "macro_f1": 0.6236,
+          "balanced_acc": 59.57,
+          "mae": 0.5752
+        },
+        {
+          "fold": 4,
+          "accuracy": 62.59,
+          "macro_f1": 0.5864,
+          "balanced_acc": 54.95,
+          "mae": 0.5345
+        },
+        {
+          "fold": 5,
+          "accuracy": 61.46,
+          "macro_f1": 0.5671,
+          "balanced_acc": 53.13,
+          "mae": 0.571
+        }
+      ],
+      "summary": {
+        "mean_accuracy": 62.54,
+        "std_accuracy": 0.78,
+        "mean_macro_f1": 0.5935,
+        "std_macro_f1": 0.0194,
+        "mean_balanced_acc": 55.92,
+        "std_balanced_acc": 2.41,
+        "mean_mae": 0.5385,
+        "std_mae": 0.031
+      }
+    },
+    "group_kfold_orig_params": {
+      "folds": [
+        {
+          "fold": 1,
+          "accuracy": 45.22,
+          "macro_f1": 0.3262,
+          "balanced_acc": 35.69,
+          "mae": 0.8596,
+          "n_val": 712
+        },
+        {
+          "fold": 2,
+          "accuracy": 42.13,
+          "macro_f1": 0.2633,
+          "balanced_acc": 27.79,
+          "mae": 0.802,
+          "n_val": 712
+        },
+        {
+          "fold": 3,
+          "accuracy": 39.63,
+          "macro_f1": 0.186,
+          "balanced_acc": 20.72,
+          "mae": 1.0113,
+          "n_val": 709
+        },
+        {
+          "fold": 4,
+          "accuracy": 37.22,
+          "macro_f1": 0.2625,
+          "balanced_acc": 29.8,
+          "mae": 1.007,
+          "n_val": 712
+        },
+        {
+          "fold": 5,
+          "accuracy": 45.57,
+          "macro_f1": 0.3551,
+          "balanced_acc": 44.56,
+          "mae": 0.7525,
+          "n_val": 711
+        }
+      ],
+      "summary": {
+        "mean_accuracy": 41.95,
+        "std_accuracy": 3.21,
+        "mean_macro_f1": 0.2786,
+        "std_macro_f1": 0.0586,
+        "mean_balanced_acc": 31.71,
+        "std_balanced_acc": 8.01,
+        "mean_mae": 0.8865,
+        "std_mae": 0.1057
+      }
+    }
+  },
+  "champion_selection": {
+    "selected_features": [
+      "lat",
+      "lon",
+      "sst",
+      "pressure_msl",
+      "wind_u",
+      "wind_v"
+    ],
+    "selected_params": {
+      "n_estimators": 500,
+      "learning_rate": 0.02,
+      "max_depth": 5,
+      "num_leaves": 7,
+      "min_child_samples": 20,
+      "feature_fraction": 1.0,
+      "bagging_fraction": 0.85,
+      "bagging_freq": 0,
+      "lambda_l1": 5.0,
+      "lambda_l2": 0.0,
+      "random_state": 42,
+      "verbose": -1
+    },
+    "training_data": "train+val combined",
+    "cv_mean_accuracy": 41.96,
+    "cv_mean_macro_f1": 0.2772
+  },
+  "final_test_metrics": {
+    "accuracy": 46.24,
+    "macro_f1": 0.3458,
+    "weighted_f1": 0.4356,
+    "balanced_accuracy": 34.61,
+    "mean_absolute_class_error": 0.8756,
+    "off_by_one_accuracy": 76.04,
+    "off_by_two_accuracy": 92.78
+  },
+  "error_analysis": {
+    "adjacent_pair_errors": {
+      "Depression->Deep Depression": {
+        "count": 26,
+        "total_true": 253,
+        "rate": 10.28
+      },
+      "Deep Depression->Depression": {
+        "count": 65,
+        "total_true": 102,
+        "rate": 63.73
+      },
+      "Cyclonic Storm->Depression": {
+        "count": 43,
+        "total_true": 110,
+        "rate": 39.09
+      },
+      "Cyclonic Storm->Severe Cyclonic Storm": {
+        "count": 1,
+        "total_true": 110,
+        "rate": 0.91
+      },
+      "Severe Cyclonic Storm->Cyclonic Storm": {
+        "count": 12,
+        "total_true": 72,
+        "rate": 16.67
+      },
+      "Severe Cyclonic Storm->Very Severe Cyclonic Storm": {
+        "count": 11,
+        "total_true": 72,
+        "rate": 15.28
+      },
+      "Very Severe->Severe": {
+        "count": 24,
+        "total_true": 91,
+        "rate": 26.37
+      },
+      "Very Severe->Extremely Severe": {
+        "count": 16,
+        "total_true": 91,
+        "rate": 17.58
+      }
+    },
+    "per_class": {
+      "Depression": {
+        "precision": 0.5789,
+        "recall": 0.7826,
+        "f1": 0.6655,
+        "support": 253
+      },
+      "Deep Depression": {
+        "precision": 0.3068,
+        "recall": 0.2647,
+        "f1": 0.2842,
+        "support": 102
+      },
+      "Cyclonic Storm": {
+        "precision": 0.3529,
+        "recall": 0.3273,
+        "f1": 0.3396,
+        "support": 110
+      },
+      "Severe Cyclonic Storm": {
+        "precision": 0.2791,
+        "recall": 0.1667,
+        "f1": 0.2087,
+        "support": 72
+      },
+      "Very Severe Cyclonic Storm": {
+        "precision": 0.4375,
+        "recall": 0.2308,
+        "f1": 0.3022,
+        "support": 91
+      },
+      "Extremely Severe Cyclonic Storm": {
+        "precision": 0.25,
+        "recall": 0.3043,
+        "f1": 0.2745,
+        "support": 23
+      }
+    },
+    "confusion_matrix": {
+      "Depression_true_Depression_pred": 198,
+      "Depression_true_Deep Depression_pred": 26,
+      "Depression_true_Cyclonic Storm_pred": 25,
+      "Depression_true_Severe Cyclonic Storm_pred": 2,
+      "Depression_true_Very Severe Cyclonic Storm_pred": 2,
+      "Deep Depression_true_Depression_pred": 65,
+      "Deep Depression_true_Deep Depression_pred": 27,
+      "Deep Depression_true_Cyclonic Storm_pred": 10,
+      "Cyclonic Storm_true_Depression_pred": 43,
+      "Cyclonic Storm_true_Deep Depression_pred": 22,
+      "Cyclonic Storm_true_Cyclonic Storm_pred": 36,
+      "Cyclonic Storm_true_Severe Cyclonic Storm_pred": 1,
+      "Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 7,
+      "Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 1,
+      "Severe Cyclonic Storm_true_Depression_pred": 25,
+      "Severe Cyclonic Storm_true_Deep Depression_pred": 8,
+      "Severe Cyclonic Storm_true_Cyclonic Storm_pred": 12,
+      "Severe Cyclonic Storm_true_Severe Cyclonic Storm_pred": 12,
+      "Severe Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 11,
+      "Severe Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 4,
+      "Very Severe Cyclonic Storm_true_Depression_pred": 7,
+      "Very Severe Cyclonic Storm_true_Deep Depression_pred": 5,
+      "Very Severe Cyclonic Storm_true_Cyclonic Storm_pred": 18,
+      "Very Severe Cyclonic Storm_true_Severe Cyclonic Storm_pred": 24,
+      "Very Severe Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 21,
+      "Very Severe Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 16,
+      "Extremely Severe Cyclonic Storm_true_Depression_pred": 4,
+      "Extremely Severe Cyclonic Storm_true_Cyclonic Storm_pred": 1,
+      "Extremely Severe Cyclonic Storm_true_Severe Cyclonic Storm_pred": 4,
+      "Extremely Severe Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 7,
+      "Extremely Severe Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 7
+    }
+  },
+  "comparison_vs_champion": {
+    "champion_accuracy": 47.0,
+    "champion_macro_f1": 0.3744,
+    "accuracy_delta": -0.76,
+    "f1_delta": -0.0286
+  },
+  "decision": "NO_IMPROVEMENT",
+  "caveats": [
+    "Val set missing ESCS/SuCS classes; CV used for model selection instead",
+    "SST has ~28% NaN; tree models handle natively",
+    "GroupKFold by cyclone_id used to prevent storm-level leakage",
+    "Test set evaluated exactly once with final selected configuration",
+    "SuCS has only 25 train samples, 0 in test - cannot be evaluated"
+  ]
+}

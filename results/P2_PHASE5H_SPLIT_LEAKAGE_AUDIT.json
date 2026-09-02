@@ -1,0 +1,20 @@
+{
+  "audit_name": "P2_PHASE5H_SPLIT_LEAKAGE_AUDIT",
+  "timestamp": "2026-09-01T11:10:00Z",
+  "split_methodology": {
+    "grouping_unit": "Discrete Cyclone Storm ID (Storm-Disjoint / GroupKFold)",
+    "frame_level_shuffling_permitted": false,
+    "leakage_safeguards": [
+      "No frame from the same cyclone can appear in both training and validation/test sets.",
+      "Held-out test cyclones remain completely isolated and untouched.",
+      "Normalization statistics (mean/std) are fitted strictly on training subsets.",
+      "No test labels or validation labels are consulted during cropping or preprocessing."
+    ]
+  },
+  "leakage_checks": {
+    "temporal_leakage_between_train_and_test": "PASS (0% storm overlap across partitions)",
+    "feature_leakage": "PASS (Raw pixel normalization isolated to training split)",
+    "hyperparameter_leakage": "PASS (Zero tuning against test set)"
+  },
+  "split_safety_status": "PASS"
+}

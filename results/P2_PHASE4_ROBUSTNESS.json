@@ -1,0 +1,28 @@
+{
+  "experiment": "P2_PHASE4_ROBUSTNESS_CHECK",
+  "baseline_vs_candidates_cv_comparison": {
+    "baseline": {
+      "pattern_macro_f1": "0.2767 +/- 0.0651",
+      "category_macro_f1": "0.1422 +/- 0.0627",
+      "category_accuracy": "0.2573 +/- 0.0936"
+    },
+    "best_cv_augmentation_A1": {
+      "pattern_macro_f1": "0.2439 +/- 0.0068",
+      "category_macro_f1": "0.1502 +/- 0.0555",
+      "category_accuracy": "0.2854 +/- 0.0656"
+    },
+    "best_cv_finetuning_F0": {
+      "pattern_macro_f1": "0.2586 +/- 0.0291",
+      "category_macro_f1": "0.1401 +/- 0.0327",
+      "category_accuracy": "0.3202 +/- 0.0704"
+    }
+  },
+  "robustness_criteria_evaluation": {
+    "pattern_macro_f1_preserved": false,
+    "category_macro_f1_improved_materially": false,
+    "minority_class_recovery": false,
+    "consistency_across_folds": false,
+    "leakage_detected": false
+  },
+  "robustness_verdict": "NO_ROBUST_IMPROVEMENT"
+}

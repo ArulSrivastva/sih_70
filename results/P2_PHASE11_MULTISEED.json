@@ -1,0 +1,47 @@
+{
+  "audit_name": "P2_PHASE11_MULTISEED",
+  "timestamp": "2026-09-01T18:30:00Z",
+  "seeds_evaluated": [
+    42,
+    100,
+    2026,
+    777,
+    999
+  ],
+  "seed_records": [
+    {
+      "seed": 42,
+      "category_accuracy": 0.5666666666666667,
+      "category_macro_f1": 0.5542857142857143,
+      "cohen_kappa": 0.15584415584415579
+    },
+    {
+      "seed": 100,
+      "category_accuracy": 0.7,
+      "category_macro_f1": 0.4117647058823529,
+      "cohen_kappa": 0.0
+    },
+    {
+      "seed": 2026,
+      "category_accuracy": 0.7,
+      "category_macro_f1": 0.4117647058823529,
+      "cohen_kappa": 0.0
+    },
+    {
+      "seed": 777,
+      "category_accuracy": 0.5666666666666667,
+      "category_macro_f1": 0.4222222222222222,
+      "cohen_kappa": -0.14035087719298245
+    },
+    {
+      "seed": 999,
+      "category_accuracy": 0.6333333333333333,
+      "category_macro_f1": 0.5970695970695971,
+      "cohen_kappa": 0.2028985507246377
+    }
+  ],
+  "category_accuracy_mean": 0.6333333333333333,
+  "category_accuracy_std": 0.059628479399994376,
+  "category_macro_f1_mean": 0.4794213890684479,
+  "category_macro_f1_std": 0.07984029845072962
+}

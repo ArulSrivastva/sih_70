@@ -1,0 +1,36 @@
+{
+  "schema": "phase5 v1",
+  "recorded_at": "2026-08-29T12:06:22.108223+00:00",
+  "started_at": "2026-08-29T12:06:17.169397+00:00",
+  "experiment_id": "EXP005",
+  "final_status": "PASS",
+  "checks": {
+    "artifacts": "PASS",
+    "model_load": "PASS",
+    "feature_contract": "PASS",
+    "inference": "PASS",
+    "causality": "PASS",
+    "determinism": "PASS",
+    "offline": "PASS",
+    "baseline_parity": "PASS",
+    "output_contract": "PASS",
+    "tests": true,
+    "immutability": "PASS"
+  },
+  "immutability": {
+    "p1": 0,
+    "phase1": 0,
+    "phase2": 0,
+    "phase3": 0,
+    "phase4": 0,
+    "outside_phase5": 0
+  },
+  "failures": [],
+  "outputs": {
+    "inference_audit": "phase5/results/inference_audit.json",
+    "contract_validation": "phase5/results/contract_validation.json",
+    "source_immutability": "phase5/results/source_immutability_report.json",
+    "summary": "phase5/results/phase5_summary.json",
+    "report": "phase5/reports/PHASE5_REPORT.md"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "validation_name": "P2_PHASE6_CROP_VALIDATION",
+  "timestamp": "2026-09-01T11:26:00Z",
+  "total_granules_audited": 2120,
+  "usable_frames": 2120,
+  "rejected_frames": 0,
+  "crops_generated": 2120,
+  "crops_rejected": 0,
+  "coordinate_projection_method": "Deterministic Mercator grid transformation from authoritative IBTrACS coordinates",
+  "mock_bbox_eliminated": true,
+  "target_dimensions": [224, 224, 3],
+  "quality_assurance_status": "PASS"
+}

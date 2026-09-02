@@ -1,0 +1,41 @@
+{
+  "models": [
+    {
+      "name": "LightGBM",
+      "accuracy": 43.01,
+      "macro_f1": 0.3471,
+      "train_time_s": 0.48
+    },
+    {
+      "name": "CatBoost",
+      "accuracy": 39.17,
+      "macro_f1": 0.2705,
+      "train_time_s": 2.7
+    },
+    {
+      "name": "XGBoost",
+      "accuracy": 42.7,
+      "macro_f1": 0.3323,
+      "train_time_s": 1.99
+    },
+    {
+      "name": "RandomForest",
+      "accuracy": 41.32,
+      "macro_f1": 0.3349,
+      "train_time_s": 0.65
+    },
+    {
+      "name": "SVM_RBF",
+      "accuracy": 37.94,
+      "macro_f1": 0.2444,
+      "train_time_s": 0.15
+    },
+    {
+      "name": "GradientBoosting",
+      "accuracy": 43.16,
+      "macro_f1": 0.3078,
+      "train_time_s": 10.49
+    }
+  ],
+  "best_model": "LightGBM"
+}

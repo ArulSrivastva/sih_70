@@ -1,0 +1,34 @@
+{
+  "use_mock_working_copy": true,
+  "use_mock_pristine_copy": true,
+  "api_base": "/api",
+  "client_functions": [
+    "fetchDetect",
+    "fetchClassify",
+    "fetchForecast",
+    "fetchAnalyze"
+  ],
+  "frontend_api_targets": [
+    "GET /api/detect",
+    "GET /api/classify",
+    "GET /api/forecast",
+    "GET|POST /api/analyze"
+  ],
+  "delivered_backend_paths_verified": [
+    "GET /health",
+    "GET /model",
+    "POST /forecast",
+    "POST /forecast/compare"
+  ],
+  "dashboard_target_/api/analyze_status": 404,
+  "forecast_shape_mismatch": [
+    "hour vs hours",
+    "lat/lon vs latitude/longitude",
+    "windSpeedKmh vs wind_speed_kmh",
+    "label/pressureHpa/confidence missing in API"
+  ],
+  "coverage_gap": "backend exposes forecast only; dashboard needs detection+classification+landfall+risk+satellite too",
+  "node_modules_present": false,
+  "working_copy_files": 33,
+  "pristine_copy_files": 29
+}

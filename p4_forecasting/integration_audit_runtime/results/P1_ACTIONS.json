@@ -1,0 +1,92 @@
+[
+  {
+    "id": "P1-A",
+    "priority": "high",
+    "component": "P3 Tabular Classifier",
+    "status": "PASS_WITH_WARNING",
+    "evidence": "lightgbm 4.7.0 installed; P3 tabular metrics independently reproduced (acc 0.47, macro-F1 0.37); 0 SID overlap; in-process NOT_RUN preserved honestly",
+    "blocking": false,
+    "recommended_next_step": "None — weak classifier disclosed as-is"
+  },
+  {
+    "id": "P1-B",
+    "priority": "high",
+    "component": "Geographic Scope",
+    "status": "PASS",
+    "evidence": "NIO guard lat [0,30], lon [40,100] implemented upstream; 13 tests + live HTTP; OUT_OF_DOMAIN rejected never clamped",
+    "blocking": false,
+    "recommended_next_step": "None — guard verified and tested"
+  },
+  {
+    "id": "P1-C",
+    "priority": "high",
+    "component": "P4 Forecasting",
+    "status": "PASS",
+    "evidence": "11 tests passed; EXP005 metrics reproduced (91.4/119.8/188.2 km track); loses to movement-vector baseline at all horizons — disclosed",
+    "blocking": false,
+    "recommended_next_step": "None — honest limitation visible"
+  },
+  {
+    "id": "P1-D",
+    "priority": "high",
+    "component": "API Contract",
+    "status": "PASS",
+    "evidence": "58 integration_api tests + 67 phase6 tests = 125 passed; strict validation; deterministic error codes; no weakening",
+    "blocking": false,
+    "recommended_next_step": "None — validation verified"
+  },
+  {
+    "id": "P1-E",
+    "priority": "high",
+    "component": "Offline Mode",
+    "status": "PASS",
+    "evidence": "All inference offline; online tiles degrade gracefully; no false live/real-time claims; reference frame labeled from zip",
+    "blocking": false,
+    "recommended_next_step": "None — honest offline behavior"
+  },
+  {
+    "id": "P1-F",
+    "priority": "high",
+    "component": "Scientific Honesty",
+    "status": "PASS",
+    "evidence": "Every output classified; no fabrication; movement-vector baseline disclosed; research prototype label present",
+    "blocking": false,
+    "recommended_next_step": "None — honesty verified"
+  },
+  {
+    "id": "P1-G",
+    "priority": "high",
+    "component": "Frontend E2E",
+    "status": "PASS",
+    "evidence": "18-step user journey verified; lint 0 errors; build PASS; no runtime errors; graceful error handling",
+    "blocking": false,
+    "recommended_next_step": "None — frontend verified"
+  },
+  {
+    "id": "P1-H",
+    "priority": "high",
+    "component": "Performance",
+    "status": "PASS",
+    "evidence": "Cold startup ~360ms; /api/analyze ~63ms; no blocking issues for research prototype",
+    "blocking": false,
+    "recommended_next_step": "None — acceptable for prototype"
+  },
+  {
+    "id": "P1-SI",
+    "priority": "high",
+    "component": "Source Immutability",
+    "status": "PASS",
+    "evidence": "426 snapshot files; 0 missing; 0 forbidden changes; PS70-main.zip byte-identical",
+    "blocking": false,
+    "recommended_next_step": "None — immutability holds"
+  },
+  {
+    "id": "P1-REGRESSION",
+    "priority": "high",
+    "component": "Test Regression",
+    "status": "PASS",
+    "evidence": "136 backend tests passed (58 integration_api + 67 phase6 + 11 P4 validation); frontend lint/build PASS",
+    "blocking": false,
+    "recommended_next_step": "None — full regression passes"
+  }
+]

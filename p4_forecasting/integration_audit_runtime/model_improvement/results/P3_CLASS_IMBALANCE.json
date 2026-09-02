@@ -1,0 +1,52 @@
+{
+  "experiments": [
+    {
+      "name": "no_weights",
+      "method": "LightGBM default (no class weights)",
+      "accuracy": 45.93,
+      "macro_f1": 0.3541
+    },
+    {
+      "name": "balanced_weights",
+      "method": "LightGBM class_weight='balanced'",
+      "accuracy": 43.01,
+      "macro_f1": 0.3471
+    },
+    {
+      "name": "inverse_frequency",
+      "method": "LightGBM inverse frequency weights",
+      "accuracy": 43.01,
+      "macro_f1": 0.3471,
+      "weights": {
+        "Depression": 0.356,
+        "Deep Depression": 0.7011,
+        "Cyclonic Storm": 0.7627,
+        "Severe Cyclonic Storm": 2.0376,
+        "Very Severe Cyclonic Storm": 1.8235,
+        "Extremely Severe Cyclonic Storm": 2.8,
+        "Super Cyclonic Storm": 17.36
+      }
+    },
+    {
+      "name": "smote",
+      "status": "skipped",
+      "reason": "imblearn not installed"
+    },
+    {
+      "name": "focal_3x_rare",
+      "method": "LightGBM with 3x weight on VSCS/ESCS/SuCS",
+      "accuracy": 44.09,
+      "macro_f1": 0.3329,
+      "weights": {
+        "Depression": 1.0,
+        "Deep Depression": 1.0,
+        "Cyclonic Storm": 1.0,
+        "Severe Cyclonic Storm": 1.0,
+        "Very Severe Cyclonic Storm": 3.0,
+        "Extremely Severe Cyclonic Storm": 3.0,
+        "Super Cyclonic Storm": 3.0
+      }
+    }
+  ],
+  "best": "no_weights"
+}

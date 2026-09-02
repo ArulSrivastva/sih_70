@@ -1,0 +1,42 @@
+{
+  "audit_name": "P2_PHASE8_5_METRIC_REPRODUCTION",
+  "timestamp": "2026-09-01T12:50:00Z",
+  "reproduction_table": [
+    {
+      "model": "Locked Legacy Baseline",
+      "dataset": "Legacy 133 Images (N=21 test)",
+      "category_accuracy_claimed": 0.3333,
+      "category_accuracy_reproduced": 0.3333,
+      "category_macro_f1_claimed": 0.1465,
+      "category_macro_f1_reproduced": 0.1465,
+      "status": "EXACT_MATCH"
+    },
+    {
+      "model": "Phase 8 E0 Clean Baseline",
+      "dataset": "Phase 7 Genuine MOSDAC (N=30 test)",
+      "category_accuracy_claimed": 0.4333,
+      "category_accuracy_reproduced": 0.43333333333333335,
+      "category_macro_f1_claimed": 0.4276,
+      "category_macro_f1_reproduced": 0.4276094276094276,
+      "status": "EXACT_MATCH"
+    },
+    {
+      "model": "Phase 8 E1 Class-Balanced",
+      "dataset": "Phase 7 Genuine MOSDAC (N=30 test)",
+      "category_accuracy_claimed": 0.3667,
+      "category_accuracy_reproduced": 0.36666666666666664,
+      "category_macro_f1_claimed": 0.3302,
+      "category_macro_f1_reproduced": 0.3301997649823737,
+      "status": "EXACT_MATCH"
+    },
+    {
+      "model": "Phase 8 E2 Augmented",
+      "dataset": "Phase 7 Genuine MOSDAC (N=30 test)",
+      "category_accuracy_claimed": 0.5667,
+      "category_accuracy_reproduced": 0.5666666666666667,
+      "category_macro_f1_claimed": 0.4222,
+      "category_macro_f1_reproduced": 0.4222222222222222,
+      "status": "EXACT_MATCH"
+    }
+  ]
+}

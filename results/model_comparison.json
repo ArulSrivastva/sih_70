@@ -1,0 +1,68 @@
+{
+  "6h": {
+    "persistence": {
+      "latitude_mae_deg": 0.36347606778144836,
+      "longitude_mae_deg": 0.5413097739219666,
+      "wind_speed_mae_kmh": 5.892156600952148,
+      "track_error_km": 78.4474868774414,
+      "n_samples": 1191
+    },
+    "lstm": {
+      "latitude_mae_deg": 0.3431943356990814,
+      "longitude_mae_deg": 0.834209144115448,
+      "wind_speed_mae_kmh": 6.583406925201416,
+      "track_error_km": 104.80097961425781,
+      "n_samples": 1191
+    },
+    "improvement": {
+      "latitude_mae_pct": 5.5799360343476545,
+      "longitude_mae_pct": -54.10938141229736,
+      "wind_mae_pct": -11.731703195695179,
+      "track_error_pct": -33.59380113474954
+    }
+  },
+  "12h": {
+    "persistence": {
+      "latitude_mae_deg": 0.719563364982605,
+      "longitude_mae_deg": 1.0794291496276855,
+      "wind_speed_mae_kmh": 11.242711067199707,
+      "track_error_km": 155.46490478515625,
+      "n_samples": 1191
+    },
+    "lstm": {
+      "latitude_mae_deg": 0.4250427782535553,
+      "longitude_mae_deg": 0.9326828122138977,
+      "wind_speed_mae_kmh": 11.244443893432617,
+      "track_error_km": 120.47737884521484,
+      "n_samples": 1191
+    },
+    "improvement": {
+      "latitude_mae_pct": 40.9304588118059,
+      "longitude_mae_pct": 13.59480957730327,
+      "wind_mae_pct": -0.015412885936076646,
+      "track_error_pct": 22.50509591749482
+    }
+  },
+  "24h": {
+    "persistence": {
+      "latitude_mae_deg": 1.4184719324111938,
+      "longitude_mae_deg": 2.133333444595337,
+      "wind_speed_mae_kmh": 20.671682357788086,
+      "track_error_km": 306.0921936035156,
+      "n_samples": 1191
+    },
+    "lstm": {
+      "latitude_mae_deg": 0.7451059222221375,
+      "longitude_mae_deg": 1.4131656885147095,
+      "wind_speed_mae_kmh": 19.209367752075195,
+      "track_error_km": 188.99404907226562,
+      "n_samples": 1191
+    },
+    "improvement": {
+      "latitude_mae_pct": 47.471225535244336,
+      "longitude_mae_pct": 33.75786180566972,
+      "wind_mae_pct": 7.073999011802547,
+      "track_error_pct": 38.255841533459176
+    }
+  }
+}

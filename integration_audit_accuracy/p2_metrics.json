@@ -1,0 +1,60 @@
+{
+  "ckpt_keys": [
+    "model_state_dict",
+    "pattern_to_idx",
+    "category_to_idx"
+  ],
+  "pattern_to_idx": {
+    "curved_band": 0,
+    "eye_visible": 1,
+    "shear_pattern": 2
+  },
+  "category_to_idx": {
+    "Cyclonic Storm": 0,
+    "Deep Depression": 1,
+    "Depression": 2,
+    "Extremely Severe Cyclonic Storm": 3,
+    "Severe Cyclonic Storm": 4,
+    "Super Cyclonic Storm": 5,
+    "Very Severe Cyclonic Storm": 6
+  },
+  "recomputed": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_precision": 0.7523809523809524,
+    "pattern_recall": 0.7142857142857143,
+    "pattern_f1": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_precision": 0.2566137566137566,
+    "category_recall": 0.3333333333333333,
+    "category_f1": 0.23050379572118704
+  },
+  "stored": {
+    "pattern_accuracy": 0.7142857142857143,
+    "pattern_precision": 0.7523809523809524,
+    "pattern_recall": 0.7142857142857143,
+    "pattern_f1": 0.6306522609043617,
+    "category_accuracy": 0.3333333333333333,
+    "category_precision": 0.2566137566137566,
+    "category_recall": 0.3333333333333333,
+    "category_f1": 0.23050379572118704
+  },
+  "diff": {
+    "pattern_accuracy": 0.0,
+    "pattern_precision": 0.0,
+    "pattern_recall": 0.0,
+    "pattern_f1": 0.0,
+    "category_accuracy": 0.0,
+    "category_precision": 0.0,
+    "category_recall": 0.0,
+    "category_f1": 0.0
+  },
+  "presence_all_gt_positive": true,
+  "presence_all_pred_positive": true,
+  "presence_accuracy_if_scored_on_positive_only": 1.0,
+  "pattern_derivation_bystand_ckt_agree": 0.9924812030075187,
+  "pattern_unique_in_det_all": [
+    "curved_band",
+    "eye_visible",
+    "shear_pattern"
+  ]
+}

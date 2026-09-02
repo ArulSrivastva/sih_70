@@ -1,0 +1,113 @@
+{
+  "ordinal_metrics": {
+    "standard_accuracy": 39.17,
+    "off_by_one_accuracy": 75.58,
+    "off_by_two_accuracy": 94.32,
+    "total_test_samples": 651
+  },
+  "confusion_matrix": {
+    "Depression_true_Depression_pred": 148,
+    "Depression_true_Deep Depression_pred": 59,
+    "Depression_true_Cyclonic Storm_pred": 33,
+    "Depression_true_Severe Cyclonic Storm_pred": 5,
+    "Depression_true_Very Severe Cyclonic Storm_pred": 7,
+    "Depression_true_Extremely Severe Cyclonic Storm_pred": 1,
+    "Deep Depression_true_Depression_pred": 40,
+    "Deep Depression_true_Deep Depression_pred": 40,
+    "Deep Depression_true_Cyclonic Storm_pred": 12,
+    "Deep Depression_true_Severe Cyclonic Storm_pred": 8,
+    "Deep Depression_true_Very Severe Cyclonic Storm_pred": 2,
+    "Cyclonic Storm_true_Depression_pred": 29,
+    "Cyclonic Storm_true_Deep Depression_pred": 22,
+    "Cyclonic Storm_true_Cyclonic Storm_pred": 22,
+    "Cyclonic Storm_true_Severe Cyclonic Storm_pred": 24,
+    "Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 10,
+    "Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 3,
+    "Severe Cyclonic Storm_true_Depression_pred": 14,
+    "Severe Cyclonic Storm_true_Deep Depression_pred": 8,
+    "Severe Cyclonic Storm_true_Cyclonic Storm_pred": 3,
+    "Severe Cyclonic Storm_true_Severe Cyclonic Storm_pred": 18,
+    "Severe Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 13,
+    "Severe Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 15,
+    "Severe Cyclonic Storm_true_Super Cyclonic Storm_pred": 1,
+    "Very Severe Cyclonic Storm_true_Depression_pred": 4,
+    "Very Severe Cyclonic Storm_true_Cyclonic Storm_pred": 9,
+    "Very Severe Cyclonic Storm_true_Severe Cyclonic Storm_pred": 35,
+    "Very Severe Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 17,
+    "Very Severe Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 25,
+    "Very Severe Cyclonic Storm_true_Super Cyclonic Storm_pred": 1,
+    "Extremely Severe Cyclonic Storm_true_Severe Cyclonic Storm_pred": 9,
+    "Extremely Severe Cyclonic Storm_true_Very Severe Cyclonic Storm_pred": 3,
+    "Extremely Severe Cyclonic Storm_true_Extremely Severe Cyclonic Storm_pred": 10,
+    "Extremely Severe Cyclonic Storm_true_Super Cyclonic Storm_pred": 1
+  },
+  "classification_report": {
+    "Depression": {
+      "precision": 0.6297872340425532,
+      "recall": 0.5849802371541502,
+      "f1-score": 0.6065573770491803,
+      "support": 253.0
+    },
+    "Deep Depression": {
+      "precision": 0.31007751937984496,
+      "recall": 0.39215686274509803,
+      "f1-score": 0.3463203463203463,
+      "support": 102.0
+    },
+    "Cyclonic Storm": {
+      "precision": 0.27848101265822783,
+      "recall": 0.2,
+      "f1-score": 0.2328042328042328,
+      "support": 110.0
+    },
+    "Severe Cyclonic Storm": {
+      "precision": 0.18181818181818182,
+      "recall": 0.25,
+      "f1-score": 0.21052631578947367,
+      "support": 72.0
+    },
+    "Very Severe Cyclonic Storm": {
+      "precision": 0.3269230769230769,
+      "recall": 0.18681318681318682,
+      "f1-score": 0.23776223776223776,
+      "support": 91.0
+    },
+    "Extremely Severe Cyclonic Storm": {
+      "precision": 0.18518518518518517,
+      "recall": 0.43478260869565216,
+      "f1-score": 0.2597402597402597,
+      "support": 23.0
+    },
+    "Super Cyclonic Storm": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "accuracy": 0.391705069124424,
+    "macro avg": {
+      "precision": 0.27318174428672426,
+      "recall": 0.292676127915441,
+      "f1-score": 0.2705301099236758,
+      "support": 651.0
+    },
+    "weighted avg": {
+      "precision": 0.4127452487435999,
+      "recall": 0.391705069124424,
+      "f1-score": 0.3950237199290557,
+      "support": 651.0
+    }
+  },
+  "error_direction": {
+    "overpredict": 220,
+    "underpredict": 176
+  },
+  "feature_importance": {
+    "lat": 19.4104,
+    "lon": 17.7245,
+    "sst": 16.1069,
+    "pressure_msl": 29.3545,
+    "wind_u": 7.4505,
+    "wind_v": 9.9532
+  }
+}

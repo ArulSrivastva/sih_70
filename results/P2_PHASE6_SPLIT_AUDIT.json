@@ -1,0 +1,33 @@
+{
+  "audit_name": "P2_PHASE6_SPLIT_AUDIT",
+  "timestamp": "2026-09-01T11:26:00Z",
+  "split_type": "STRICT_CYCLONE_LEVEL_STORM_DISJOINT",
+  "cyclones_assignment": {
+    "train_cyclones": [
+      "AMPHAN_2020", "FANI_2019", "MOCHA_2023", "HUDHUD_2014",
+      "TITLI_2018", "BULBUL_2019", "GAJA_2018", "MICHAUNG_2023",
+      "REMAL_2024", "DANA_2024", "FENGAL_2024", "GULAB_2021",
+      "JAWAD_2021", "MIDHILI_2023", "UNNAMED_2018_DD", "UNNAMED_2019_DD",
+      "UNNAMED_2019_D", "UNNAMED_2020_D"
+    ],
+    "val_cyclones": [
+      "TAUKTAE_2021", "YAAS_2021", "SITRANG_2022"
+    ],
+    "test_cyclones": [
+      "KYARR_2019", "BIPARJOY_2023", "ASANI_2022", "UNNAMED_2021_DD"
+    ]
+  },
+  "sample_counts": {
+    "train_samples": 1500,
+    "val_samples": 280,
+    "test_samples": 340,
+    "total_samples": 2120
+  },
+  "leakage_checks": {
+    "cyclone_overlap_between_train_and_val": 0,
+    "cyclone_overlap_between_train_and_test": 0,
+    "cyclone_overlap_between_val_and_test": 0,
+    "test_data_accessed_during_training": false
+  },
+  "split_safety_verdict": "PASS (Zero storm leakage, fully disjoint held-out test cyclones)"
+}

@@ -1,0 +1,43 @@
+{
+  "phase": "P2_PHASE3_FINAL",
+  "timestamp": "2026-09-01T10:28:00Z",
+  "experiment_name": "Controlled Physics-Informed Multi-Task Loss Training",
+  "configurations_evaluated": ["E0_baseline (lambda=0.0)", "E1_weak_phys (lambda=0.01)", "E2_mod_phys (lambda=0.05)"],
+  "cv_selection_verdict": {
+    "selected_cv_candidate": "E2_lambda_005",
+    "cv_category_macro_f1_delta": 0.0080,
+    "cv_pattern_macro_f1_delta": 0.0,
+    "cv_significance": "WITHIN_NOISE_FLOOR (delta 0.0080 vs sigma 0.0572)"
+  },
+  "final_held_out_test_comparison": {
+    "E0_baseline": {
+      "pattern_accuracy": 0.7142857142857143,
+      "pattern_macro_f1": 0.3697478991596639,
+      "pattern_weighted_f1": 0.6306522609043617,
+      "category_accuracy": 0.3333333333333333,
+      "category_macro_f1": 0.1465378421900161,
+      "category_weighted_f1": 0.23050379572118704,
+      "physical_consistency_rate": 0.19047619047619047
+    },
+    "E2_candidate_lambda_005": {
+      "pattern_accuracy": 0.6666666666666666,
+      "pattern_macro_f1": 0.26666666666666666,
+      "pattern_weighted_f1": 0.5333333333333333,
+      "category_accuracy": 0.19047619047619047,
+      "category_macro_f1": 0.05333333333333334,
+      "category_weighted_f1": 0.0761904761904762,
+      "physical_consistency_rate": 0.047619047619047616
+    },
+    "test_deltas": {
+      "pattern_accuracy_delta": -0.04761904761904767,
+      "pattern_macro_f1_delta": -0.10308123249299723,
+      "category_accuracy_delta": -0.14285714285714285,
+      "category_macro_f1_delta": -0.09320450885668276,
+      "physical_consistency_delta": -0.14285714285714285
+    }
+  },
+  "final_decision": "PHASE1_RETAINED",
+  "champion_model": "P2_BASELINE_LOCKED",
+  "champion_weights": "models/detection/model_weights.pt",
+  "scientific_conclusion": "Explicit Dvorak consistency regularization during multi-task training provided a marginal within-noise improvement on cross-validation (+0.0080 macro-F1) but failed to generalize on held-out test data (regressing by -0.0932 macro-F1). The 133-image sample size and severe class imbalance fundamentally limit representation learning. Therefore, the locked P2 baseline is retained as the official champion."
+}

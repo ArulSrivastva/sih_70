@@ -1,0 +1,12 @@
+{
+  "speed_p33_kmh": 9.266256686127756,
+  "speed_p66_kmh": 13.46339111159555,
+  "turning_threshold_deg": 14.971545434470116,
+  "regime_distribution": {
+    "slow": 205,
+    "fast": 381,
+    "turning": 525,
+    "steady": 332
+  },
+  "definition": "slow: speed < p33 AND turning < threshold; fast: speed > p66 AND turning < threshold; turning: turning > threshold; steady: else"
+}

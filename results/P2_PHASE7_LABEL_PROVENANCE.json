@@ -1,0 +1,11 @@
+{
+  "audit_name": "P2_PHASE7_LABEL_PROVENANCE",
+  "timestamp": "2026-09-01T11:50:00Z",
+  "intensity_label_source": "AUTHORITATIVE_BEST_TRACK_VMAX",
+  "intensity_labels_independently_sourced_pct": 100.0,
+  "structural_pattern_label_source": "DERIVED_RULE",
+  "pattern_ground_truth_status": "NOT_INDEPENDENTLY_ANNOTATED",
+  "structural_labels_independently_annotated_pct": 0.0,
+  "cnn_predictions_as_labels": false,
+  "scientific_disclosure": "Structural pattern labels are explicitly documented as rule-derived from meteorological intensity thresholds and must not be misrepresented as human Dvorak annotations."
+}

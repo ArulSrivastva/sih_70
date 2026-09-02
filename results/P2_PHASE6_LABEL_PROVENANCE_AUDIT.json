@@ -1,0 +1,21 @@
+{
+  "audit_name": "P2_PHASE6_LABEL_PROVENANCE_AUDIT",
+  "timestamp": "2026-09-01T11:35:00Z",
+  "total_records": 2120,
+  "label_classification": {
+    "intensity_category": {
+      "provenance_class": "Class A / Class C (Independently Observed / Official IMD Best Track Metadata)",
+      "source_column": "wind_speed_kmh / category in data/metadata/ibtracs_clean.csv",
+      "model_circularity": false,
+      "risk_level": "ZERO"
+    },
+    "structural_pattern": {
+      "provenance_class": "Class D (Derived from Meteorological Wind Speed Thresholds / Dvorak Cloud Morphology Rules)",
+      "mapping_rule": "eye_visible if wind >= 120 km/h; curved_band if 65 <= wind < 120 km/h; shear_pattern if wind < 65 km/h",
+      "model_circularity": false,
+      "risk_level": "MODERATE_CAVEAT (Physical rule mapping correlates pattern with intensity and pixel brightness)"
+    }
+  },
+  "cnn_predictions_as_ground_truth": false,
+  "provenance_audit_verdict": "VERIFIED_WITH_EXPLICIT_PROVENANCE_DISTINCTIONS"
+}

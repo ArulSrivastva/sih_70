@@ -1,0 +1,34 @@
+{
+  "audit_name": "P2_PHASE12_SPLIT_AUDIT",
+  "timestamp": "2026-09-01T18:58:00Z",
+  "train_cyclones": [
+    "AMPHAN_2020",
+    "BULBUL_2019",
+    "FANI_2019",
+    "FENGAL_2024",
+    "GAJA_2018",
+    "GULAB_2021",
+    "HUDHUD_2014",
+    "JAWAD_2021",
+    "TITLI_2018",
+    "UNNAMED_2018_DD",
+    "UNNAMED_2019_D"
+  ],
+  "val_cyclones": [
+    "SITRANG_2022",
+    "TAUKTAE_2021",
+    "YAAS_2021"
+  ],
+  "test_cyclones": [
+    "ASANI_2022",
+    "BIPARJOY_2023",
+    "KYARR_2019",
+    "UNNAMED_2021_DD"
+  ],
+  "disjointness_proof": {
+    "tr_val": 0,
+    "tr_te": 0,
+    "va_te": 0
+  },
+  "status": "PASS_STRICTLY_DISJOINT"
+}

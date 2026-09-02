@@ -1,0 +1,63 @@
+{
+  "schema": "integration_qa v1",
+  "integration_qa_report": true,
+  "pre_snapshot": "C:\\Users\\aruls\\Desktop\\SIH26\\ps70\\cyclone-project\\p4_forecasting\\integration_api\\results\\pre_audit_snapshot.json",
+  "pre_n_files": 426,
+  "post_n_files": 435,
+  "files_changed_total": 17,
+  "files_added": [
+    "cyclone-dashboard/src/components/ProvenancePanel.jsx",
+    "p4_forecasting/integration_api/results/api_audit_battery.json",
+    "p4_forecasting/integration_api/results/determinism.json",
+    "p4_forecasting/integration_api/results/e2e_trace.json",
+    "p4_forecasting/integration_api/results/model_identity.json",
+    "p4_forecasting/integration_api/results/offline_proof.json",
+    "p4_forecasting/integration_api/results/performance.json",
+    "p4_forecasting/integration_api/results/pre_audit_snapshot.json",
+    "p4_forecasting/integration_api/results/security_audit.json"
+  ],
+  "files_removed": [],
+  "files_modified": [
+    "cyclone-dashboard/src/App.jsx",
+    "cyclone-dashboard/src/components/Header.jsx",
+    "cyclone-dashboard/src/components/LandfallPanel.jsx",
+    "cyclone-dashboard/src/components/LiveCycloneStatus.jsx",
+    "cyclone-dashboard/src/components/PipelineStatus.jsx",
+    "cyclone-dashboard/src/components/RiskIndicator.jsx",
+    "cyclone-dashboard/src/components/SatelliteViewer.jsx",
+    "cyclone-dashboard/src/components/map/MapView.jsx"
+  ],
+  "allowed_scope_changes": [
+    "cyclone-dashboard/src/App.jsx",
+    "cyclone-dashboard/src/components/Header.jsx",
+    "cyclone-dashboard/src/components/LandfallPanel.jsx",
+    "cyclone-dashboard/src/components/LiveCycloneStatus.jsx",
+    "cyclone-dashboard/src/components/PipelineStatus.jsx",
+    "cyclone-dashboard/src/components/ProvenancePanel.jsx",
+    "cyclone-dashboard/src/components/RiskIndicator.jsx",
+    "cyclone-dashboard/src/components/SatelliteViewer.jsx",
+    "cyclone-dashboard/src/components/map/MapView.jsx",
+    "p4_forecasting/integration_api/results/api_audit_battery.json",
+    "p4_forecasting/integration_api/results/determinism.json",
+    "p4_forecasting/integration_api/results/e2e_trace.json",
+    "p4_forecasting/integration_api/results/model_identity.json",
+    "p4_forecasting/integration_api/results/offline_proof.json",
+    "p4_forecasting/integration_api/results/performance.json",
+    "p4_forecasting/integration_api/results/pre_audit_snapshot.json",
+    "p4_forecasting/integration_api/results/security_audit.json"
+  ],
+  "forbidden_scope_changes": [],
+  "p1_p5_and_other_immutable": true,
+  "zip": {
+    "zip_file_unchanged": true,
+    "zip_member_all_unchanged": true,
+    "zip_members_now": {
+      "model_weights.pt": "c296aa21f3e105847878a67abe69390b4a0c566ff31011c08abf78154c2e1971",
+      "image_only_model.pt": "960e3b8a0321c28775ce29e400cc12139923302dc04d767dd278693418eac557",
+      "tabular_multisource_model.pkl": "2d75080230751e6c89161f9a1fd58f56387392790f179bba90d4c4a8f3a0ea9a",
+      "45(1).jpg": "ca9ae4b19f01e7cce9977bc6ea9deba2f368092765eae2c9bcd13ea6f6617132"
+    }
+  },
+  "status": "PASS",
+  "recorded_at": "2026-08-30T12:07:23.235547+00:00"
+}

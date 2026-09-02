@@ -1,0 +1,342 @@
+{
+  "recorded_at": "2026-08-29T11:46:50.436511+00:00",
+  "formula": "improvement % = (baseline - challenger)/|baseline| * 100",
+  "comparisons": [
+    {
+      "baseline": "persistence",
+      "horizon": "6h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 64.68608366488854,
+      "champion_value": 91.42888638974553,
+      "recomputed_pct": -41.3424359764926,
+      "recorded_pct": -41.3424359764926,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "6h",
+      "metric": "wind_mae",
+      "baseline_value": 3.1222219467163086,
+      "champion_value": 6.684532165527344,
+      "recomputed_pct": -114.09535515428601,
+      "recorded_pct": -114.09535515428601,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "6h",
+      "metric": "wind_rmse",
+      "baseline_value": 5.860171794891357,
+      "champion_value": 8.282137870788574,
+      "recomputed_pct": -41.3292674799838,
+      "recorded_pct": -41.3292674799838,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "12h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 123.93622341086457,
+      "champion_value": 119.7647010143308,
+      "recomputed_pct": 3.3658621198296794,
+      "recorded_pct": 3.3658621198296794,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "12h",
+      "metric": "wind_mae",
+      "baseline_value": 6.459090232849121,
+      "champion_value": 9.459010124206543,
+      "recomputed_pct": -46.44492928896814,
+      "recorded_pct": -46.44492928896814,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "12h",
+      "metric": "wind_rmse",
+      "baseline_value": 10.302885055541992,
+      "champion_value": 11.667283058166504,
+      "recomputed_pct": -13.242873188132801,
+      "recorded_pct": -13.242873188132801,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "24h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 227.32704718077517,
+      "champion_value": 188.23862416257154,
+      "recomputed_pct": 17.194796441058642,
+      "recorded_pct": 17.194796441058642,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "24h",
+      "metric": "wind_mae",
+      "baseline_value": 13.217677116394043,
+      "champion_value": 16.108442306518555,
+      "recomputed_pct": -21.87044792113329,
+      "recorded_pct": -21.87044792113329,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "24h",
+      "metric": "wind_rmse",
+      "baseline_value": 19.6561279296875,
+      "champion_value": 19.650104522705078,
+      "recomputed_pct": 0.03064391422343392,
+      "recorded_pct": 0.03064391422343392,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "6h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 38.05125581673144,
+      "champion_value": 91.42888638974553,
+      "recomputed_pct": -140.2782363612386,
+      "recorded_pct": -140.2782363612386,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "6h",
+      "metric": "wind_mae",
+      "baseline_value": 3.1222219467163086,
+      "champion_value": 6.684532165527344,
+      "recomputed_pct": -114.09535515428601,
+      "recorded_pct": -114.09535515428601,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "6h",
+      "metric": "wind_rmse",
+      "baseline_value": 5.860171794891357,
+      "champion_value": 8.282137870788574,
+      "recomputed_pct": -41.3292674799838,
+      "recorded_pct": -41.3292674799838,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "12h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 80.50450892597567,
+      "champion_value": 119.7647010143308,
+      "recomputed_pct": -48.767693402682674,
+      "recorded_pct": -48.767693402682674,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "12h",
+      "metric": "wind_mae",
+      "baseline_value": 6.459090232849121,
+      "champion_value": 9.459010124206543,
+      "recomputed_pct": -46.44492928896814,
+      "recorded_pct": -46.44492928896814,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "12h",
+      "metric": "wind_rmse",
+      "baseline_value": 10.302885055541992,
+      "champion_value": 11.667283058166504,
+      "recomputed_pct": -13.242873188132801,
+      "recorded_pct": -13.242873188132801,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "24h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 180.66053963358797,
+      "champion_value": 188.23862416257154,
+      "recomputed_pct": -4.194653987170238,
+      "recorded_pct": -4.194653987170238,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "24h",
+      "metric": "wind_mae",
+      "baseline_value": 13.217677116394043,
+      "champion_value": 16.108442306518555,
+      "recomputed_pct": -21.87044792113329,
+      "recorded_pct": -21.87044792113329,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "24h",
+      "metric": "wind_rmse",
+      "baseline_value": 19.6561279296875,
+      "champion_value": 19.650104522705078,
+      "recomputed_pct": 0.03064391422343392,
+      "recorded_pct": 0.03064391422343392,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "6h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 130.01842224457408,
+      "champion_value": 91.42888638974553,
+      "recomputed_pct": 29.680052402296376,
+      "recorded_pct": 29.680052402296376,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "6h",
+      "metric": "wind_mae",
+      "baseline_value": 6.711225509643555,
+      "champion_value": 6.684532165527344,
+      "recomputed_pct": 0.39774172508217015,
+      "recorded_pct": 0.39774172508217015,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "6h",
+      "metric": "wind_rmse",
+      "baseline_value": 8.390929222106934,
+      "champion_value": 8.282137870788574,
+      "recomputed_pct": 1.2965352041313278,
+      "recorded_pct": 1.2965352041313278,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "12h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 180.00013973581608,
+      "champion_value": 119.7647010143308,
+      "recomputed_pct": 33.46410664452376,
+      "recorded_pct": 33.46410664452376,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "12h",
+      "metric": "wind_mae",
+      "baseline_value": 10.811490058898926,
+      "champion_value": 9.459010124206543,
+      "recomputed_pct": 12.50965340877466,
+      "recorded_pct": 12.50965340877466,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "12h",
+      "metric": "wind_rmse",
+      "baseline_value": 13.414990425109863,
+      "champion_value": 11.667283058166504,
+      "recomputed_pct": 13.028017997478717,
+      "recorded_pct": 13.028017997478717,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "24h",
+      "metric": "track_error_km_mean",
+      "baseline_value": 267.5409400832969,
+      "champion_value": 188.23862416257154,
+      "recomputed_pct": 29.641189081579505,
+      "recorded_pct": 29.641189081579505,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "24h",
+      "metric": "wind_mae",
+      "baseline_value": 16.946611404418945,
+      "champion_value": 16.108442306518555,
+      "recomputed_pct": 4.945939208128843,
+      "recorded_pct": 4.945939208128843,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "24h",
+      "metric": "wind_rmse",
+      "baseline_value": 21.654523849487305,
+      "champion_value": 19.650104522705078,
+      "recomputed_pct": 9.256353733354814,
+      "recorded_pct": 9.256353733354814,
+      "match": true
+    }
+  ],
+  "max_recorded_recomputed_abs_diff": 0.0,
+  "raw_source_checks": [
+    {
+      "baseline": "persistence",
+      "horizon": "6h",
+      "raw_file_value": 64.68608366488854,
+      "recorded_value": 64.68608366488854,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "12h",
+      "raw_file_value": 123.93622341086457,
+      "recorded_value": 123.93622341086457,
+      "match": true
+    },
+    {
+      "baseline": "persistence",
+      "horizon": "24h",
+      "raw_file_value": 227.32704718077517,
+      "recorded_value": 227.32704718077517,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "6h",
+      "raw_file_value": 38.05125581673144,
+      "recorded_value": 38.05125581673144,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "12h",
+      "raw_file_value": 80.50450892597567,
+      "recorded_value": 80.50450892597567,
+      "match": true
+    },
+    {
+      "baseline": "movement_vector",
+      "horizon": "24h",
+      "raw_file_value": 180.66053963358797,
+      "recorded_value": 180.66053963358797,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "6h",
+      "raw_file_value": 130.01842224457408,
+      "recorded_value": 130.01842224457408,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "12h",
+      "raw_file_value": 180.00013973581608,
+      "recorded_value": 180.00013973581608,
+      "match": true
+    },
+    {
+      "baseline": "phase3_lstm",
+      "horizon": "24h",
+      "raw_file_value": 267.5409400832969,
+      "recorded_value": 267.5409400832969,
+      "match": true
+    }
+  ]
+}

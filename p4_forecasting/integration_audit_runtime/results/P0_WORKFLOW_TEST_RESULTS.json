@@ -1,0 +1,109 @@
+{
+  "schema": "p0_workflow_test_results v1",
+  "title": "P0 workflow closure tests — user-image ingestion (POST /api/image, Option A) + history editor (POST /api/analyze)",
+  "date": "2026-08-30",
+  "environment": {
+    "python": "3.13.7",
+    "torch": "2.6.0+cu124 (CPU)",
+    "pytest": "9.1.1",
+    "node": "v24.12.0",
+    "vite": "8.2.2",
+    "lightgbm": "NOT installed (P3 tabular stays NOT_RUN, honestly reported)"
+  },
+
+  "backend_test_summary": {
+    "command": "pytest integration_api (whole suite)",
+    "total_passed": 44,
+    "baseline_passed": 25,
+    "new_tests_added": 19,
+    "new_tests_passed": 19,
+    "new_tests_failed": 0,
+    "regression_failed": 0
+  },
+  "phase6_regression": {
+    "command": "pytest phase6 (whole suite)",
+    "total_passed": 67,
+    "total_failed": 0,
+    "note": "No regression from adding POST /api/image."
+  },
+
+  "image_upload_battery": [
+    {"case": "valid PNG upload (real artifact frame)", "status": 200, "code": null, "result": "PASS", "checks": ["detection+classification present", "detection.location=null", "movement=null", "satellite.boundingBox=null", "provenance.image_source=USER-UPLOADED IMAGE"]},
+    {"case": "valid JPEG upload", "status": 200, "code": null, "result": "PASS"},
+    {"case": "missing image file", "status": 422, "code": "MISSING_FEATURE", "result": "PASS"},
+    {"case": "bad MIME (text/plain)", "status": 422, "code": "INVALID_REQUEST", "result": "PASS"},
+    {"case": "corrupt image bytes", "status": 422, "code": "INVALID_REQUEST", "result": "PASS"},
+    {"case": "oversized (>5 MiB)", "status": "413/422", "code": "INVALID_REQUEST", "result": "PASS"},
+    {"case": "ZIP archive masquerading as .png", "status": 422, "code": "INVALID_REQUEST", "result": "PASS"},
+    {"case": "path-traversal filename ..\\..\\etc\\passwd.png", "status": 200, "code": null, "result": "PASS", "checks": ["source='passwd.png' (basename only, never a filesystem path)"]},
+    {"case": "absolute/relative path filename", "status": 200, "code": null, "result": "PASS", "checks": ["source=basename only"]},
+    {"case": "offline (socket.connect/sendall patched to raise)", "status": 200, "code": null, "result": "PASS", "checks": ["no network attempted; inference succeeds"]},
+    {"case": "no stack trace / no filesystem path leak on error", "status": 422, "code": "INVALID_REQUEST", "result": "PASS", "checks": ["no 'Traceback'/'Exception' in response"]},
+    {"case": "real artifact frame -> detection + classification are real model output", "status": 200, "code": null, "result": "PASS", "checks": ["category in validated IMD set", "confidence is int"]}
+  ],
+
+  "custom_history_battery": [
+    {"case": "valid 5x6h custom history -> /api/analyze", "status": 200, "result": "PASS", "checks": ["forecast[3] hours [6,12,24]", "P4 driven from submitted history"]},
+    {"case": "wrong count (3 obs)", "status": 422, "code": "INVALID_HISTORY_LENGTH", "result": "PASS"},
+    {"case": "non-monotonic timestamps", "status": 422, "code": "NON_MONOTONIC_HISTORY", "result": "PASS"},
+    {"case": "invalid latitude (200)", "status": 422, "code": "INVALID_LATITUDE", "result": "PASS"},
+    {"case": "invalid wind (-5)", "status": 422, "code": "INVALID_WIND", "result": "PASS"},
+    {"case": "non-finite sst ('nan')", "status": 422, "code": "NON_FINITE_VALUE", "result": "PASS"},
+    {"case": "extra field in an observation", "status": 422, "code": "INVALID_REQUEST", "result": "PASS"},
+    {"case": "provenance distinguishes reference frame (analyze) from user image (image)", "status": 200, "result": "PASS", "checks": ["/api/analyze has no USER-UPLOADED image_source label", "rises USER image has image_source=USER-UPLOADED IMAGE"]}
+  ],
+
+  "live_http_e2e": {
+    "server": "uvicorn integration_api.app:app on 127.0.0.1:8011",
+    "image_request": {"endpoint": "POST /api/image", "upload": "real PNG", "result": "200 success"},
+    "image_response_observed": {
+      "detection.detected": false,
+      "detection.confidence": 44,
+      "detection.location": null,
+      "classification.category": "Cyclonic Storm",
+      "classification.confidence": 51,
+      "satellite.boundingBox": null,
+      "satellite.source": "user_sat.png",
+      "provenance.image_source": "USER-UPLOADED IMAGE",
+      "tabular.available": false
+    },
+    "analyze_request": {"endpoint": "POST /api/analyze", "history": "user-supplied 5x6h demo history", "result": "200 success"},
+    "analyze_response_observed": {
+      "status": "success",
+      "forecast_hours": [6, 12, 24],
+      "provenance.reference_image": "present (.jpg)",
+      "provenance.image_source": "absent (reference-frame path, correctly distinct from user image)"
+    },
+    "server_terminated": true
+  },
+
+  "frontend_verification": {
+    "lint": "npm run lint (oxlint) — PASS (exit 0; only pre-existing unused-param style warnings, no errors)",
+    "build": "npm run build (vite) — PASS (653 modules transformed)",
+    "changes": [
+      "src/api/client.js: uploadSatelliteImage(file) -> POST /api/image; fetchDetect/Classify/Forecast/analyze accept optional (history, meta)",
+      "src/components/SatelliteViewer.jsx: real backend upload with selected/uploading/done/failed states; honest USER image vs REFERENCE FRAME labelling",
+      "src/components/HistoryEditor.jsx (new): 5x6h editable table, client validation, reset, analyze-with-this-history",
+      "src/App.jsx: renders HistoryEditor; onImageResult surfaces user-image provenance; footer updated",
+      "src/components/ProvenancePanel.jsx: optional title + renders image_source when reference_image absent"
+    ]
+  },
+
+  "honesty_checks_after_implementation": {
+    "user_image_not_live": "PASS (labelled USER IMAGE, reference frame remains default)",
+    "no_fabricated_geography": "PASS (location/movement/boundingBox null for image)",
+    "no_unsupported_forecast_for_image": "PASS (no forecast/landfall/risk for /api/image alone; stated in notes)",
+    "p3_wind_regressor_not_exposed": "PASS",
+    "tabular_not_run_preserved": "PASS",
+    "weak_model_caveat_retained": "PASS",
+    "history_server_revalidated": "PASS (phase-6 rules; 422 on invalid)"
+  },
+
+  "verdict": "P0_WORKFLOW_COMPLETE",
+  "notes": [
+    "User-uploaded satellite images now reach P2/P3 backend inference via a new secure POST /api/image endpoint (Option A).",
+    "The HistoryEditor lets users supply a validated 5x6h history instead of being locked to DEMO_HISTORY; POST /api/analyze contract is unchanged and server-revalidated.",
+    "No models were retrained, no P1-P5/phase6/datasets/models source changed, no new network dependencies, no fabricated metrics.",
+    "P2/P3 remain weak real-model outputs (kept caveated); P3 tabular stays NOT_RUN; landfall/risk stay labelled HEURISTIC (NOT ML); forecast cone stays ILLUSTRATIVE; dashboard stays a research prototype."
+  ]
+}
