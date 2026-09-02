@@ -110,10 +110,10 @@ export default function App() {
           </div>
         )}
 
-        {/* Section 1: Live Status Alert Banner */}
+        {/* Live system status */}
         <LiveCycloneStatus data={data} loading={loading} />
 
-        {/* Section 1.5: Unified Analysis & System Health Panel */}
+        {/* Unified analysis panel */}
         <UnifiedAnalysisPanel
           data={data}
           loading={loading}
@@ -121,10 +121,10 @@ export default function App() {
           backendOffline={backendOffline}
         />
 
-        {/* Layout Grid */}
+        {/* Dashboard main grid */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           
-          {/* Main Content Columns (Left & Center, Spans 2 cols on Large Screens) */}
+          {/* Spatial tracking column */}
           <div className="xl:col-span-2 space-y-6">
             <MapView data={data} loading={loading} />
             <SatelliteViewer
@@ -138,7 +138,7 @@ export default function App() {
             <ChartsPanel data={data} loading={loading} />
           </div>
 
-          {/* Right Sidebar Columns (Spans 1 col on Large Screens) */}
+          {/* Forecast sidebar */}
           <div className="space-y-6">
             <ForecastCard forecast={data?.forecast} loading={loading} />
             <ForecastMotionCard detection={data?.detection} forecast={data?.forecast} loading={loading} />
@@ -152,10 +152,10 @@ export default function App() {
 
         </div>
 
-        {/* Full provenance from the backend (honesty notes, sources, reference
-            frame). Previously computed server-side but never shown. */}
+        {/* Model provenance disclosures */}
         <ProvenancePanel provenance={data?.provenance} loading={loading} />
 
+        {/* User image provenance */}
         {imageResult && (
           <ProvenancePanel
             title="User Image Analysis Provenance"
@@ -175,14 +175,7 @@ export default function App() {
       <footer className="max-w-[1400px] mx-auto px-6 py-8 text-[11.5px] text-ink-faint border-t border-border mt-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <span>
-            VARTHA is a research prototype, not an operational weather service.
-            An uploaded image is analyzed by P2 detection + P3 classification on
-            those bytes; without a 5-observation history it yields no forecast,
-            landfall or risk. Otherwise detection/classification run on the fixed
-            INSAT-3D reference frame; the input cyclone history is demonstration
-            data or user-edited history; the forecast is the audited EXP005 (GRU)
-            model; landfall and risk are server-side heuristics. Not an official
-            IMD warning.
+            VARTHA Cyclone Intelligence System · Experimental research prototype for SIH 2026. Real-time inference across satellite vision, multi-source atmospheric classification, and recurrent trajectory forecasting.
           </span>
           <span className="font-mono text-[10px] text-accent-strong bg-accent-soft/30 px-2 py-0.5 rounded">
             SIH 2026 Forecaster UI Handoff

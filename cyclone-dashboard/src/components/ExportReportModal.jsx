@@ -107,7 +107,7 @@ export default function ExportReportModal({ data, isOpen, onClose }) {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="bg-card border border-border/60 rounded-xl p-3 space-y-1">
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-ink-faint block">P2 Detection</span>
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-ink-faint block">Satellite Detection</span>
                 <div className="font-bold text-[13px]">
                   {data.detection?.detected ? "Cyclone Detected" : "No System"} ({data.detection?.confidence}%)
                 </div>
@@ -117,7 +117,7 @@ export default function ExportReportModal({ data, isOpen, onClose }) {
               </div>
 
               <div className="bg-card border border-border/60 rounded-xl p-3 space-y-1">
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-ink-faint block">P3 Intensity</span>
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-ink-faint block">Current Intensity</span>
                 <div className="font-bold text-[13px] text-accent-strong">
                   {data.classification?.windSpeedKmh} km/h
                 </div>
@@ -127,7 +127,7 @@ export default function ExportReportModal({ data, isOpen, onClose }) {
               </div>
 
               <div className="bg-card border border-border/60 rounded-xl p-3 space-y-1">
-                <span className="text-[9.5px] font-bold uppercase tracking-wider text-ink-faint block">P4 +24h Forecast</span>
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-ink-faint block">24-Hour Forecast</span>
                 <div className="font-bold text-[13px]">
                   {data.forecast?.[data.forecast.length - 1]?.lat.toFixed(2)}°N, {data.forecast?.[data.forecast.length - 1]?.lon.toFixed(2)}°E
                 </div>

@@ -2,11 +2,11 @@ import CardShell, { Stat, CardSkeleton } from './CardShell';
 
 export default function DetectionCard({ detection, loading }){
   if(loading || !detection){
-    return <CardShell eyebrow="Stage 01 — Detection" title="Cyclone Detection"><CardSkeleton/></CardShell>;
+    return <CardShell eyebrow="Satellite Detection" title="Cyclone Detection"><CardSkeleton/></CardShell>;
   }
   const { detected, confidence, location } = detection;
   return (
-    <CardShell eyebrow="Stage 01 — Detection" title="Cyclone Detection">
+    <CardShell eyebrow="Satellite Detection" title="Cyclone Detection">
       <div className="flex items-center gap-2 mb-4">
         <span className={`inline-block w-2 h-2 rounded-full ${detected ? 'bg-risk-high' : 'bg-risk-low'} pulse-dot`} />
         <span className="text-sm font-semibold text-ink">{detected ? 'Cyclone Detected' : 'No System Detected'}</span>

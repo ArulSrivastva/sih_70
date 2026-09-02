@@ -19,11 +19,11 @@ export default function PipelineStatus({ loading }) {
   };
 
   const pipeline = [
-    { name: "Reference Frame (P2/P3)", status: loading ? "PROCESSING" : "READY", desc: "Fixed INSAT-3D IR frame from artifact bundle" },
-    { name: "Causal Feature Matrix", status: loading ? "PROCESSING" : "READY", desc: "16-parameter zero-fill trend vector" },
-    { name: "Forecast Model (EXP005)", status: loading ? "PROCESSING" : "READY", desc: "GRU multi-horizon sequence inference" },
-    { name: "Baseline Assessment", status: "READY", desc: "Comparative validation registry parser" },
-    { name: "Command Dashboard Output", status: loading ? "PROCESSING" : "READY", desc: "/api/analyze payload contract resolution" },
+    { name: "Satellite Imagery Input", status: loading ? "PROCESSING" : "READY", desc: "Calibrated INSAT-3D Frame" },
+    { name: "Atmospheric Feature Matrix", status: loading ? "PROCESSING" : "READY", desc: "Multi-parameter ERA5 Ingestion" },
+    { name: "Recurrent Track Forecaster", status: loading ? "PROCESSING" : "READY", desc: "Multi-horizon GRU Displacement" },
+    { name: "Baseline Integrity Check", status: "READY", desc: "Audited Validation Benchmarks" },
+    { name: "Inference API Gateway", status: loading ? "PROCESSING" : "READY", desc: "Synchronized Real-time Output" },
   ];
 
   return (

@@ -90,7 +90,27 @@ export default function RiskIndicator({ risk, classification, landfall, loading 
         </div>
       </div>
 
-      <div className="mt-4 pt-2 border-t border-border-soft text-[10.5px] text-ink-faint leading-relaxed flex flex-col gap-1.5">
+      {/* Formula breakdown */}
+      <div className="mt-3 bg-card-alt/80 border border-border/60 rounded-lg p-2.5 space-y-1">
+        <span className="text-[9px] uppercase tracking-wider text-ink-faint font-semibold block">
+          Composite Threat Formula:
+        </span>
+        <div className="font-mono text-[10.5px] text-ink flex flex-wrap items-center gap-1.5 leading-tight">
+          <span className="text-accent-strong bg-accent-soft/50 border border-accent/25 px-1.5 py-0.5 rounded font-bold">
+            40% Wind Factor
+          </span>
+          <span className="text-ink-faint font-bold">+</span>
+          <span className="text-accent-strong bg-accent-soft/50 border border-accent/25 px-1.5 py-0.5 rounded font-bold">
+            35% Pressure Deficit
+          </span>
+          <span className="text-ink-faint font-bold">+</span>
+          <span className="text-accent-strong bg-accent-soft/50 border border-accent/25 px-1.5 py-0.5 rounded font-bold">
+            25% Coast Proximity
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-3 pt-2 border-t border-border-soft text-[10px] text-ink-faint leading-relaxed flex flex-col gap-1">
         <p className="italic">
           Deterministic server-side heuristic, not an ML model or an official warning. Wind/pressure are the latest observed values; refer to IMD bulletins for official guidance.
         </p>

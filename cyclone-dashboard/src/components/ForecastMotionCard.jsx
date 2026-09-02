@@ -43,7 +43,7 @@ function compassDirection(deg) {
 export default function ForecastMotionCard({ detection, forecast, loading }) {
   if (loading || !forecast || !detection) {
     return (
-      <CardShell eyebrow="P4 Kinematics" title="Forecast Motion &amp; Track Bearing">
+      <CardShell eyebrow="Track Kinematics" title="Forecast Motion &amp; Track Bearing">
         <div className="h-32 animate-pulse bg-card-alt rounded-lg" />
       </CardShell>
     );
@@ -93,7 +93,7 @@ export default function ForecastMotionCard({ detection, forecast, loading }) {
   const netSpeed = lastPt.hour > 0 ? netDist / lastPt.hour : 0;
 
   return (
-    <CardShell eyebrow="P4 Kinematics" title="Forecast Motion &amp; Track Bearing">
+    <CardShell eyebrow="Track Kinematics" title="Forecast Motion &amp; Track Bearing">
       <div className="space-y-3 text-[11.5px]">
         {/* Table of intervals */}
         <div className="overflow-x-auto">

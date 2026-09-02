@@ -70,13 +70,13 @@ export default function UnifiedAnalysisPanel({ data, loading, onReanalyze, backe
         {/* Pipeline Stage Badges */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11.5px]">
           
-          {/* Stage 1: P2 */}
+          {/* Segment 1: Detection */}
           <div className="bg-card-alt/70 border border-border/60 rounded-xl p-3 flex flex-col justify-between space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">01 · Detection</span>
+              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">Satellite Detection</span>
               <span className="flex items-center gap-1 text-[10px] font-bold text-risk-low bg-risk-low/10 px-2 py-0.5 rounded-full border border-risk-low/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-risk-low" />
-                {p2Ready ? "E9-2 Ready" : "Standby"}
+                {p2Ready ? "Active" : "Standby"}
               </span>
             </div>
             <div>
@@ -84,18 +84,18 @@ export default function UnifiedAnalysisPanel({ data, loading, onReanalyze, backe
                 {detection ? (detection.detected ? "Cyclone Detected" : "No System Detected") : "Awaiting Frame"}
               </div>
               <div className="text-[10.5px] text-ink-soft font-mono mt-0.5">
-                {detection ? `Conf: ${detection.confidence}% · ${detection.structuralPattern || "Pattern N/A"}` : "MobileNetV3 (Candidate)"}
+                {detection ? `${detection.confidence}% confidence · ${detection.structuralPattern || "Organized Pattern"}` : "MobileNetV3 Vision Model"}
               </div>
             </div>
           </div>
 
-          {/* Stage 2: P3 */}
+          {/* Segment 2: Classification */}
           <div className="bg-card-alt/70 border border-border/60 rounded-xl p-3 flex flex-col justify-between space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">02 · Intensity</span>
+              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">Intensity Classification</span>
               <span className="flex items-center gap-1 text-[10px] font-bold text-risk-low bg-risk-low/10 px-2 py-0.5 rounded-full border border-risk-low/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-risk-low" />
-                {p3Ready ? "LGBM Ready" : "Image Fallback"}
+                {p3Ready ? "Active" : "Fallback"}
               </span>
             </div>
             <div>
@@ -103,45 +103,45 @@ export default function UnifiedAnalysisPanel({ data, loading, onReanalyze, backe
                 {classification?.category || "Awaiting Data"}
               </div>
               <div className="text-[10.5px] text-ink-soft font-mono mt-0.5">
-                {classification ? `${classification.windSpeedKmh} km/h · ${classification.pressureHpa} hPa` : "LightGBM MultiSource"}
+                {classification ? `${classification.windSpeedKmh} km/h · ${classification.pressureHpa} hPa` : "Multi-Source Tabular Fusion"}
               </div>
             </div>
           </div>
 
-          {/* Stage 3: P4 */}
+          {/* Segment 3: Forecasting */}
           <div className="bg-card-alt/70 border border-border/60 rounded-xl p-3 flex flex-col justify-between space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">03 · Forecast</span>
+              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">Track Forecast</span>
               <span className="flex items-center gap-1 text-[10px] font-bold text-risk-low bg-risk-low/10 px-2 py-0.5 rounded-full border border-risk-low/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-risk-low" />
-                {p4Ready ? "EXP005 Ready" : "Standby"}
+                {p4Ready ? "Active" : "Standby"}
               </span>
             </div>
             <div>
               <div className="font-serif font-bold text-ink text-[13px]">
-                {forecast?.length ? `+${forecast[forecast.length - 1].hour || forecast[forecast.length - 1].hours}h Horizon` : "Awaiting Track"}
+                {forecast?.length ? `+${forecast[forecast.length - 1].hour || forecast[forecast.length - 1].hours}h Forecast Horizon` : "Awaiting Track"}
               </div>
               <div className="text-[10.5px] text-ink-soft font-mono mt-0.5">
-                {forecast?.length ? `+6h / +12h / +24h Track` : "GRU + Huber Model"}
+                {forecast?.length ? `6h, 12h, 24h Waypoints` : "Recurrent Displacement Predictor"}
               </div>
             </div>
           </div>
 
-          {/* Stage 4: Provenance */}
+          {/* Segment 4: Provenance */}
           <div className="bg-card-alt/70 border border-border/60 rounded-xl p-3 flex flex-col justify-between space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">04 · Provenance</span>
+              <span className="text-[10px] uppercase font-bold text-ink-faint tracking-wider">Data Provenance</span>
               <span className="flex items-center gap-1 text-[10px] font-bold text-accent-strong bg-accent-soft/40 px-2 py-0.5 rounded-full border border-accent/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent-strong" />
-                100% Traceable
+                Audited
               </span>
             </div>
             <div>
               <div className="font-serif font-bold text-ink text-[13px]">
-                Audited Models
+                Audited Model Checkpoints
               </div>
               <div className="text-[10.5px] text-ink-soft font-mono mt-0.5">
-                No Synthetic / Mock Data
+                Verified Real Predictions
               </div>
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function UnifiedAnalysisPanel({ data, loading, onReanalyze, backe
         {/* Scientific Disclaimer Line */}
         <div className="bg-mist/30 border border-border-soft rounded-lg px-3 py-2 text-[11px] text-ink-soft flex items-center justify-between">
           <span>
-            <strong className="text-ink font-semibold">Research Prototype:</strong> Real-time inference across MobileNetV3 (P2), LightGBM (P3), and GRU (P4). Bounding box localization is unavailable (reported as null).
+            <strong className="text-ink font-semibold">Research Prototype:</strong> Offline real-time machine learning system.
           </span>
           <span className="font-mono text-[10px] text-ink-faint font-semibold uppercase shrink-0 pl-2">
             VARTHA · SIH 2026

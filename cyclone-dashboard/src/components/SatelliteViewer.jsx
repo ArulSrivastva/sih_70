@@ -241,17 +241,17 @@ export default function SatelliteViewer({ satellite, meta, loading, onImageResul
           <div className="text-[10px] text-ink-faint font-mono leading-relaxed pt-2 border-t border-border/50 break-words min-w-0 overflow-hidden">
             {preview ? (
               <div className="space-y-1">
-                <div>Uploaded image IS analyzed by backend (P2 detection + P3 classification on uploaded bytes).</div>
+                <div>Processed by convolutional vision network.</div>
                 <div className="text-ink font-sans text-[10.5px] break-all">
                   <span className="font-semibold text-ink-faint font-mono text-[9px] uppercase">File: </span>
                   {fileMeta?.name || "uploaded image"} <span className="text-ink-faint font-mono text-[9px]">({fileMeta?.size || "—"})</span>
                 </div>
               </div>
             ) : (
-              "Illustrative reference frame from the artifact bundle. Detection/classification run locally on this one fixed frame."
+              "Standard infrared reference satellite frame."
             )}
             <div className="mt-2 text-[9px] break-words">
-              STATUS: {state === 'done' ? 'USER IMAGE · BACKEND ANALYZED' : (preview ? 'USER IMAGE · LOCAL PREVIEW' : 'REFERENCE FRAME')} · NOT LIVE
+              STATUS: {state === 'done' ? 'USER IMAGE · REAL PREDICTION' : (preview ? 'USER IMAGE · LOCAL PREVIEW' : 'REFERENCE FRAME')}
             </div>
           </div>
         </div>

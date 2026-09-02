@@ -2,12 +2,12 @@ import CardShell, { Stat, CardSkeleton } from './CardShell';
 
 export default function ClassificationCard({ classification, loading }){
   if(loading || !classification){
-    return <CardShell eyebrow="Stage 02 — Classification" title="Intensity Classification"><CardSkeleton/></CardShell>;
+    return <CardShell eyebrow="Intensity Classification" title="Intensity Classification"><CardSkeleton/></CardShell>;
   }
   const { category, scale, windSpeedKmh, pressureHpa, confidence, structuralPattern } = classification;
   return (
     <CardShell
-      eyebrow="Stage 02 — Classification"
+      eyebrow="Intensity Classification"
       title="Intensity Classification"
       right={structuralPattern && (
         <span className="text-[10.5px] font-semibold text-accent-strong bg-accent-soft border border-accent/25 rounded-full px-2.5 py-1">

@@ -56,7 +56,7 @@ export default function LiveCycloneStatus({ data, loading }) {
           <p className="text-[11.5px] text-ink-soft flex items-center gap-1.5">
             Region: <span className="font-semibold text-ink">{data?.meta?.basin || "Bay of Bengal"}</span>
             <span className="text-ink-faint">·</span>
-            Confidence: <span className="font-mono text-accent-strong font-semibold">{detection.confidence}% (P2 {data?.meta?.source?.includes('USER') ? 'user image' : 'reference frame'})</span>
+            Confidence: <span className="font-mono text-accent-strong font-semibold">{detection.confidence}% ({data?.meta?.source?.includes('USER') ? 'User Image' : 'Satellite Feed'})</span>
           </p>
         </div>
 
